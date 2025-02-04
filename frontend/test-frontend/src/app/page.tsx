@@ -89,6 +89,7 @@ export default function Home() {
           />
           Go to nextjs.org →
         </a>
+        <h1>Placeholder page for RECRUIT</h1>
       </footer>
     </div>
   );
