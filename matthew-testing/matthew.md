@@ -23,9 +23,10 @@ What I've accomplished:
 * I can route traffic from 319.leafcode.ca to the nextjs container
 
 Still to do:
-* Get an elasticIP (load balancer?)
+* Get an elasticIP (load balancer?) for frontend, backend, database
 * Route traffic from Nginx container to nextjs container
 * Run Nginx container on AWS
+* Secure our database
 
 Later to do:
-* Get DNS name, SSL certificate
+* Get SSL certificate
