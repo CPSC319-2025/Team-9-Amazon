@@ -20,13 +20,14 @@ What I've accomplished:
 * I can build a docker container that runs nginx
 * I can upload nextjs image to AWS ECR
 * I can run the nextjs container using AWS Fargate, and connect to it
-* I can route traffic from 319.leafcode.ca to the nextjs container
+* I can build express backend docker image, upload to AWS ECR, and deploy it to AWS Fargate
+* I can route traffic from dev.amazonpleaserecruit.me to our frontend and backend
+* I spun up MySQL database using AWS RDS, which can be accessed through db.dev.amazonpleaserecruit.me. We will use password authentication for now
 
 Still to do:
-* Get an elasticIP (load balancer?) for frontend, backend, database
+* Get an elasticIP (load balancer?) for frontend, backend
 * Route traffic from Nginx container to nextjs container
 * Run Nginx container on AWS
-* Secure our database
 
 Later to do:
 * Get SSL certificate
