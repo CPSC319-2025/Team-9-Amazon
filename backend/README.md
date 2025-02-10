@@ -1,7 +1,7 @@
 # RECRUITE Backend
 
-## Docker
-Build the image:
+## Docker Instructions
+Build:
 ```bash
 docker build -t backend-app .   
 ```
