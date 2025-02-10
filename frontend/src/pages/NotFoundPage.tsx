@@ -1,11 +1,11 @@
 // import { Link } from "react-router";
 
-const LoginPage = () => {
+const NotFoundPage = () => {
     return (
       <div>
-        <h1>Login Page</h1>
+        <h1>404 Not Found</h1>
       </div>
     );
   };
   
-  export default LoginPage;
+  export default NotFoundPage;

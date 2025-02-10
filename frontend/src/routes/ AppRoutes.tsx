@@ -3,11 +3,7 @@ import HomePage from "../pages/HomePage"
 import ProtectedRoute from "./ProtectedRoute";
 import HiringManagerDashBoardPage from "../pages/HiringManagerDashBoardPage";
 import LoginPage from "../pages/LoginPage";
-// import AboutPage from "../pages/AboutPage";
-// import NotFoundPage from "../pages/NotFoundPage";
-// import DashboardLayout from "../layouts/DashboardLayout";
-// import DashboardHome from "../pages/DashboardHome";
-// import ProfilePage from "../pages/ProfilePage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 const AppRoutes = () => {
     return (
@@ -15,6 +11,8 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
+
+
 
 
                 <Route
@@ -25,6 +23,8 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     }
                 />
+
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </BrowserRouter>
     );
