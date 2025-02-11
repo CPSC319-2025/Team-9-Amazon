@@ -1,0 +1,62 @@
+import { CSSObject } from "@emotion/react";
+
+export const colors = {
+  blue1: "#146eb4",
+  gray1: "#f2f2f2",
+  black1: "#232f3e",
+  orange1: "#ff9900",
+  black: "#000000",
+  white: "#ffffff",
+};
+
+export const textButtonStyle: CSSObject = {
+  textTransform: "none",
+  fontWeight: 600,
+  padding: "8px 16px",
+  "&:hover": {
+    backgroundColor: "transparent",
+    opacity: 0.8,
+  },
+};
+
+export const outlinedButtonStyle: CSSObject = {
+  textTransform: "none",
+  fontWeight: 600,
+  padding: "8px 24px",
+  borderWidth: "2px",
+  borderColor: colors.blue1,
+  color: colors.blue1,
+  "&:hover": {
+    borderWidth: "2px",
+    borderColor: colors.blue1,
+    backgroundColor: `${colors.blue1}10`,
+  },
+};
+
+export const filledButtonStyle: CSSObject = {
+  textTransform: "none",
+  fontWeight: 600,
+  padding: "8px 24px",
+  backgroundColor: colors.blue1,
+  color: colors.white,
+  boxShadow: "none",
+  "&:hover": {
+    backgroundColor: colors.blue1,
+    opacity: 0.9,
+    boxShadow: "none",
+  },
+};
+
+export const cardStyle: CSSObject = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: colors.white,
+  borderRadius: "8px",
+  boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1)",
+  transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+  "&:hover": {
+    transform: "translateY(-2px)",
+    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+  },
+};
