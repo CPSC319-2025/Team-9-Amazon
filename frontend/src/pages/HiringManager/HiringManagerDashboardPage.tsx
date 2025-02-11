@@ -1,7 +1,7 @@
 import { PlusCircle, FileText } from "lucide-react";
 import { Typography, Box, Button, Container, Grid } from "@mui/material";
-import { textButtonStyle, colors } from "../styles/commonStyles";
-import { JobCard } from "../components/HiringManagerComponents";
+import { textButtonStyle, colors } from "../../styles/commonStyles";
+import { JobCard } from "../../components/HiringManagerComponents";
 
 const HiringManagerDashboardPage = () => {
   return (
