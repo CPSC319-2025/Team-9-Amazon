@@ -5,6 +5,12 @@ Install dependencies:
 ```bash
 npm install
 ```
+
+Create a .env file by copying the Env template:
+```bash
+cp .env.template .env
+```
+
 Run dev environment:
 ```bash
 npm run dev
