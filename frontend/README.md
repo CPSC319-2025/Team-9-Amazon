@@ -1,7 +1,16 @@
 # RECRUITE FRONTEND
 
+## Dev Set up
+Install dependencies:
+```bash
+npm install
+```
+Run dev environment:
+```bash
+npm run dev
+```
 
-## Docker Instructions
+## Docker (Deployment) Instructions
 You can build and run the development frontend with the following commands:
 
 Ensure you are in the directory `frontend/`

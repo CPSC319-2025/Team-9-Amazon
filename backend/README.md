@@ -1,6 +1,16 @@
 # RECRUITE Backend
 
-## Docker Instructions
+## Dev Set up
+Install dependencies:
+```bash
+npm install
+```
+Run dev environment:
+```bash
+npm run dev
+```
+
+## Docker (Deployment) Instructions
 Build:
 ```bash
 docker build -t backend-app .   
