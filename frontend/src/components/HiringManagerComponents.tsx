@@ -17,7 +17,7 @@ export const JobCard = () => {
           sx={{ color: colors.blue1, fontWeight: 600 }}
           gutterBottom
         >
-          Software Engineer
+          ML Compiler Software Engineer PEY Co-op (12-16 months), Annapurna ML
         </Typography>
         <Typography
           variant="body1"
@@ -34,7 +34,7 @@ export const JobCard = () => {
         }}
       >
         <Button sx={{ ...textButtonStyle, color: colors.orange1 }}>
-          REPORT
+          VIEW REPORT
         </Button>
       </CardActions>
     </Card>
