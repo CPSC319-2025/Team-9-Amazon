@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install --frozen-lockfile
 
-# opy the rest of the project and build
+# Copy the rest of the project and build
 COPY . .
 RUN npm run build
 
