@@ -1,13 +1,18 @@
 import {
-  Typography,
   Button,
   Card,
-  CardContent,
   CardActions,
+  CardContent,
+  Typography,
 } from "@mui/material";
-import { textButtonStyle, cardStyle, colors } from "../styles/commonStyles";
+import { cardStyle, colors, textButtonStyle } from "../../styles/commonStyles";
 
-export const JobCard = () => {
+interface JobCardProps {
+  title: string;
+  applicants: number;
+}
+
+export const JobCard = ({ title, applicants }: JobCardProps) => {
   return (
     <Card sx={cardStyle}>
       <CardContent>
@@ -17,13 +22,13 @@ export const JobCard = () => {
           sx={{ color: colors.blue1, fontWeight: 600 }}
           gutterBottom
         >
-          ML Compiler Software Engineer PEY Co-op (12-16 months), Annapurna ML
+          {title}
         </Typography>
         <Typography
           variant="body1"
-          sx={{ color: colors.black, fontWeight: 500 }}
+          sx={{ color: colors.black1, fontWeight: 500 }}
         >
-          Applicants: 70
+          Applicants: {applicants}
         </Typography>
       </CardContent>
       <CardActions
