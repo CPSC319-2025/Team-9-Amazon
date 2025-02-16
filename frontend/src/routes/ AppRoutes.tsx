@@ -3,7 +3,7 @@ import HomePage from "../pages/HomePage";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashBoardPage";
+import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
 
 const AppRoutes = () => {
   return (

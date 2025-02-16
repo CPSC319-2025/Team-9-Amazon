@@ -23,11 +23,11 @@ const HiringManagerDashboardPage = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FileText size={32} style={{ color: colors.black }} />
+            <FileText size={32} style={{ color: colors.black1 }} />
             <Typography
               variant="h4"
               component="h1"
-              sx={{ color: colors.black, fontWeight: 600 }}
+              sx={{ color: colors.black1, fontWeight: 600 }}
             >
               Job Postings
             </Typography>
@@ -46,9 +46,14 @@ const HiringManagerDashboardPage = () => {
         <Box sx={{ bgcolor: colors.gray1, borderRadius: 2, p: 3 }}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={4}>
-              <JobCard />
+              <JobCard title="Software Engineer" applicants={70} />
             </Grid>
-            {/* Add more JobCard components as needed */}
+            <Grid item xs={12} md={6} lg={4}>
+              <JobCard title="Frontend Developer" applicants={45} />
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <JobCard title="DevOps Engineer" applicants={32} />
+            </Grid>
           </Grid>
         </Box>
       </Container>
