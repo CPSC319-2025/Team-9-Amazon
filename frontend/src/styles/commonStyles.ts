@@ -60,3 +60,47 @@ export const cardStyle: CSSObject = {
     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
   },
 };
+
+// Layout Styles
+export const headerStyle: CSSObject = {
+  bgcolor: colors.gray1,
+  px: 4,
+  py: 3,
+  borderRadius: "0 0 12px 12px",
+};
+
+// Input Styles
+export const searchFieldStyle: CSSObject = {
+  backgroundColor: colors.white,
+  "& .MuiOutlinedInput-root": {
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderWidth: 2,
+      borderColor: `${colors.blue1}50`,
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: colors.blue1,
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: colors.blue1,
+      borderWidth: 2,
+    },
+  },
+};
+
+// Typography Styles
+export const titleStyle: CSSObject = {
+  color: colors.black1,
+  fontWeight: 600,
+};
+
+export const subtitleStyle: CSSObject = {
+  color: colors.black1,
+};
+
+// Paper Styles
+export const paperStyle: CSSObject = {
+  bgcolor: colors.white,
+  borderRadius: 2,
+  p: 4,
+  height: "100%",
+};
