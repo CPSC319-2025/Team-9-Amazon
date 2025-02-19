@@ -6,13 +6,21 @@ import {
   Typography,
 } from "@mui/material";
 import { cardStyle, colors, textButtonStyle } from "../../styles/commonStyles";
+import { useNavigate } from "react-router-dom";
 
 interface JobCardProps {
+  id: string;
   title: string;
   applicants: number;
 }
 
-export const JobCard = ({ title, applicants }: JobCardProps) => {
+export const JobCard = ({ id, title, applicants }: JobCardProps) => {
+  const navigate = useNavigate();
+
+  const handleViewReport = () => {
+    navigate(`/hiring-manager/job-reports/${id}`);
+  };
+
   return (
     <Card sx={cardStyle}>
       <CardContent>
@@ -38,7 +46,10 @@ export const JobCard = ({ title, applicants }: JobCardProps) => {
           justifyContent: "flex-end",
         }}
       >
-        <Button sx={{ ...textButtonStyle, color: colors.orange1 }}>
+        <Button 
+          sx={{ ...textButtonStyle, color: colors.orange1 }}
+          onClick={handleViewReport}
+        >
           VIEW REPORT
         </Button>
       </CardActions>

@@ -22,13 +22,13 @@ const HiringManagerDashboardPage = () => {
         <Box sx={{ bgcolor: colors.gray1, borderRadius: 2, p: 3 }}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={4}>
-              <JobCard title="Software Engineer" applicants={70} />
+              <JobCard id="job-1" title="Software Engineer" applicants={70} />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <JobCard title="Frontend Developer" applicants={45} />
+              <JobCard id="job-2" title="Frontend Developer" applicants={45} />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <JobCard title="DevOps Engineer" applicants={32} />
+              <JobCard id="job-3" title="DevOps Engineer" applicants={32} />
             </Grid>
           </Grid>
         </Box>
