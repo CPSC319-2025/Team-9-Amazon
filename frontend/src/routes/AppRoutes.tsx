@@ -9,6 +9,7 @@ import HiringManagerLayout from "../layouts/HiringManagerLayout";
 import JobDetails from "../pages/HiringManager/JobDetails";
 
 import { ROUTES } from "./routePaths";
+import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplicationsPage";
 
 const AppRoutes = () => {
   return (
@@ -30,7 +31,7 @@ const AppRoutes = () => {
           <Route index element={<JobDetails />} />
           <Route path={ROUTES.jobDetails(":jobPostingId")} element={<JobDetails />} />
           <Route path={ROUTES.evaluationMetrics(":jobPostingId")} element={<JobDetails />} />
-          <Route path={ROUTES.applications(":jobPostingId")} element={<JobDetails />} />
+          <Route path={ROUTES.applications(":jobPostingId")} element={<JobPostingApplicationsPage />} />
           <Route path={ROUTES.reports(":jobPostingId")} element={<JobDetails />} />
         </Route>
 
