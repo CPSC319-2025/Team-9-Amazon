@@ -31,8 +31,12 @@ const applicationSchema = z.object({
   address: z.string()
     .min(1, "Address is required"),
   resume: z.string()
-    .min(1, "Resume is required"),
+    .min(1, "Resume is required")
+    .refine((val) => val.endsWith(".docx"), {
+      message: "Only .docx files are allowed",
+    }),
 });
+
 
 // Infer the TypeScript type from the schema
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -73,12 +77,20 @@ export default function JobApplication() {
     // handlers
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
+    
       if (file) {
+        // Ensure the file is a .docx file
+        if (!file.name.endsWith(".docx") || file.type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+          alert("Please upload a valid .docx file.");
+          event.target.value = ""; // Clear the input field
+          return;
+        }
+    
         setFileName(file.name);
         const base64String = await convertFileToBase64(file);
-        applicationForm.setValue('resume', base64String);
+        applicationForm.setValue("resume", base64String);
       }
-    };
+    };    
 
     const convertFileToBase64 = (file: File): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -188,7 +200,7 @@ export default function JobApplication() {
             <label className="text-sm font-medium">Resume</label>
             <input
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".docx"
               onChange={handleFileUpload}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
