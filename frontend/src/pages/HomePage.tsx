@@ -1,10 +1,10 @@
-// import { Link } from "react-router";
-
 import { Link } from "react-router";
+import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
 
 const HomePage = () => {
     return (
         <div>
+          <HiringManagerNav/>
             <h1>Welcome to Our Application</h1>
             <p>This is the home page of our recruiting web application.</p>
 
