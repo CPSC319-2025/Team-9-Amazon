@@ -1,6 +1,6 @@
 import { useState } from "react";
 import JobPostingsPageHeader from "../../components/Common/JobPostingsPageHeader";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 
 export default function JobPostingsPage() {
     const [searchTerm, setSearchTerm] = useState("");
