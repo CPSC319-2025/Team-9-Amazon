@@ -59,7 +59,8 @@ export default function JobPostings() {
                       key={job.id} 
                       job={job} 
                       onLearnMore={() => handleJobClick(job)}
-                      onApply={() => navigate(`/job-postings/apply/${job.id}`)}
+                      onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
+
                   />
               ))}
           </div>

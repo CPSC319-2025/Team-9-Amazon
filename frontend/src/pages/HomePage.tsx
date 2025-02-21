@@ -15,7 +15,7 @@ const HomePage = () => {
           </h2>
 
             <div className="flex gap-8">
-                <Link to="/job-postings">
+                <Link to="/applicant/job-postings">
                     <button className="px-12 py-2.5 text-base bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
                         Apply
                     </button>
