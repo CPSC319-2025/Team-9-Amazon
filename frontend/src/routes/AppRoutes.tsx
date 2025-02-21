@@ -4,6 +4,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
+import TopNavbar from "../components/NavBar";
+import HiringManagerLayout from "../layouts/HiringManagerLayout";
+import JobDetails from "../pages/HiringManager/JobDetails";
+
+import { ROUTES } from "./routePaths";
+import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplicationsPage";
 import JobPostingsPage from "../pages/JobPostingsPage";
 import JobPostings from "../pages/JobPostingsPage/JobPostings";
 import JobApplication from "../pages/JobPostingsPage/JobApplication";
@@ -11,20 +17,29 @@ import JobApplication from "../pages/JobPostingsPage/JobApplication";
 const AppRoutes = () => {
   return (
     <BrowserRouter>
+      <TopNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route
-          path="/hiring-manager"
+          path={ROUTES.hiringManagerDashboard}
           element={
             <ProtectedRoute>
               <HiringManagerDashboardPage />
             </ProtectedRoute>
           }
         />
+        <Route path={ROUTES.jobPosting(":jobPostingId")} element={<HiringManagerLayout />}>
+          <Route index element={<JobDetails />} />
+          <Route path={ROUTES.jobDetails(":jobPostingId")} element={<JobDetails />} />
+          <Route path={ROUTES.evaluationMetrics(":jobPostingId")} element={<JobDetails />} />
+          <Route path={ROUTES.applications(":jobPostingId")} element={<JobPostingApplicationsPage />} />
+          <Route path={ROUTES.reports(":jobPostingId")} element={<JobDetails />} />
+        </Route>
 
-        <Route path="/job-postings" element={<JobPostingsPage />}>
+        {/* Applicant Module */}
+        <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
             <Route index element={<JobPostings />} />
             <Route path="apply/:id" element={<JobApplication />} />
         </Route>

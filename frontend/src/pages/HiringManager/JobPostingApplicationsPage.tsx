@@ -1,6 +1,6 @@
 import { Box, Container, Paper, Grid, Snackbar, Alert } from "@mui/material";
 import { colors, paperStyle } from "../../styles/commonStyles";
-import { Header } from "../../components/Common/Header";
+// import { Header } from "../../components/Common/Header";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { ApplicantList } from "../../components/HiringManager/Applicants/ApplicantList";
@@ -63,14 +63,14 @@ const JobPostingApplicationsPage = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-      <Header
+      {/* <Header
         title="ML Compiler Software Engineer"
         subtitle={`${applicants.length} applications${
           scanned
             ? ` • ${databaseCandidates.length} potential candidates found`
             : ""
         }`}
-      />
+      /> */}
 
       <Container maxWidth={false} sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
