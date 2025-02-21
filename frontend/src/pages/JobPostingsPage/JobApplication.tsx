@@ -1,4 +1,4 @@
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,8 +31,9 @@ const applicationSchema = z.object({
   address: z.string()
     .min(1, "Address is required"),
   resume: z.string()
-    .min(1, "Resume is required"),
+    .min(1, "Resume is required")
 });
+
 
 // Infer the TypeScript type from the schema
 type ApplicationFormData = z.infer<typeof applicationSchema>;
