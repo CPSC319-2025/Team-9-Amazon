@@ -10,6 +10,9 @@ import JobDetails from "../pages/HiringManager/JobDetails";
 
 import { ROUTES } from "./routePaths";
 import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplicationsPage";
+import JobPostingsPage from "../pages/JobPostingsPage";
+import JobPostings from "../pages/JobPostingsPage/JobPostings";
+import JobApplication from "../pages/JobPostingsPage/JobApplication";
 
 const AppRoutes = () => {
   return (
@@ -33,6 +36,12 @@ const AppRoutes = () => {
           <Route path={ROUTES.evaluationMetrics(":jobPostingId")} element={<JobDetails />} />
           <Route path={ROUTES.applications(":jobPostingId")} element={<JobPostingApplicationsPage />} />
           <Route path={ROUTES.reports(":jobPostingId")} element={<JobDetails />} />
+        </Route>
+
+        {/* Applicant Module */}
+        <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
+            <Route index element={<JobPostings />} />
+            <Route path="apply/:id" element={<JobApplication />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
