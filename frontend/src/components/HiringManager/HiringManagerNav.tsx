@@ -56,26 +56,26 @@ const HiringManagerNav = () => {
             variant="body2"
             sx={{ fontSize: "0.95rem", color: "#333" }}
           >
-            <strong>Application Received:</strong> 67 |{" "}
-            <strong>Machine Evaluated:</strong> 12 |{" "}
-            <strong>Processing:</strong> 32
+            <strong>Application Received:</strong> {67} |{" "}
+            <strong>Machine Evaluated:</strong> {12} |{" "}
+            <strong>Processing:</strong> {32}
           </Typography>
         </Box>
 
         <Box
           sx={{
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
             alignItems: "center",
-            gap: 2,
+            gap: 1,
           }}
         >
           <Chip
             label="PUBLISHED"
             sx={{
               ...chipStyle,
-              color: `${colors.green1}`,
-              borderColor: colors.green1,
+              color: `${colors.green2}`,
+              borderColor: colors.green2,
             }}
           />
           <Button

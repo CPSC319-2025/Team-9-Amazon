@@ -1,4 +1,5 @@
 import { CSSObject } from "@emotion/react";
+import { green } from "@mui/material/colors";
 
 export const colors = {
   blue1: "#146eb4",
@@ -7,6 +8,7 @@ export const colors = {
   black1: "#232f3e",
   orange1: "#ff9900",
   green1: "#006727",
+  green2: green[500],
   red1: "#ff0000",
   black: "#000000",
   white: "#ffffff",
