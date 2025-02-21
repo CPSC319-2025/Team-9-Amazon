@@ -40,10 +40,10 @@ const AppRoutes = () => {
 
         {/* Applicant Module */}
         <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
-          <Route index element={<JobPostings />} />
+        <Route index element={<JobPostings />} />
+        <Route path="apply/:id" element={<JobApplication />} /> {/* Move inside */}
         </Route>
-        <Route path="/applicant/job-postings/apply/:id" element={<JobApplication />} />
-
+        
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

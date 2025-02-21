@@ -52,9 +52,15 @@ export default function JobApplication() {
   const params = useParams(); // Capture all params
   console.log("Params from useParams():", params);
 
-
+  try {
+    const context = useOutletContext<ContextType>();
+    console.log("Outlet Context:", context);
+  } catch (error) {
+    console.error("Error using useOutletContext:", error);
+  }
     const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-    const { id } = useParams();
+    const id  = params?.id ?? "MISSING_ID"
+
     console.log("Job ID from URL:", id);
     const [job, setJob] = useState<Job | null>(null);
     const [applicationId, setApplicationId] = useState<string | null>(null);
@@ -294,7 +300,7 @@ export default function JobApplication() {
                     onClick={() => {
                       setIsModalOpen(false)
                       applicationForm.reset()
-                      navigate('/job-postings')
+                      navigate('/applicant/job-postings')
                     }}
                   >
                     OK
