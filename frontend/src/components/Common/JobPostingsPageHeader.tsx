@@ -1,5 +1,5 @@
 import { Link } from '@mui/material';
-import CustomTextField from './Common/FormInputs/CustomTextField';
+import CustomTextField from './FormInputs/CustomTextField';
 
 interface JobPostingsPageHeaderProps {
   headerTitle: string;

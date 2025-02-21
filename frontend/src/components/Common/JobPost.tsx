@@ -1,4 +1,4 @@
-import CustomButton from "./Common/Buttons/CustomButton";
+import CustomButton from "./Buttons/CustomButton";
 
 export interface Job {
   id: string;
