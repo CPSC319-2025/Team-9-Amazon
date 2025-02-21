@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import HomePage from "../pages/HomePage";
 import ProtectedRoute from "./ProtectedRoute";
-import LoginPage from "../pages/LoginPage";
+//import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
 import TopNavbar from "../components/NavBar";
@@ -20,7 +20,7 @@ const AppRoutes = () => {
       <TopNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<HiringManagerDashboardPage />} />
 
         <Route
           path={ROUTES.hiringManagerDashboard}

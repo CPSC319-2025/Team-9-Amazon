@@ -48,8 +48,14 @@ const formatPhoneNumber = (phoneNumber: string): string => {
 };
 
 export default function JobApplication() {
+  console.log("JobApplication component is rendering!");
+  const params = useParams(); // Capture all params
+  console.log("Params from useParams():", params);
+
+
     const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
     const { id } = useParams();
+    console.log("Job ID from URL:", id);
     const [job, setJob] = useState<Job | null>(null);
     const [applicationId, setApplicationId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
