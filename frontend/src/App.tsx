@@ -3,7 +3,7 @@
 // import viteLogo from '/vite.svg'
 import './App.css'
 
-import AppRoutes from "./routes/ AppRoutes"
+import AppRoutes from "./routes/AppRoutes"
 
 function App() {
   return (

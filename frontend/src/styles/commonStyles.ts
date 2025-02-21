@@ -1,10 +1,15 @@
 import { CSSObject } from "@emotion/react";
+import { green } from "@mui/material/colors";
 
 export const colors = {
   blue1: "#146eb4",
   gray1: "#f2f2f2",
+  gray2: "#535d69",
   black1: "#232f3e",
   orange1: "#ff9900",
+  green1: "#006727",
+  green2: green[500],
+  red1: "#ff0000",
   black: "#000000",
   white: "#ffffff",
 };
@@ -45,6 +50,16 @@ export const filledButtonStyle: CSSObject = {
     opacity: 0.9,
     boxShadow: "none",
   },
+};
+
+export const chipStyle: CSSObject = {
+  backgroundColor: "white",
+  color: colors.gray2,
+  border: `1px solid ${colors.gray2}`,
+  fontWeight: "bold",
+  padding: "6px 12px",
+  borderRadius: "4px",
+  height: "100%",
 };
 
 export const cardStyle: CSSObject = {
