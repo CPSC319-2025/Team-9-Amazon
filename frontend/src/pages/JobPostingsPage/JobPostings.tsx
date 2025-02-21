@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Modal, Box, IconButton } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import { jobPostingsData as jobs } from "./jobPostingsData";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router";
 
 type ContextType = {
   searchTerm: string;
