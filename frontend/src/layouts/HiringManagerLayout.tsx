@@ -1,4 +1,4 @@
-import { Outlet, useParams } from "react-router";
+import { Outlet } from "react-router";
 import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
 
 const HiringManagerLayout = () => {
