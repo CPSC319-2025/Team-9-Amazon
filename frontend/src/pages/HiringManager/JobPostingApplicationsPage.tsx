@@ -147,7 +147,13 @@ const JobPostingApplicationsPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={scanned ? 6 : 12}>
             <Paper elevation={0} sx={paperStyle}>
-              <Typography variant="h4"> Applications </Typography>
+              <Typography
+                variant="h5"
+                component="h1"
+                sx={{ mb: 3, color: colors.black1 }}
+              >
+                Applications
+              </Typography>
               <ApplicantList
                 applicants={filteredApplicants}
                 onViewApplicant={handleViewApplicant}
@@ -164,7 +170,13 @@ const JobPostingApplicationsPage = () => {
                   border: `2px solid ${colors.blue1}15`,
                 }}
               >
-                <Typography variant="h4">Potential Candidates </Typography>
+                <Typography
+                  variant="h5"
+                  component="h1"
+                  sx={{ mb: 3, color: colors.black1 }}
+                >
+                  Potential Candidates{" "}
+                </Typography>
                 <ApplicantList
                   applicants={filteredDatabaseCandidates}
                   onViewApplicant={handleViewApplicant}

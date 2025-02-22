@@ -13,6 +13,7 @@ import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplica
 import JobPostingsPage from "../pages/JobPostingsPage";
 import JobPostings from "../pages/JobPostingsPage/JobPostings";
 import JobApplication from "../pages/JobPostingsPage/JobApplication";
+import EvaluationMetricsPage from "../pages/HiringManager/EvaluationMetricsPage";
 
 const AppRoutes = () => {
   return (
@@ -20,7 +21,7 @@ const AppRoutes = () => {
       <TopNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={< LoginPage/>} />
+        <Route path="/login" element={<LoginPage />} />
 
         <Route
           path={ROUTES.hiringManagerDashboard}
@@ -30,18 +31,34 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route path={ROUTES.jobPosting(":jobPostingId")} element={<HiringManagerLayout />}>
+        <Route
+          path={ROUTES.jobPosting(":jobPostingId")}
+          element={<HiringManagerLayout />}
+        >
           <Route index element={<JobDetails />} />
-          <Route path={ROUTES.jobDetails(":jobPostingId")} element={<JobDetails />} />
-          <Route path={ROUTES.evaluationMetrics(":jobPostingId")} element={<JobDetails />} />
-          <Route path={ROUTES.applications(":jobPostingId")} element={<JobPostingApplicationsPage />} />
-          <Route path={ROUTES.reports(":jobPostingId")} element={<JobDetails />} />
+          <Route
+            path={ROUTES.jobDetails(":jobPostingId")}
+            element={<JobDetails />}
+          />
+          <Route
+            path={ROUTES.evaluationMetrics(":jobPostingId")}
+            element={<EvaluationMetricsPage />}
+          />
+          <Route
+            path={ROUTES.applications(":jobPostingId")}
+            element={<JobPostingApplicationsPage />}
+          />
+          <Route
+            path={ROUTES.reports(":jobPostingId")}
+            element={<JobDetails />}
+          />
         </Route>
 
         {/* Applicant Module */}
         <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
-        <Route index element={<JobPostings />} />
-        <Route path="apply/:id" element={<JobApplication />} /> {/* Move inside */}
+          <Route index element={<JobPostings />} />
+          <Route path="apply/:id" element={<JobApplication />} />{" "}
+          {/* Move inside */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
