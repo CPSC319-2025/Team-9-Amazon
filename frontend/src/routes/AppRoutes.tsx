@@ -20,7 +20,7 @@ const AppRoutes = () => {
       <TopNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={< LoginPage/>} />
 
         <Route
           path={ROUTES.hiringManagerDashboard}
@@ -40,8 +40,8 @@ const AppRoutes = () => {
 
         {/* Applicant Module */}
         <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
-            <Route index element={<JobPostings />} />
-            <Route path="apply/:id" element={<JobApplication />} />
+        <Route index element={<JobPostings />} />
+        <Route path="apply/:id" element={<JobApplication />} /> {/* Move inside */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
