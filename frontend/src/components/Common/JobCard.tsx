@@ -10,11 +10,13 @@ import { cardStyle, colors, textButtonStyle } from "../../styles/commonStyles";
 interface JobCardProps {
   title: string;
   applicants: number;
+  onClick: () => void;
 }
 
-export const JobCard = ({ title, applicants }: JobCardProps) => {
+export const JobCard = ({ title, applicants, onClick }: JobCardProps) => {
+
   return (
-    <Card sx={cardStyle}>
+    <Card sx={cardStyle} onClick={onClick}>
       <CardContent>
         <Typography
           variant="h5"
