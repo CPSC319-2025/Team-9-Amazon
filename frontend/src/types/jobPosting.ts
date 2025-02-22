@@ -16,4 +16,6 @@ export enum JobPostingStatus {
     responsibilities?: string;
     tags: string[];
     num_applicants?: number;
+    num_machine_evaluated?: number;
+    num_processes?: number;
   }

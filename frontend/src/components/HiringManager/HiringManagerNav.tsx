@@ -7,8 +7,14 @@ import {
   colors,
   filledButtonStyle,
 } from "../../styles/commonStyles";
+import { JobPosting } from "../../types/jobPosting";
 
-const HiringManagerNav = ({ jobPostingId }: { jobPostingId: string }) => {
+interface HiringManagerNavProps {
+  jobPostingId: string;
+  jobPosting: JobPosting;
+}
+
+const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [tabValue, setTabValue] = useState(location.pathname);
@@ -51,22 +57,22 @@ const HiringManagerNav = ({ jobPostingId }: { jobPostingId: string }) => {
       >
         <Box>
           <Typography variant="h4">
-            ML Compiler Software Engineer PEY Co-op
+            {jobPosting.title}
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
             sx={{ fontSize: "1rem", marginBottom: "8px" }}
           >
-            (12-16 months), Annapurna ML - Co-op
+            {jobPosting.subtitle}
           </Typography>
           <Typography
             variant="body2"
             sx={{ fontSize: "0.95rem", color: "#333" }}
           >
-            <strong>Application Received:</strong> {67} |{" "}
-            <strong>Machine Evaluated:</strong> {12} |{" "}
-            <strong>Processing:</strong> {32}
+            <strong>Application Received:</strong> {jobPosting.num_applicants ?? 0} |{" "}
+            <strong>Machine Evaluated:</strong> {jobPosting.num_machine_evaluated ?? 0} |{" "}
+            <strong>Processing:</strong> {jobPosting.num_processes ?? 0}
           </Typography>
         </Box>
 
