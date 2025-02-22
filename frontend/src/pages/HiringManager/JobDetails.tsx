@@ -1,8 +1,4 @@
-import { Box, Typography, Button, IconButton, Divider, Grid } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import WorkIcon from "@mui/icons-material/Work";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { Box, Typography } from "@mui/material";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
 import { useOutletContext } from "react-router";
 import JobDetailsView from "../../components/HiringManager/JobPostings/JobDetailsView";
