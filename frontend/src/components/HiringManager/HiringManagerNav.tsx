@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Tabs, Tab, Chip } from "@mui/material";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../../routes/routePaths";
 import {
@@ -8,11 +8,19 @@ import {
   filledButtonStyle,
 } from "../../styles/commonStyles";
 
-const HiringManagerNav = () => {
+const HiringManagerNav = ({ jobPostingId }: { jobPostingId: string }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { jobPostingId } = useParams();
   const [tabValue, setTabValue] = useState(location.pathname);
+
+  useEffect(() => {
+    // If on base job posting route, default to "Job Details"
+    if (location.pathname === ROUTES.jobPosting(jobPostingId!)) {
+      setTabValue(ROUTES.jobDetails(jobPostingId!));
+    } else {
+      setTabValue(location.pathname);
+    }
+  }, [location.pathname, jobPostingId]);
 
   useEffect(() => {
     setTabValue(location.pathname);
