@@ -82,8 +82,8 @@ const HiringManagerNav = ({ jobPostingId }: { jobPostingId: string }) => {
             label="PUBLISHED"
             sx={{
               ...chipStyle,
-              color: `${colors.green2}`,
-              borderColor: colors.green2,
+              color: `${colors.green1}`,
+              borderColor: colors.green1,
             }}
           />
           <Button
