@@ -48,8 +48,20 @@ const formatPhoneNumber = (phoneNumber: string): string => {
 };
 
 export default function JobApplication() {
+  console.log("JobApplication component is rendering!");
+  const params = useParams(); // Capture all params
+  console.log("Params from useParams():", params);
+
+  try {
+    const context = useOutletContext<ContextType>();
+    console.log("Outlet Context:", context);
+  } catch (error) {
+    console.error("Error using useOutletContext:", error);
+  }
     const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-    const { id } = useParams();
+    const id  = params?.id ?? "MISSING_ID"
+
+    console.log("Job ID from URL:", id);
     const [job, setJob] = useState<Job | null>(null);
     const [applicationId, setApplicationId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,24 +82,25 @@ export default function JobApplication() {
 
     const phone = applicationForm.watch('phone');
 
-
     // handlers
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-    
       if (file) {
-        // Ensure the file is a .docx file
-        if (!file.name.endsWith(".docx") || file.type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-          alert("Please upload a valid .docx file.");
-          event.target.value = ""; // Clear the input field
+        // Check if file type is Word document
+        if (!file.type.match('application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+          applicationForm.setError('resume', {
+            type: 'manual',
+            message: 'Please upload only Word documents (.doc or .docx)'
+          });
           return;
         }
-    
+        // Clear any existing resume error when valid file is uploaded
+        applicationForm.clearErrors('resume');
         setFileName(file.name);
         const base64String = await convertFileToBase64(file);
-        applicationForm.setValue("resume", base64String);
+        applicationForm.setValue('resume', base64String);
       }
-    };    
+    };
 
     const convertFileToBase64 = (file: File): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -197,7 +210,7 @@ export default function JobApplication() {
             <label className="text-sm font-medium">Resume</label>
             <input
               type="file"
-              accept=".docx"
+              accept=".doc,.docx"
               onChange={handleFileUpload}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
@@ -287,7 +300,7 @@ export default function JobApplication() {
                     onClick={() => {
                       setIsModalOpen(false)
                       applicationForm.reset()
-                      navigate('/job-postings')
+                      navigate('/applicant/job-postings')
                     }}
                   >
                     OK
