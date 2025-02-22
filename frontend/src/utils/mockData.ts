@@ -1,5 +1,5 @@
-import { Applicant } from "../types/applicant";
-import { JobPosting } from "../types/jobPosting";
+import { Applicant } from '../types/applicant';
+import { JobPosting } from '../types/JobPosting/jobPosting';
 import { CriteriaGroup } from "../types/criteria";
 
 export const mockApplicants: Applicant[] = [
@@ -70,17 +70,16 @@ export const mockJobPostings: JobPosting[] = [
     num_applicants: 7,
   },
   {
-    id: "13",
-    title: "Data Scientist",
-    subtitle: "Machine Learning",
-    description:
-      "We are looking for a data scientist to work on our machine learning team.",
-    location: "New York, NY",
-    status: "Published",
-    created_at: "2021-09-15",
-    qualifications: "MS in Computer Science or equivalent experience",
-    responsibilities: "Analyze and model data for business insights",
-    tags: ["Data Science", "Machine Learning"],
+    id: '13',
+    title: 'Data Scientist',
+    subtitle: 'Machine Learning',
+    description: 'We are looking for a data scientist to work on our machine learning team.',
+    location: 'New York, NY',
+    status: 'Published',
+    created_at: '2021-09-15',
+    // qualifications: 'MS in Computer Science or equivalent experience',
+    responsibilities: 'Analyze and model data for business insights',
+    tags: ['Data Science', 'Machine Learning'],
     num_applicants: 10,
   },
   {
@@ -110,6 +109,8 @@ export const mockJobPostings: JobPosting[] = [
     responsibilities: "Create user-centric designs and prototypes",
     tags: ["UX Design", "User Experience"],
     num_applicants: 3,
+    num_machine_evaluated: 2,
+    num_processes: 1,
   },
   {
     id: "16",

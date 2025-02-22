@@ -28,12 +28,12 @@ export const outlinedButtonStyle: CSSObject = {
   fontWeight: 600,
   padding: "8px 24px",
   borderWidth: "2px",
-  borderColor: colors.blue1,
-  color: colors.blue1,
+  borderColor: colors.orange1,
+  color: colors.orange1,
   "&:hover": {
     borderWidth: "2px",
-    borderColor: colors.blue1,
-    backgroundColor: `${colors.blue1}10`,
+    borderColor: colors.orange1,
+    backgroundColor: `${colors.orange1}10`,
   },
 };
 
@@ -41,11 +41,11 @@ export const filledButtonStyle: CSSObject = {
   textTransform: "none",
   fontWeight: 600,
   padding: "8px 24px",
-  backgroundColor: colors.blue1,
+  backgroundColor: colors.orange1,
   color: colors.white,
   boxShadow: "none",
   "&:hover": {
-    backgroundColor: colors.blue1,
+    backgroundColor: colors.orange1,
     opacity: 0.9,
     boxShadow: "none",
   },

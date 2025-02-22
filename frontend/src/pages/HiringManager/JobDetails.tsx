@@ -1,22 +1,20 @@
-import { Box, Typography, Button } from "@mui/material";
-import { useParams } from "react-router";
+import { Box, Typography } from "@mui/material";
+import { JobPosting } from "../../types/JobPosting/jobPosting";
+import { useOutletContext } from "react-router";
+import JobDetailsView from "../../components/HiringManager/JobPostings/JobDetailsView";
 
 const JobDetails = () => {
-  const { jobPostingId } = useParams(); // ✅ Extract jobPostingId
+  const { jobPosting } = useOutletContext<{ jobPosting: JobPosting | null }>();
 
-  return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h4">Job Details - Job ID: {jobPostingId}</Typography>
-      <Typography variant="body1">Amazon Search creates powerful, customer-focused product search solutions...</Typography>
+  if (!jobPosting) {
+    return (
+      <Box sx={{ padding: "40px", textAlign: "center" }}>
+        <Typography variant="h6" color="error">Job posting not found or loading...</Typography>
+      </Box>
+    );
+  }
 
-      <Typography variant="h5" sx={{ marginTop: 3 }}>Job Details</Typography>
-      <Typography variant="body2">📍 Vancouver, CA</Typography>
-      <Typography variant="body2">💼 IT, Software Engineer, Frontend</Typography>
-      <Typography variant="body2">🕒 Created at: Jan 3rd, 2025</Typography>
-
-      <Button variant="contained" sx={{ marginTop: 2 }}>Edit in Interactive Mode</Button>
-    </Box>
-  );
+  return <JobDetailsView jobPosting={jobPosting} editable={true} />;
 };
 
 export default JobDetails;
