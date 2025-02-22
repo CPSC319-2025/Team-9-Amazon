@@ -7,7 +7,7 @@ import {
   colors,
   filledButtonStyle,
 } from "../../styles/commonStyles";
-import { JobPosting } from "../../types/jobPosting";
+import { JobPosting } from "../../types/JobPosting/jobPosting";
 
 interface HiringManagerNavProps {
   jobPostingId: string;

@@ -5,7 +5,7 @@ import { textButtonStyle, colors } from "../../styles/commonStyles";
 import { JobCard } from "../../components/Common/JobCard.tsx";
 import { Header } from "../../components/Common/Header";
 import { mockJobPostings } from "../../utils/mockData.ts";
-import { JobPosting } from "../../types/jobPosting.ts";
+import { JobPosting } from "../../types/JobPosting/jobPosting.ts";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths.ts";
 

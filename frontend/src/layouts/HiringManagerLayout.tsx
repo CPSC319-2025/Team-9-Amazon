@@ -3,7 +3,7 @@ import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../routes/routePaths";
 import { mockJobPostings } from "../utils/mockData";
-import { JobPosting } from "../types/jobPosting";
+import { JobPosting } from "../types/JobPosting/jobPosting";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();

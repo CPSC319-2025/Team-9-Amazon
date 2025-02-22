@@ -1,5 +1,5 @@
 import { Applicant } from '../types/applicant';
-import { JobPosting } from '../types/jobPosting';
+import { JobPosting } from '../types/JobPosting/jobPosting';
 
 export const mockApplicants: Applicant[] = [
   {
@@ -75,7 +75,7 @@ export const mockJobPostings: JobPosting[] = [
     location: 'New York, NY',
     status: 'Published',
     created_at: '2021-09-15',
-    qualifications: 'MS in Computer Science or equivalent experience',
+    // qualifications: 'MS in Computer Science or equivalent experience',
     responsibilities: 'Analyze and model data for business insights',
     tags: ['Data Science', 'Machine Learning'],
     num_applicants: 10,
@@ -105,6 +105,8 @@ export const mockJobPostings: JobPosting[] = [
     responsibilities: 'Create user-centric designs and prototypes',
     tags: ['UX Design', 'User Experience'],
     num_applicants: 3,
+    num_machine_evaluated: 2,
+    num_processes: 1,
   },
   {
     id: '16',
