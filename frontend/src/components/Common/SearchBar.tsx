@@ -1,23 +1,22 @@
 import { TextField, Button, Stack, InputAdornment } from "@mui/material";
-import { Search, Filter } from "lucide-react";
 import {
-  textButtonStyle,
-  searchFieldStyle,
-  colors,
-} from "../../styles/commonStyles";
+  Search as SearchIcon,
+  SwapVert as SwapVertIcon,
+} from "@mui/icons-material";
+import { textButtonStyle, searchFieldStyle } from "../../styles/commonStyles";
 
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (value: string) => void;
-  onFilter?: () => void;
-  showFilter?: boolean;
+  onSort?: () => void;
+  showSort?: boolean;
 }
 
 export const SearchBar = ({
   placeholder = "Search...",
   onSearch,
-  onFilter,
-  showFilter = true,
+  onSort,
+  showSort = true,
 }: SearchBarProps) => (
   <Stack direction="row" spacing={2} sx={{ mb: 4 }}>
     <TextField
@@ -27,19 +26,19 @@ export const SearchBar = ({
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <Search size={20} />
+            <SearchIcon sx={{ fontSize: 20 }} />
           </InputAdornment>
         ),
       }}
       sx={searchFieldStyle}
     />
-    {showFilter && onFilter && (
+    {showSort && onSort && (
       <Button
-        startIcon={<Filter size={20} />}
-        onClick={onFilter}
-        sx={{ textButtonStyle, color: colors.orange1, fontWeight: "bold" }}
+        startIcon={<SwapVertIcon />}
+        onClick={onSort}
+        sx={textButtonStyle}
       >
-        Filter
+        SORT
       </Button>
     )}
   </Stack>
