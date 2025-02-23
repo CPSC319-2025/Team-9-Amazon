@@ -7,7 +7,7 @@ import {
   Grid,
 } from '@mui/material';
 import { colors, titleStyle, paperStyle } from '../../styles/commonStyles';
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router";
 import { ROUTES } from '../../routes/routePaths';
 
 // Dummy data (metrics)
