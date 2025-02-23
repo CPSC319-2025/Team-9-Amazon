@@ -8,7 +8,8 @@ import {
   ListItemSecondaryAction,
   IconButton,
 } from '@mui/material';
-import { Eye, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { colors } from '../../../styles/commonStyles';
 import { Applicant } from '../../../types/applicant';
 import { useNavigate, useParams } from 'react-router';
@@ -95,7 +96,7 @@ export const ApplicantList = ({
                   },
                 }}
               >
-                <Eye size={20} color={colors.orange1} />
+                <AssessmentIcon sx={{ color: colors.orange1 }} />
               </IconButton>
             </ListItemSecondaryAction>
           </ListItem>
