@@ -23,7 +23,7 @@ const style = {
 
 interface ConfirmationModalProps {
     isOpen: boolean;
-    handleClose(): null;
+    handleClose(): void;
     titleText: string;
     actionButton?: React.ReactNode;
 }
