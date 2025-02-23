@@ -6,13 +6,21 @@ import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material"
 // import { Header } from "../../components/Common/Header";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from '../../components/Common/Modals/ConfirmationModal';
+import { FormModal } from '../../components/Common/Modals/FormModal';
 
+interface AccountData {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string[];
+}
 const dummyAccounts = [
     {
         id: 1,
-        email: "ieyasu.tokugawa@aws.com",
-        first_name: "Ieyasu",
-        last_name: "Tokugawa",
+        email: "abd.khan@aws.com",
+        first_name: "Abd",
+        last_name: "Khan",
         role: ["Admin"],
     },
     {
@@ -24,16 +32,16 @@ const dummyAccounts = [
     },
     {
         id: 3,
-        email: "matsudaira.sadanobu@aws.com",
-        first_name: "Matsudaira",
-        last_name: "Sadanobu",
+        email: "li.lee@aws.com",
+        first_name: "Li",
+        last_name: "Lee",
         role: ["Hiring Manager", "Admin"],
     },
     {
         id: 4,
-        email: "oda.nobunaga@aws.com",
-        first_name: "Oda",
-        last_name: "Nobunaga",
+        email: "asa.dyptek@aws.com",
+        first_name: "Asa",
+        last_name: "Dyptek",
         role: ["Hiring Manager"],
     },
     {
@@ -48,10 +56,22 @@ const dummyAccounts = [
 const AccountManagerPage = () => {
     const [rows, setRows] = React.useState(dummyAccounts);
     const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
-    // const [openFormModal, setOpenFormModal] = React.useState(false);
+    const [openAddModal, setOpenAddModal] = React.useState(false);
+    const [openEditModal, setOpenEditModal] = React.useState(false);
+    const [editFormData, setEditFormData] = React.useState<AccountData | undefined>(undefined);
+
+    const addFormData = {
+        id: 2,
+        email: "",
+        first_name: "",
+        last_name: "",
+        role: ["Hiring Manager", "Admin"],
+    }
 
     const handleCloseModal = () => {
         setOpenDeleteModal(false)
+        setOpenAddModal(false)
+        setOpenEditModal(false)
     }
 
     const handleDeleteClick = (id: GridRowId) => () => {
@@ -60,15 +80,22 @@ const AccountManagerPage = () => {
     };
 
     const handleEditClick = (id: GridRowId) => () => {
-        // setOpenFormModal(true);
-        return id
+        const selectedData = dummyAccounts.find(account => account.id === id);
+        setEditFormData(selectedData);
+        setOpenEditModal(true);
+        // return id
+    };
+
+    const handleAddClick = () => {
+        setOpenAddModal(true);
+        // return id
     };
 
     const columns: GridColDef[] = [
         // { field: 'id', headerName: 'User ID', width: 150 },
-        { field: 'first_name', headerName: 'First Name', width: 150 },
-        { field: 'last_name', headerName: 'Last Name', width: 150 },
-        { field: 'email', headerName: 'Email', width: 250 },
+        { field: 'first_name', headerName: 'First Name', flex: 1 },
+        { field: 'last_name', headerName: 'Last Name', flex: 1 },
+        { field: 'email', headerName: 'Email', flex: 1 },
         {
             field: 'role', 
             headerName: 'Role', 
@@ -81,13 +108,14 @@ const AccountManagerPage = () => {
                 }
 
             },
-            width: 200 
+            flex: 1
         },
         {   
             field: 'actions',
             type: 'actions',
             // headerName: 'Actions',
-            width: 100,
+            flex: 1,
+            align: 'right',
             cellClassName: 'actions',
             getActions: ({ id }) => {
             //   const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
@@ -141,13 +169,12 @@ const AccountManagerPage = () => {
     //     </Container>
     // );
 
-
     return (
         <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
             {/* <Header title="" actions={headerActions} /> */}
             <Stack direction='row' justifyContent='space-between'>
                 <Box padding='10px' sx={{...titleStyle, fontVariant:'h4' }}>Accounts</Box>
-                <IconButton aria-label='Add an Account'>
+                <IconButton aria-label='Add an Account' onClick={handleAddClick}>
                     <AddCircleOutlined/>
                 </IconButton>
             </Stack>
@@ -172,7 +199,8 @@ const AccountManagerPage = () => {
                 />
             </Box>
             <ConfirmationModal isOpen={openDeleteModal} handleClose={handleCloseModal} titleText='Are you sure your want to delete this account?' />
-            {/* <DynamicFormModal isOpen={openFormModal}/> */}
+            <FormModal isOpen={openAddModal} handleClose={handleCloseModal} titleText='Add an Account' formData={addFormData} />
+            <FormModal isOpen={openEditModal} handleClose={handleCloseModal} titleText='Edit an Account' formData={editFormData} />
         </Box>
     )
 }

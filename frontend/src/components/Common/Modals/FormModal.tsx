@@ -1,6 +1,7 @@
 import * as React from 'react'
-import {Modal, Box, Typography, Button, Stack, TextField} from '@mui/material';
+import {Modal, Box, Typography, Button, Stack, TextField, formControlClasses} from '@mui/material';
 import { textButtonStyle, colors, filledButtonStyle } from "../../../styles/commonStyles";
+import { Label } from '@mui/icons-material';
 
 const style = {
     position: 'absolute',
@@ -24,7 +25,7 @@ const style = {
 interface FormModalProps {
     formData?: object;
     isOpen: boolean;
-    handleClose(): null;
+    handleClose(): void;
     titleText: string;
     actionButton?: React.ReactNode
 }
@@ -46,17 +47,26 @@ export const FormModal = ({
             <Typography id='modal-modal-title' variant='h6' component='h2'>
                 {titleText}
             </Typography>
-            {/* {
+            {
             formData != undefined ?
                 Object.entries(formData).map(([key, value]) => {
+                    console.log(key)
+                    console.log(value)
+                    
+                    if (key == 'role' || key == 'id') return
+
+                    const formattedKey = key.split("_").join(' ')
+
+                    return (
                     <TextField 
-                    label={key} 
+                    label={formattedKey} 
                     variant="standard" 
-                    placeholder={value === "" ? "Enter ${key} here" : ""}
-                    defaultValue={value != "" ? value : undefined}
+                    placeholder={value === "" ? `Enter ${formattedKey} here` : undefined}
+                    defaultValue={value}
                     required/>
+                    )
             }) : <></>
-            } */}
+            }
             <Stack direction='row' justifyContent='flex-end' spacing={2}>
                 <Button onClick={handleClose} sx={{...textButtonStyle, ...filledButtonStyle, backgroundColor: colors.gray2}}>
                     CANCEL
