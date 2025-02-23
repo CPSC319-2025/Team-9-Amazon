@@ -20,7 +20,15 @@ const CreateJobPostingPage = () => {
         }
     };
 
-    return <JobDetailsView jobPosting={defaultJobPosting} mode={JobDetailsMode.CREATE} onSave={handleCreateJob} />;
+    const handleCancel = () => {
+        navigate(ROUTES.hiringManager.hiringManagerDashboard); // Redirect to dashboard
+    };
+
+    return <JobDetailsView
+        jobPosting={defaultJobPosting}
+        mode={JobDetailsMode.CREATE}
+        onSave={handleCreateJob}
+        onCancel={handleCancel} />;
 };
 
 export default CreateJobPostingPage;

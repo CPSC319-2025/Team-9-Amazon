@@ -96,6 +96,8 @@ const JobDetailsView = ({
     setSnackbarMessage("Job Posting Cancelled!");
     setSnackbarSeverity("warning");
     setOpenSnackbar(true);
+
+    onCancel();
   };
 
   return (
@@ -242,7 +244,6 @@ const JobDetailsView = ({
             onConfirm={handleConfirmCancel}
             onCancel={() => {
               setConfirmDialogOpen(false);
-              onCancel();
             }}
           />
         </Grid>
