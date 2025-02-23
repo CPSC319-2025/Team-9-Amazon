@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import { colors } from "../../../styles/commonStyles";
+import { colors, textButtonStyle } from "../../../styles/commonStyles";
 import {
   CriteriaGroup as CriteriaGroupType,
   Keyword,
@@ -92,12 +92,7 @@ export const CriteriaGroup = ({
         <Button
           startIcon={<AddIcon />}
           onClick={() => onAddKeyword(group.id)}
-          sx={{
-            color: colors.blue1,
-            "&:hover": {
-              bgcolor: `${colors.blue1}10`,
-            },
-          }}
+          sx={{ ...textButtonStyle }}
         >
           Add Keyword
         </Button>
