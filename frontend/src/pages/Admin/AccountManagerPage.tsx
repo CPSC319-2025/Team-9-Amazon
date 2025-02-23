@@ -5,6 +5,7 @@ import { DataGrid, GridColDef, GridActionsCellItem, GridRowId, GridToolbar } fro
 import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material"
 // import { Header } from "../../components/Common/Header";
 import { titleStyle, colors } from "../../styles/commonStyles";
+import { ConfirmationModal } from '../../components/Common/Modals/ConfirmationModal';
 
 const dummyAccounts = [
     {
@@ -46,12 +47,20 @@ const dummyAccounts = [
 
 const AccountManagerPage = () => {
     const [rows, setRows] = React.useState(dummyAccounts);
+    const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+    // const [openFormModal, setOpenFormModal] = React.useState(false);
+
+    const handleCloseModal = () => {
+        setOpenDeleteModal(false)
+    }
 
     const handleDeleteClick = (id: GridRowId) => () => {
-        setRows(rows.filter((row) => row.id !== id));
+        // setRows(rows.filter((row) => row.id !== id)); 
+        setOpenDeleteModal(true)
     };
 
     const handleEditClick = (id: GridRowId) => () => {
+        // setOpenFormModal(true);
         return id
     };
 
@@ -162,6 +171,8 @@ const AccountManagerPage = () => {
                     }}
                 />
             </Box>
+            <ConfirmationModal isOpen={openDeleteModal} handleClose={handleCloseModal} titleText='Are you sure your want to delete this account?' />
+            {/* <DynamicFormModal isOpen={openFormModal}/> */}
         </Box>
     )
 }
