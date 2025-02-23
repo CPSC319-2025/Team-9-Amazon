@@ -7,6 +7,8 @@ import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDash
 import TopNavbar from "../components/NavBar";
 import HiringManagerLayout from "../layouts/HiringManagerLayout";
 import JobDetails from "../pages/HiringManager/JobDetails";
+import CandidateReportPage from "../pages/HiringManager/CandidateReportPage";
+import JobReportsPage from "../pages/HiringManager/JobReportsPage";
 
 import { ROUTES } from "./routePaths";
 import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplicationsPage";
@@ -20,7 +22,7 @@ const AppRoutes = () => {
       <TopNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={< LoginPage/>} />
 
         <Route
           path={ROUTES.hiringManagerDashboard}
@@ -35,13 +37,17 @@ const AppRoutes = () => {
           <Route path={ROUTES.jobDetails(":jobPostingId")} element={<JobDetails />} />
           <Route path={ROUTES.evaluationMetrics(":jobPostingId")} element={<JobDetails />} />
           <Route path={ROUTES.applications(":jobPostingId")} element={<JobPostingApplicationsPage />} />
-          <Route path={ROUTES.reports(":jobPostingId")} element={<JobDetails />} />
+          <Route path={ROUTES.reports(":jobPostingId")} element={<JobReportsPage />} />
+          <Route 
+            path="reports/candidate/:candidateEmail" 
+            element={<CandidateReportPage />} 
+          />
         </Route>
 
         {/* Applicant Module */}
         <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
-            <Route index element={<JobPostings />} />
-            <Route path="apply/:id" element={<JobApplication />} />
+        <Route index element={<JobPostings />} />
+        <Route path="apply/:id" element={<JobApplication />} /> {/* Move inside */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

@@ -1,4 +1,4 @@
-import CustomButton from "./Buttons/CustomButton";
+import CustomButton from './Buttons/CustomButton';
 
 export interface Job {
   id: string;
@@ -27,7 +27,7 @@ export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
       hover:shadow-xl transition-all hover:scale-101 min-h-[250px]"
     >
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-2xl">{job.title}</h3>
+        <h3 className="font-bold text-2xl text-[#146eb4]">{job.title}</h3>
         <h3 className="text-gray-800">{`#${job.code}`}</h3>
       </div>
       <section className="flex-grow">

@@ -30,8 +30,25 @@ export default function JobPostings() {
   };
 
   const filteredJobs = jobs.filter((job) => {
-      return job.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-              job.location.toLowerCase().includes(location.toLowerCase());
+    const searchTermLower = searchTerm.toLowerCase();
+    const locationLower = location.toLowerCase();
+    
+    return (
+      job.id.toLowerCase().includes(searchTermLower) ||
+      job.code.toLowerCase().includes(searchTermLower) ||
+      job.title.toLowerCase().includes(searchTermLower) ||
+      job.description.toLowerCase().includes(searchTermLower) ||
+      job.job_type.toLowerCase().includes(searchTermLower) ||
+      job.department.toLowerCase().includes(searchTermLower) ||
+      // Search through qualifications array
+      job.qualifications.some(qual => 
+        qual.toLowerCase().includes(searchTermLower)
+      ) ||
+      // Search through responsibilities array
+      job.responsibilities.some(resp => 
+        resp.toLowerCase().includes(searchTermLower)
+      )
+    ) && job.location.toLowerCase().includes(locationLower);
   });
 
   return (
@@ -42,7 +59,8 @@ export default function JobPostings() {
                       key={job.id} 
                       job={job} 
                       onLearnMore={() => handleJobClick(job)}
-                      onApply={() => navigate(`/job-postings/apply/${job.id}`)}
+                      onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
+
                   />
               ))}
           </div>
@@ -87,6 +105,7 @@ export default function JobPostings() {
                         <section className="my-2 custom-scrollbar max-h-[calc(90vh-120px)]">
                             <p><span className="font-semibold">Location:</span> {selectedJob.location}</p>
                             <p><span className="font-semibold">Job Type:</span> {selectedJob.job_type}</p>
+                            <p><span className="font-semibold">Posted:</span> {selectedJob.posted_at}</p>
                             <div className="mt-4">
                               <h4 className="font-semibold">About the Role:</h4>
                               <p>{selectedJob.description}</p>

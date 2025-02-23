@@ -15,8 +15,13 @@ const HiringManagerNav = () => {
   const [tabValue, setTabValue] = useState(location.pathname);
 
   useEffect(() => {
-    setTabValue(location.pathname);
-  }, [location]);
+    // check if on a candidate report page - TODO remove this later
+    if (location.pathname.includes('/reports/candidate/')) {
+      setTabValue(ROUTES.applications(jobPostingId!));
+    } else {
+      setTabValue(location.pathname);
+    }
+  }, [location, jobPostingId]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);

@@ -1,11 +1,10 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { ROUTES } from '../../routes/routePaths';
 import {
   Box,
   Typography,
   Paper,
-  AppBar,
-  Toolbar,
   IconButton,
   Grid,
   LinearProgress,
@@ -16,10 +15,13 @@ import {
   ListItemText,
   Divider,
   Chip,
+  Stack,
+  Link,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { colors } from '../../styles/commonStyles';
 
-// DUmmy data
+// Dummy data
 const candidateData = {
   name: 'Robbie Laughlen',
   role: 'SDE1 Intern',
@@ -43,146 +45,234 @@ const candidateData = {
 };
 
 export default function CandidateReportPage() {
-  const { jobId, candidateId } = useParams();
+  const { jobPostingId } = useParams();
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(`/hiring-manager/job-reports/${jobId}`);
+    navigate(ROUTES.applications(jobPostingId!));
   };
 
   return (
-    <Box>
-      <AppBar position="static" color="default">
-        <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={handleBack}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ ml: 2 }}>
-            Candidate Report
-          </Typography>
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <IconButton 
+          onClick={handleBack}
+          sx={{ 
+            mr: 2,
+            color: colors.orange1,
+            '&:hover': {
+              bgcolor: `${colors.orange1}10`
+            }
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h4" sx={{ color: colors.black1, fontWeight: 500 }}>
+          Candidate Report
+        </Typography>
+      </Box>
 
-      <Box sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          {/* Header Section */}
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography variant="h4">{candidateData.name}</Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    {candidateData.role}
-                  </Typography>
-                </Box>
-                <Box sx={{ textAlign: 'right' }}>
-                  <Typography variant="h3" color="primary">
-                    {candidateData.matchScore}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Match Score
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Candidate Details */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom>
-                Candidate Details
+      <Grid container spacing={3}>
+        {/* Left Column */}
+        <Grid item xs={12} md={4}>
+          <Stack spacing={3}>
+            {/* Basic Info Card */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
+              <Typography variant="h5" sx={{ color: colors.black1, mb: 2, fontWeight: 500 }}>
+                {candidateData.name}
               </Typography>
-              <List>
-                <ListItem>
-                  <ListItemText primary="Email" secondary={candidateData.details.email} />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText primary="Phone" secondary={candidateData.details.phone} />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText primary="Location" secondary={candidateData.details.location} />
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <ListItemText 
-                    primary="Personal Links" 
-                    secondary={candidateData.details.personalLinks.map((link, index) => (
-                      <Typography key={index} component="div">
-                        <a href={link} target="_blank" rel="noopener noreferrer">
-                          {link}
-                        </a>
-                      </Typography>
-                    ))}
-                  />
-                </ListItem>
-              </List>
-            </Paper>
-          </Grid>
-
-          {/* Keyword Analysis */}
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom>
-                Keyword Analysis
-              </Typography>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="primary" gutterBottom>
-                  Matched Keywords
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {candidateData.keywords.matched.map((keyword, index) => (
-                    <Chip key={index} label={keyword} color="primary" />
-                  ))}
-                </Box>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" color="error" gutterBottom>
-                  Missing Keywords
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {candidateData.keywords.missing.map((keyword, index) => (
-                    <Chip key={index} label={keyword} color="error" />
-                  ))}
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Criteria Scores */}
-          <Grid item xs={12}>
-            <Paper elevation={3} sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Evaluation Criteria
+              <Typography variant="body1" sx={{ color: colors.gray2, mb: 1 }}>
+                {candidateData.role}
               </Typography>
               <Box sx={{ mt: 2 }}>
-                {candidateData.criteria.map((criterion, index) => (
-                  <Box key={index} sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2">{criterion.name}</Typography>
-                      <Typography variant="body2">{criterion.score}%</Typography>
-                    </Box>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={criterion.score} 
-                      sx={{ 
-                        height: 10, 
-                        borderRadius: 5,
-                        backgroundColor: '#e0e0e0',
+                <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
+                  Match Score
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box sx={{ flexGrow: 1, mr: 2 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={candidateData.matchScore}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: `${colors.orange1}20`,
                         '& .MuiLinearProgress-bar': {
-                          backgroundColor: '#1976d2',
+                          bgcolor: colors.orange1,
+                          borderRadius: 4,
                         },
                       }}
                     />
                   </Box>
-                ))}
+                  <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                    {candidateData.matchScore}%
+                  </Typography>
+                </Box>
               </Box>
             </Paper>
-          </Grid>
+
+            {/* Contact Info Card */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: colors.black1, mb: 2, fontWeight: 500 }}>
+                Contact Information
+              </Typography>
+              <List disablePadding>
+                <ListItem disablePadding sx={{ mb: 1 }}>
+                  <ListItemText
+                    primary="Email"
+                    secondary={candidateData.details.email}
+                    primaryTypographyProps={{ 
+                      variant: 'body2',
+                      sx: { color: colors.gray2 }
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      sx: { color: colors.black1 }
+                    }}
+                  />
+                </ListItem>
+                <ListItem disablePadding sx={{ mb: 1 }}>
+                  <ListItemText
+                    primary="Phone"
+                    secondary={candidateData.details.phone}
+                    primaryTypographyProps={{ 
+                      variant: 'body2',
+                      sx: { color: colors.gray2 }
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      sx: { color: colors.black1 }
+                    }}
+                  />
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemText
+                    primary="Location"
+                    secondary={candidateData.details.location}
+                    primaryTypographyProps={{ 
+                      variant: 'body2',
+                      sx: { color: colors.gray2 }
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'body1',
+                      sx: { color: colors.black1 }
+                    }}
+                  />
+                </ListItem>
+              </List>
+              {candidateData.details.personalLinks.length > 0 && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                    Personal Links
+                  </Typography>
+                  {candidateData.details.personalLinks.map((link, index) => (
+                    <Link
+                      key={index}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        color: colors.blue1,
+                        display: 'block',
+                        mb: 0.5,
+                        '&:hover': {
+                          color: colors.orange1,
+                        },
+                      }}
+                    >
+                      {link}
+                    </Link>
+                  ))}
+                </>
+              )}
+            </Paper>
+          </Stack>
         </Grid>
-      </Box>
+
+        {/* Right Column */}
+        <Grid item xs={12} md={8}>
+          <Stack spacing={3}>
+            {/* Evaluation Criteria */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+                Evaluation Criteria
+              </Typography>
+              <Grid container spacing={2}>
+                {candidateData.criteria.map((criterion, index) => (
+                  <Grid item xs={12} key={index}>
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body1" sx={{ color: colors.black1 }}>
+                          {criterion.name}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                          {criterion.score}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={criterion.score}
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: `${colors.orange1}20`,
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: colors.orange1,
+                            borderRadius: 4,
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+
+            {/* Keywords Analysis */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+                Keywords Analysis
+              </Typography>
+              <Box>
+                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                  Matched Keywords
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                  {candidateData.keywords.matched.map((keyword, index) => (
+                    <Chip
+                      key={index}
+                      label={keyword}
+                      sx={{
+                        bgcolor: `${colors.orange1}20`,
+                        color: colors.orange1,
+                        fontWeight: 500,
+                      }}
+                    />
+                  ))}
+                </Box>
+                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                  Missing Keywords
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {candidateData.keywords.missing.map((keyword, index) => (
+                    <Chip
+                      key={index}
+                      label={keyword}
+                      sx={{
+                        bgcolor: colors.gray1,
+                        color: colors.gray2,
+                        border: `1px solid ${colors.gray2}`,
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Paper>
+          </Stack>
+        </Grid>
+      </Grid>
     </Box>
   );
 }
