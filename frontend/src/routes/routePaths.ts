@@ -7,5 +7,7 @@ export const ROUTES = {
     evaluationMetrics: (jobPostingId: string) => `/hiring-manager/job-posting/${jobPostingId}/evaluation-metrics`,
     applications: (jobPostingId: string) => `/hiring-manager/job-posting/${jobPostingId}/applications`,
     reports: (jobPostingId: string) => `/hiring-manager/job-posting/${jobPostingId}/reports`,
+    candidateReport: (jobPostingId: string, candidateEmail: string) => 
+      `/hiring-manager/job-posting/${jobPostingId}/candidate-report/${encodeURIComponent(candidateEmail)}`,
   },
 };

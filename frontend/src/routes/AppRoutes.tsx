@@ -7,6 +7,8 @@ import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDash
 import TopNavbar from "../components/NavBar";
 import HiringManagerLayout from "../layouts/HiringManagerLayout";
 import JobDetails from "../pages/HiringManager/JobDetails";
+import CandidateReportPage from "../pages/HiringManager/CandidateReportPage";
+import JobReportsPage from "../pages/HiringManager/JobReportsPage";
 
 import { ROUTES } from "./routePaths";
 import JobPostingApplicationsPage from "../pages/HiringManager/JobPostingApplicationsPage";
@@ -64,8 +66,9 @@ const AppRoutes = () => {
           />
           <Route
             path={ROUTES.hiringManager.reports(":jobPostingId")}
-            element={<JobDetails />}
+            element={<JobReportsPage />}
           />
+          <Route path="candidate-report/:candidateEmail" element={<CandidateReportPage />} />
         </Route>
 
         {/* Applicant Module */}
