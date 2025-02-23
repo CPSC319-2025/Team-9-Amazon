@@ -11,19 +11,7 @@ npm run dev
 ```
 
 ## Docker (Deployment) Instructions
-You can build and run the development frontend with the following commands:
-
-Ensure you are in the directory `frontend/`
-
-Build:
-```
-docker build -t vite-frontend .
-```
-
-Run:
-```
-docker run -p 3000:80 vite-frontend
-```
+Deployment tooling has been moved to the `devops` directory
 
 
 ## VITE stuffs
