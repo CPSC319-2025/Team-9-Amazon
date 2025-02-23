@@ -7,6 +7,7 @@ import {
   Grid,
 } from '@mui/material';
 import { colors } from '../../styles/commonStyles';
+import { Outlet, useNavigate, useParams } from "react-router-dom";
 
 // Dummy data (metrics)
 const applicationData = [
@@ -30,8 +31,17 @@ const skillMatchData = [
 ];
 
 export default function JobReportsPage() {
+  const navigate = useNavigate();
+  const params = useParams();
+  const jobPostingId = params.jobPostingId;
+
+  const handleBack = () => {
+    navigate(ROUTES.hiringManager.jobPosting(jobPostingId!));
+  };
+
   return (
     <Box sx={{ p: 3 }}>
+      <Outlet />
       <Typography variant="h4" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
         Job Metrics
       </Typography>

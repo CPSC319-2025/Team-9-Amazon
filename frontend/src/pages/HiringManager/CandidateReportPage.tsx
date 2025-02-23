@@ -49,7 +49,7 @@ export default function CandidateReportPage() {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(ROUTES.applications(jobPostingId!));
+    navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
 
   return (

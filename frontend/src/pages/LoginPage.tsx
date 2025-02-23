@@ -16,7 +16,7 @@ export default function LoginPage() {
       return;
     }
     
-    navigate(ROUTES.hiringManagerDashboard);
+    navigate(ROUTES.hiringManager.hiringManagerDashboard);
   };
 
   return (

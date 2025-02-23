@@ -85,7 +85,7 @@ export const ApplicantList = ({
               )}
               <IconButton
                 edge="end"
-                onClick={() => navigate(ROUTES.candidateReport(jobPostingId!, applicant.email))}
+                onClick={() => navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, applicant.email))}
                 sx={{
                   color: colors.black1,
                   transition: 'all 0.2s ease',

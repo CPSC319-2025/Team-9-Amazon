@@ -7,8 +7,7 @@ export const colors = {
   gray2: "#535d69",
   black1: "#232f3e",
   orange1: "#ff9900",
-  green1: "#006727",
-  green2: green[500],
+  green1: green[500],
   red1: "#ff0000",
   black: "#000000",
   white: "#ffffff",
@@ -31,10 +30,11 @@ export const outlinedButtonStyle: CSSObject = {
   borderWidth: "2px",
   borderColor: colors.blue1,
   color: colors.blue1,
+  borderRadius: "0.5rem",
   "&:hover": {
     borderWidth: "2px",
-    borderColor: colors.blue1,
-    backgroundColor: `${colors.blue1}10`,
+    borderColor: colors.orange1,
+    backgroundColor: `${colors.orange1}10`,
   },
 };
 
@@ -42,11 +42,12 @@ export const filledButtonStyle: CSSObject = {
   textTransform: "none",
   fontWeight: 600,
   padding: "8px 24px",
-  backgroundColor: colors.blue1,
+  backgroundColor: colors.orange1,
   color: colors.white,
+  borderRadius: "0.5rem",
   boxShadow: "none",
   "&:hover": {
-    backgroundColor: colors.blue1,
+    backgroundColor: colors.orange1,
     opacity: 0.9,
     boxShadow: "none",
   },
@@ -73,6 +74,7 @@ export const cardStyle: CSSObject = {
   "&:hover": {
     transform: "translateY(-2px)",
     boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+    cursor: "pointer",
   },
 };
 

@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Tabs, Tab, Chip } from "@mui/material";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../../routes/routePaths";
 import {
@@ -7,21 +7,30 @@ import {
   colors,
   filledButtonStyle,
 } from "../../styles/commonStyles";
+import { JobPosting } from "../../types/JobPosting/jobPosting";
 
-const HiringManagerNav = () => {
+interface HiringManagerNavProps {
+  jobPostingId: string;
+  jobPosting: JobPosting;
+}
+
+const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { jobPostingId } = useParams();
   const [tabValue, setTabValue] = useState(location.pathname);
 
   useEffect(() => {
-    // check if on a candidate report page - TODO remove this later
-    if (location.pathname.includes('/reports/candidate/')) {
-      setTabValue(ROUTES.applications(jobPostingId!));
+    // If on base job posting route, default to "Job Details"
+    if (location.pathname === ROUTES.hiringManager.jobPosting(jobPostingId!)) {
+      setTabValue(ROUTES.hiringManager.jobDetails(jobPostingId!));
     } else {
       setTabValue(location.pathname);
     }
-  }, [location, jobPostingId]);
+  }, [location.pathname, jobPostingId]);
+
+  useEffect(() => {
+    setTabValue(location.pathname);
+  }, [location]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -48,22 +57,22 @@ const HiringManagerNav = () => {
       >
         <Box>
           <Typography variant="h4">
-            ML Compiler Software Engineer PEY Co-op
+            {jobPosting.title}
           </Typography>
           <Typography
             variant="body2"
             color="text.secondary"
             sx={{ fontSize: "1rem", marginBottom: "8px" }}
           >
-            (12-16 months), Annapurna ML - Co-op
+            {jobPosting.subtitle}
           </Typography>
           <Typography
             variant="body2"
             sx={{ fontSize: "0.95rem", color: "#333" }}
           >
-            <strong>Application Received:</strong> {67} |{" "}
-            <strong>Machine Evaluated:</strong> {12} |{" "}
-            <strong>Processing:</strong> {32}
+            <strong>Application Received:</strong> {jobPosting.num_applicants ?? 0} |{" "}
+            <strong>Machine Evaluated:</strong> {jobPosting.num_machine_evaluated ?? 0} |{" "}
+            <strong>Processing:</strong> {jobPosting.num_processes ?? 0}
           </Typography>
         </Box>
 
@@ -79,8 +88,8 @@ const HiringManagerNav = () => {
             label="PUBLISHED"
             sx={{
               ...chipStyle,
-              color: `${colors.green2}`,
-              borderColor: colors.green2,
+              color: `${colors.green1}`,
+              borderColor: colors.green1,
             }}
           />
           <Button
@@ -103,13 +112,13 @@ const HiringManagerNav = () => {
         centered
         sx={{ marginTop: 2 }}
       >
-        <Tab label="Job Details" value={ROUTES.jobDetails(jobPostingId!)} />
+        <Tab label="Job Details" value={ROUTES.hiringManager.jobDetails(jobPostingId!)} />
         <Tab
           label="Evaluation Metrics"
-          value={ROUTES.evaluationMetrics(jobPostingId!)}
+          value={ROUTES.hiringManager.evaluationMetrics(jobPostingId!)}
         />
-        <Tab label="Applications" value={ROUTES.applications(jobPostingId!)} />
-        <Tab label="Reports" value={ROUTES.reports(jobPostingId!)} />
+        <Tab label="Applications" value={ROUTES.hiringManager.applications(jobPostingId!)} />
+        <Tab label="Reports" value={ROUTES.hiringManager.reports(jobPostingId!)} />
       </Tabs>
     </Box>
   );

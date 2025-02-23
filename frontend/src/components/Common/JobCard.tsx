@@ -1,58 +1,53 @@
-import {
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Typography,
-} from "@mui/material";
-import { cardStyle, colors, textButtonStyle } from "../../styles/commonStyles";
-import { useNavigate } from "react-router-dom";
+import { Typography, Card, CardContent } from "@mui/material";
+import { cardStyle, colors } from "../../styles/commonStyles";
 
 interface JobCardProps {
-  id: string;
+  id?: string;
   title: string;
-  applicants: number;
+  description: string;
+  onClick?: () => void;
 }
 
-export const JobCard = ({ id, title, applicants }: JobCardProps) => {
-  const navigate = useNavigate();
-
-  const handleViewReport = () => {
-    navigate(`/hiring-manager/job-reports/${id}`);
-  };
-
+export const JobCard = ({ id, title, description, onClick }: JobCardProps) => {
   return (
-    <Card sx={cardStyle}>
-      <CardContent>
+    <Card sx={cardStyle} onClick={onClick}>
+      <CardContent sx={{ position: "relative", pb: 1 }}>
+        {id && (
+          <Typography
+            variant="caption"
+            sx={{
+              position: "absolute",
+              top: 16,
+              right: 8,
+              color: colors.black1,
+              fontSize: "1rem",
+            }}
+          >
+            #{id}
+          </Typography>
+        )}
         <Typography
           variant="h5"
           component="h2"
-          sx={{ color: colors.blue1, fontWeight: 600 }}
-          gutterBottom
+          sx={{ color: colors.blue1, fontWeight: 600, mb: 1, pr: 4 }}
         >
           {title}
         </Typography>
         <Typography
           variant="body1"
-          sx={{ color: colors.black1, fontWeight: 500 }}
+          sx={{
+            color: colors.black1,
+            fontWeight: 500,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2, // Limit text to 2 lines
+            WebkitBoxOrient: "vertical",
+          }}
         >
-          Applicants: {applicants}
+          {description}
         </Typography>
       </CardContent>
-      <CardActions
-        sx={{
-          mt: "auto",
-          borderTop: `1px solid ${colors.gray1}`,
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button 
-          sx={{ ...textButtonStyle, color: colors.orange1 }}
-          onClick={handleViewReport}
-        >
-          VIEW REPORT
-        </Button>
-      </CardActions>
     </Card>
   );
 };

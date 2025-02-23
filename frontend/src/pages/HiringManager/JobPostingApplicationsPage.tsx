@@ -1,10 +1,17 @@
-import { Box, Container, Paper, Grid, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Container,
+  Paper,
+  Grid,
+  Snackbar,
+  Alert,
+  Typography,
+} from "@mui/material";
 import { colors, paperStyle } from "../../styles/commonStyles";
-// import { Header } from "../../components/Common/Header";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { ApplicantList } from "../../components/HiringManager/Applicants/ApplicantList";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Applicant } from "../../types/applicant";
 import { mockApplicants, mockDatabaseCandidates } from "../../utils/mockData";
 
@@ -14,6 +21,44 @@ const JobPostingApplicationsPage = () => {
   const [scanned, setScanned] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortAscending, setSortAscending] = useState(false);
+
+  // Check if applicants have been evaluated
+  const hasEvaluatedApplicants = useMemo(() => {
+    return applicants.some((applicant) => applicant.score !== undefined);
+  }, [applicants]);
+
+  // Filter applicants based on search term
+  const filteredApplicants = useMemo(() => {
+    return applicants.filter((applicant) => {
+      const fullName =
+        `${applicant.first_name} ${applicant.last_name}`.toLowerCase();
+      return (
+        fullName.includes(searchTerm.toLowerCase()) ||
+        applicant.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [applicants, searchTerm]);
+
+  // Filter database candidates based on search term and existing applicants
+  const filteredDatabaseCandidates = useMemo(() => {
+    return databaseCandidates.filter((candidate) => {
+      // First filter out candidates that are already in applicants list
+      const isNotInApplicants = !applicants.some(
+        (a) => a.email === candidate.email
+      );
+      if (!isNotInApplicants) return false;
+
+      // Then apply search term filter
+      const fullName =
+        `${candidate.first_name} ${candidate.last_name}`.toLowerCase();
+      return (
+        fullName.includes(searchTerm.toLowerCase()) ||
+        candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [databaseCandidates, applicants, searchTerm]);
 
   const handleEvaluateAll = () => {
     const evaluatedApplicants = applicants.map((applicant) => ({
@@ -27,18 +72,40 @@ const JobPostingApplicationsPage = () => {
   };
 
   const handleScanDatabase = () => {
-    setDatabaseCandidates(mockDatabaseCandidates);
+    // When scanning, only add candidates that aren't already in the applicants list
+    const newCandidates = mockDatabaseCandidates.filter(
+      (candidate) => !applicants.some((a) => a.email === candidate.email)
+    );
+    setDatabaseCandidates(newCandidates);
     setScanned(true);
     setSnackbarMessage("Database scan complete");
     setSnackbarOpen(true);
   };
 
   const handleSearch = (value: string) => {
-    console.log("Searching:", value);
+    setSearchTerm(value);
   };
 
-  const handleFilter = () => {
-    console.log("Opening filter dialog");
+  const handleSort = () => {
+    const sortFn = (a: Applicant, b: Applicant) => {
+      // Handle cases where score might be undefined
+      const scoreA = a.score ?? -1;
+      const scoreB = b.score ?? -1;
+
+      if (sortAscending) {
+        return scoreA - scoreB;
+      } else {
+        return scoreB - scoreA;
+      }
+    };
+
+    setApplicants([...applicants].sort(sortFn));
+    setDatabaseCandidates([...databaseCandidates].sort(sortFn));
+    setSortAscending(!sortAscending);
+    setSnackbarMessage(
+      `Sorted by score ${sortAscending ? "ascending" : "descending"}`
+    );
+    setSnackbarOpen(true);
   };
 
   const handleViewApplicant = (email: string) => {
@@ -63,15 +130,6 @@ const JobPostingApplicationsPage = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-      {/* <Header
-        title="ML Compiler Software Engineer"
-        subtitle={`${applicants.length} applications${
-          scanned
-            ? ` • ${databaseCandidates.length} potential candidates found`
-            : ""
-        }`}
-      /> */}
-
       <Container maxWidth={false} sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
           <ActionButtons
@@ -81,24 +139,29 @@ const JobPostingApplicationsPage = () => {
           <SearchBar
             placeholder="Search applicants..."
             onSearch={handleSearch}
-            onFilter={handleFilter}
+            onSort={handleSort}
+            showSort={hasEvaluatedApplicants}
           />
         </Box>
 
         <Grid container spacing={4}>
           <Grid item xs={12} md={scanned ? 6 : 12}>
             <Paper elevation={0} sx={paperStyle}>
-              <h2 className="text-xl font-semibold mb-3 text-gray-900">
+              <Typography
+                variant="h5"
+                component="h1"
+                sx={{ mb: 3, color: colors.black1 }}
+              >
                 Applications
-              </h2>
+              </Typography>
               <ApplicantList
-                applicants={applicants}
+                applicants={filteredApplicants}
                 onViewApplicant={handleViewApplicant}
               />
             </Paper>
           </Grid>
 
-          {scanned && databaseCandidates.length > 0 && (
+          {scanned && filteredDatabaseCandidates.length > 0 && (
             <Grid item xs={12} md={6}>
               <Paper
                 elevation={0}
@@ -107,11 +170,15 @@ const JobPostingApplicationsPage = () => {
                   border: `2px solid ${colors.blue1}15`,
                 }}
               >
-                <h2 className="text-xl font-semibold mb-3 text-blue-600">
-                  Potential Candidates
-                </h2>
+                <Typography
+                  variant="h5"
+                  component="h1"
+                  sx={{ mb: 3, color: colors.black1 }}
+                >
+                  Potential Candidates{" "}
+                </Typography>
                 <ApplicantList
-                  applicants={databaseCandidates}
+                  applicants={filteredDatabaseCandidates}
                   onViewApplicant={handleViewApplicant}
                   onAddCandidate={handleAddCandidate}
                   showAddButton
