@@ -20,13 +20,13 @@ const HiringManagerLayout = () => {
       setJobPosting(jobData);
     } else {
       // Redirect if jobPostingId is invalid
-      navigate(ROUTES.hiringManagerDashboard, { replace: true });
+      navigate(ROUTES.hiringManager.hiringManagerDashboard, { replace: true });
     }
   }, [jobPostingId, navigate]);
 
   useEffect(() => {
-    if (jobPostingId && location.pathname === ROUTES.jobPosting(jobPostingId)) {
-      navigate(ROUTES.jobDetails(jobPostingId), { replace: true });
+    if (jobPostingId && location.pathname === ROUTES.hiringManager.jobPosting(jobPostingId)) {
+      navigate(ROUTES.hiringManager.jobDetails(jobPostingId), { replace: true });
     }
   }, [location.pathname, jobPostingId, navigate]);
 

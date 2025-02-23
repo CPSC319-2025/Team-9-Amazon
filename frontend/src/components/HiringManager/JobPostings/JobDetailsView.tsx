@@ -1,6 +1,6 @@
 import { Box, Typography, Grid, Button, Stack } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { JobPosting } from "../../../types/JobPosting/jobPosting";
 import { EditMode } from "../../../types/JobPosting/JobPostingEditMode";
 import JobTitleSection from "./JobDetailsView/JobTitleSection";
@@ -16,15 +16,23 @@ import {
 } from "../../../styles/commonStyles";
 import CustomSnackbar from "../../Common/SnackBar";
 import ConfirmDialog from "../../Common/ConfirmDialog";
+import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
 
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
+  mode: JobDetailsMode;
   editable?: boolean;
+  onApply?: () => void;
+  onCancel?: () => void;
+  onSave?: (jobPosting: JobPosting) => void;
 }
 
 const JobDetailsView = ({
   jobPosting,
-  editable = false,
+  mode,
+  onApply = ()=>{},
+  onCancel = ()=>{},
+  onSave = ()=>{},
 }: JobDetailsSectionProps) => {
   const [editedJob, setEditedJob] = useState<JobPosting>({ ...jobPosting });
   const [editMode, setEditMode] = useState<EditMode | null>(null);
@@ -39,6 +47,8 @@ const JobDetailsView = ({
   // Confirm Dialogue
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
+  const editable = useMemo(() => mode !== JobDetailsMode.APPLY, [mode]);
+
   // Handle input changes
   const handleChange = (field: keyof JobPosting, value: string) => {
     setEditedJob((prev) => ({ ...prev, [field]: value }));
@@ -52,7 +62,7 @@ const JobDetailsView = ({
   };
 
   const handleSave = () => {
-    console.log("Saved Job Posting:", editedJob);
+    onSave(editedJob);
     setSnackbarMessage("Job Posting Saved!");
     setSnackbarSeverity("success");
     setOpenSnackbar(true);
@@ -86,21 +96,40 @@ const JobDetailsView = ({
     setSnackbarMessage("Job Posting Cancelled!");
     setSnackbarSeverity("warning");
     setOpenSnackbar(true);
+
+    onCancel();
   };
 
   return (
     <Box sx={{ padding: "40px", maxWidth: "1200px", margin: "auto" }}>
+
+      {/* Top Row: Job Title + Action Buttons */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <JobTitleSection
+          jobPosting={editedJob}
+          editable={editable}
+          editMode={editMode}
+          toggleEditMode={toggleEditMode}
+          handleChange={handleChange}
+        />
+        {mode === JobDetailsMode.APPLY && (
+          <Button sx={{
+            ...filledButtonStyle,
+            color: colors.black
+          }}
+            variant="contained"
+            color="primary"
+            onClick={() => onApply && onApply()}>
+            Apply
+          </Button>
+        )}
+      </Box>
+
+
       {/* Two-column Layout */}
       <Grid container spacing={20}>
         {/* Left Column: Job Description */}
         <Grid item xs={12} md={8}>
-          <JobTitleSection
-            jobPosting={editedJob}
-            editable={editable}
-            editMode={editMode}
-            toggleEditMode={toggleEditMode}
-            handleChange={handleChange}
-          />
           <JobTextSection
             field="description"
             title="Job Description"
@@ -192,7 +221,7 @@ const JobDetailsView = ({
                   ...filledButtonStyle,
                 }}
               >
-                SAVE
+                {mode === JobDetailsMode.CREATE ? "Create" : "Save"}
               </Button>
             </Stack>
           )}
@@ -213,7 +242,9 @@ const JobDetailsView = ({
             title="Cancel Changes?"
             message="Are you sure you want to discard all changes?"
             onConfirm={handleConfirmCancel}
-            onCancel={() => setConfirmDialogOpen(false)}
+            onCancel={() => {
+              setConfirmDialogOpen(false);
+            }}
           />
         </Grid>
       </Grid>

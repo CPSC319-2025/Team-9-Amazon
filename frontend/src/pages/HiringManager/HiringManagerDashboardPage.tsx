@@ -12,10 +12,15 @@ import { ROUTES } from "../../routes/routePaths.ts";
 const HiringManagerDashboardPage = () => {
   const [jobPostings] = useState<JobPosting[]>(mockJobPostings);
 
+  const handleCreateJob = () => {
+    navigate(ROUTES.hiringManager.hiringManagerCreateJob);
+  };
+
   const headerActions = (
     <Button
       startIcon={<PlusCircle size={20} />}
       sx={{ ...textButtonStyle, color: colors.blue1 }}
+      onClick={handleCreateJob}
     >
       Add New Job Posting
     </Button>
@@ -25,7 +30,7 @@ const HiringManagerDashboardPage = () => {
   const navigate = useNavigate();
 
   const handleCardClick = (jobPostingId: string) => {
-    navigate(ROUTES.jobPosting(jobPostingId));
+    navigate(ROUTES.hiringManager.jobPosting(jobPostingId));
   };
 
   return (
