@@ -19,22 +19,18 @@ import {
   filledButtonStyle,
   paperStyle,
 } from "../../styles/commonStyles";
-import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup.tsx";
-import { EditKeywordDialog } from "../../components/HiringManager/Evaluation/EditKeywordDialog.tsx";
-import { CriteriaGroup, Keyword } from "../../types/criteria.ts";
-import { mockCriteriaGroups } from "../../utils/mockData.ts";
+import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup";
+import { EditKeywordDialog } from "../../components/HiringManager/Evaluation/EditKeywordDialog";
+import { CriteriaGroup, Keyword } from "../../types/criteria";
+import { mockCriteriaGroups } from "../../utils/mockData";
 
 const EvaluationMetricsPage = () => {
-  // Initialize with empty active criteria
   const [activeCriteria, setActiveCriteria] = useState<CriteriaGroup[]>([]);
-
-  // Initialize available criteria from mockCriteriaGroups
   const [availableCriteria, setAvailableCriteria] =
     useState<CriteriaGroup[]>(mockCriteriaGroups);
-
   const [editingKeyword, setEditingKeyword] = useState<{
     groupId: string;
-    keyword: Keyword;
+    keyword: Keyword | null;
   } | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -54,22 +50,34 @@ const EvaluationMetricsPage = () => {
     setEditingKeyword({ groupId, keyword });
   };
 
-  const handleSaveKeyword = (updatedKeyword: Keyword) => {
+  const handleAddKeyword = (groupId: string) => {
+    setEditingKeyword({ groupId, keyword: null });
+  };
+
+  const handleSaveKeyword = (updatedKeyword: Keyword, isNew: boolean) => {
     if (editingKeyword) {
       setActiveCriteria((prev) =>
         prev.map((group) =>
           group.id === editingKeyword.groupId
             ? {
                 ...group,
-                keywords: group.keywords.map((k) =>
-                  k.name === updatedKeyword.name ? updatedKeyword : k
-                ),
+                keywords: isNew
+                  ? [...group.keywords, updatedKeyword]
+                  : group.keywords.map((k) =>
+                      k.name === editingKeyword.keyword?.name
+                        ? updatedKeyword
+                        : k
+                    ),
               }
             : group
         )
       );
       setEditingKeyword(null);
-      setSnackbarMessage("Keyword updated successfully");
+      setSnackbarMessage(
+        isNew
+          ? "New keyword added successfully"
+          : "Keyword updated successfully"
+      );
       setSnackbarOpen(true);
     }
   };
@@ -135,6 +143,7 @@ const EvaluationMetricsPage = () => {
                 onDeleteGroup={handleDeleteGroup}
                 onEditKeyword={handleEditKeyword}
                 onDeleteKeyword={handleDeleteKeyword}
+                onAddKeyword={handleAddKeyword}
               />
             ))}
             {activeCriteria.length === 0 && (
@@ -208,6 +217,7 @@ const EvaluationMetricsPage = () => {
       <EditKeywordDialog
         open={!!editingKeyword}
         keyword={editingKeyword?.keyword || null}
+        groupId={editingKeyword?.groupId || ""}
         onClose={() => setEditingKeyword(null)}
         onSave={handleSaveKeyword}
       />

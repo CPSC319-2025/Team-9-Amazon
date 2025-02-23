@@ -6,15 +6,16 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { useState } from "react";
-import { Keyword } from "../../../types/criteria.ts";
+import { useState, useEffect } from "react";
+import { Keyword } from "../../../types/criteria";
 import { colors } from "../../../styles/commonStyles";
 
 interface EditKeywordDialogProps {
   open: boolean;
   keyword: Keyword | null;
+  groupId: string;
   onClose: () => void;
-  onSave: (keyword: Keyword) => void;
+  onSave: (keyword: Keyword, isNew: boolean) => void;
 }
 
 export const EditKeywordDialog = ({
@@ -23,17 +24,36 @@ export const EditKeywordDialog = ({
   onClose,
   onSave,
 }: EditKeywordDialogProps) => {
+  const [name, setName] = useState(keyword?.name || "");
   const [pointsPerMatch, setPointsPerMatch] = useState(
-    keyword?.pointsPerMatch.toString() || ""
+    keyword?.pointsPerMatch.toString() || "1"
   );
   const [maxPoints, setMaxPoints] = useState(
-    keyword?.maxPoints.toString() || ""
+    keyword?.maxPoints.toString() || "5"
   );
-  const [errors, setErrors] = useState({ pointsPerMatch: "", maxPoints: "" });
+  const [errors, setErrors] = useState({
+    name: "",
+    pointsPerMatch: "",
+    maxPoints: "",
+  });
+
+  useEffect(() => {
+    if (open) {
+      setName(keyword?.name || "");
+      setPointsPerMatch(keyword?.pointsPerMatch.toString() || "1");
+      setMaxPoints(keyword?.maxPoints.toString() || "5");
+      setErrors({ name: "", pointsPerMatch: "", maxPoints: "" });
+    }
+  }, [open, keyword]);
 
   const validateFields = () => {
-    const newErrors = { pointsPerMatch: "", maxPoints: "" };
+    const newErrors = { name: "", pointsPerMatch: "", maxPoints: "" };
     let isValid = true;
+
+    if (!name.trim()) {
+      newErrors.name = "Keyword name is required";
+      isValid = false;
+    }
 
     const ppm = parseInt(pointsPerMatch);
     const mp = parseInt(maxPoints);
@@ -58,21 +78,33 @@ export const EditKeywordDialog = ({
   };
 
   const handleSave = () => {
-    if (keyword && validateFields()) {
-      onSave({
-        ...keyword,
-        pointsPerMatch: parseInt(pointsPerMatch),
-        maxPoints: parseInt(maxPoints),
-      });
+    if (validateFields()) {
+      onSave(
+        {
+          name,
+          pointsPerMatch: parseInt(pointsPerMatch),
+          maxPoints: parseInt(maxPoints),
+        },
+        !keyword // isNew flag
+      );
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ color: colors.black1 }}>
-        Edit Keyword: {keyword?.name}
+        {keyword ? `Edit Keyword: ${keyword.name}` : "Add New Keyword"}
       </DialogTitle>
       <DialogContent>
+        <TextField
+          fullWidth
+          label="Keyword Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={!!errors.name}
+          helperText={errors.name}
+          sx={{ mt: 2 }}
+        />
         <TextField
           fullWidth
           label="Points per Match"
@@ -106,7 +138,7 @@ export const EditKeywordDialog = ({
             "&:hover": { bgcolor: `${colors.blue1}dd` },
           }}
         >
-          Save
+          {keyword ? "Save Changes" : "Add Keyword"}
         </Button>
       </DialogActions>
     </Dialog>
