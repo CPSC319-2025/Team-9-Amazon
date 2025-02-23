@@ -6,8 +6,9 @@ import {
   LinearProgress,
   Grid,
 } from '@mui/material';
-import { colors } from '../../styles/commonStyles';
+import { colors, titleStyle, paperStyle } from '../../styles/commonStyles';
 import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { ROUTES } from '../../routes/routePaths';
 
 // Dummy data (metrics)
 const applicationData = [
@@ -42,15 +43,15 @@ export default function JobReportsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <Outlet />
-      <Typography variant="h4" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+      <Typography variant="h4" sx={{ ...titleStyle, mb: 3 }}>
         Job Metrics
       </Typography>
 
       <Grid container spacing={3}>
         {/* Applications Over Time */}
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+          <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+            <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Applications Over Time
             </Typography>
             <Box sx={{ mt: 2 }}>
@@ -85,8 +86,8 @@ export default function JobReportsPage() {
 
         {/* Application Sources */}
         <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+          <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+            <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Application Sources
             </Typography>
             <Box sx={{ mt: 2 }}>
@@ -121,8 +122,8 @@ export default function JobReportsPage() {
 
         {/* Required Skills Match */}
         <Grid item xs={12}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+          <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+            <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Required Skills Match
             </Typography>
             <Grid container spacing={2}>

@@ -8,8 +8,6 @@ import {
   IconButton,
   Grid,
   LinearProgress,
-  Card,
-  CardContent,
   List,
   ListItem,
   ListItemText,
@@ -19,7 +17,7 @@ import {
   Link,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { colors } from '../../styles/commonStyles';
+import { colors, titleStyle, paperStyle, chipStyle } from '../../styles/commonStyles';
 
 // Dummy data
 const candidateData = {
@@ -68,7 +66,7 @@ export default function CandidateReportPage() {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h4" sx={{ color: colors.black1, fontWeight: 500 }}>
+        <Typography variant="h4" sx={{ ...titleStyle }}>
           Candidate Report
         </Typography>
       </Box>
@@ -78,8 +76,8 @@ export default function CandidateReportPage() {
         <Grid item xs={12} md={4}>
           <Stack spacing={3}>
             {/* Basic Info Card */}
-            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-              <Typography variant="h5" sx={{ color: colors.black1, mb: 2, fontWeight: 500 }}>
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h5" sx={{ ...titleStyle, mb: 2 }}>
                 {candidateData.name}
               </Typography>
               <Typography variant="body1" sx={{ color: colors.gray2, mb: 1 }}>
@@ -113,8 +111,8 @@ export default function CandidateReportPage() {
             </Paper>
 
             {/* Contact Info Card */}
-            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ color: colors.black1, mb: 2, fontWeight: 500 }}>
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h6" sx={{ ...titleStyle, mb: 2 }}>
                 Contact Information
               </Typography>
               <List disablePadding>
@@ -195,8 +193,8 @@ export default function CandidateReportPage() {
         <Grid item xs={12} md={8}>
           <Stack spacing={3}>
             {/* Evaluation Criteria */}
-            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
                 Evaluation Criteria
               </Typography>
               <Grid container spacing={2}>
@@ -231,8 +229,8 @@ export default function CandidateReportPage() {
             </Paper>
 
             {/* Keywords Analysis */}
-            <Paper elevation={0} sx={{ p: 3, bgcolor: colors.gray1, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ color: colors.black1, mb: 3, fontWeight: 500 }}>
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
                 Keywords Analysis
               </Typography>
               <Box>
@@ -260,11 +258,7 @@ export default function CandidateReportPage() {
                     <Chip
                       key={index}
                       label={keyword}
-                      sx={{
-                        bgcolor: colors.gray1,
-                        color: colors.gray2,
-                        border: `1px solid ${colors.gray2}`,
-                      }}
+                      sx={{ ...chipStyle }}
                     />
                   ))}
                 </Box>
