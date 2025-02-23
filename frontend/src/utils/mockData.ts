@@ -1,5 +1,5 @@
-import { Applicant } from '../types/applicant';
-import { JobPosting } from '../types/JobPosting/jobPosting';
+import { Applicant } from "../types/applicant";
+import { JobPosting } from "../types/JobPosting/jobPosting";
 import { CriteriaGroup } from "../types/criteria";
 
 export const mockApplicants: Applicant[] = [
@@ -70,16 +70,17 @@ export const mockJobPostings: JobPosting[] = [
     num_applicants: 7,
   },
   {
-    id: '13',
-    title: 'Data Scientist',
-    subtitle: 'Machine Learning',
-    description: 'We are looking for a data scientist to work on our machine learning team.',
-    location: 'New York, NY',
-    status: 'Published',
-    created_at: '2021-09-15',
-    // qualifications: 'MS in Computer Science or equivalent experience',
-    responsibilities: 'Analyze and model data for business insights',
-    tags: ['Data Science', 'Machine Learning'],
+    id: "13",
+    title: "Data Scientist",
+    subtitle: "Machine Learning",
+    description:
+      "We are looking for a data scientist to work on our machine learning team.",
+    location: "New York, NY",
+    status: "Published",
+    created_at: "2021-09-15",
+
+    responsibilities: "Analyze and model data for business insights",
+    tags: ["Data Science", "Machine Learning"],
     num_applicants: 10,
   },
   {
@@ -117,7 +118,7 @@ export const mockJobPostings: JobPosting[] = [
     title: "Software Engineer",
     subtitle: "Full Stack",
     description:
-      "We are looking for a software engineer to work on our full stack team.",
+      "We are currently in search of a software engineer who will join our full stack development team. The ideal candidate will be tasked with designing and implementing robust solutions across the entire software development stack. This position requires a professional who is adept at developing both client and server software, and who can effectively integrate various technologies to create seamless, efficient, and scalable applications. The role offers the opportunity to work alongside a dedicated team of developers and engineers who are committed to innovating and pushing the boundaries of technology in order to deliver cutting-edge software products",
     location: "Austin, TX",
     status: "Published",
     created_at: "2021-11-01",
