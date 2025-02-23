@@ -3,10 +3,13 @@ import subprocess
 import sys
 import boto3
 
-
+ecs_client = boto3.client('ecs')
+ecr_client = boto3.client('ecr')
+cluster_name = "DevCluster"
 aws_region = "ca-central-1"
 
 frontend_image_name = "recruit-frontend"
+frontend_service_name = "recruit-frontend-service"
 ecr_repository_frontend = "cpsc319/recruit/frontend"
 
 backend_image_name = "recruit-frontend"
@@ -28,6 +31,19 @@ def run_command(command):
     if process.returncode != 0:
         sys.exit(process.returncode)
 
+def get_aws_account_id():
+    try:
+        sts_client = boto3.client("sts")
+        account_id = sts_client.get_caller_identity()["Account"]
+        return account_id
+    except Exception as e:
+        print(f"Error retrieving AWS account ID: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def update_ecs_service(service_name):
+    command = f"aws ecs update-service --cluster {cluster_name} --service {service_name} --force-new-deployment"
+    run_command(command)
+
 def docker_build(image_name, context="."):
     dockerfile = context + "/Dockerfile"
     command = f"docker build -t {image_name}:latest -f {dockerfile} {context}"
@@ -38,15 +54,6 @@ def docker_run(image_name, container_name, port_mapping):
     name_option = f"--name {container_name}" if container_name else ""
     command = f"docker run --rm {name_option} {port_option} -d {image_name}"
     run_command(command)
-
-def get_aws_account_id():
-    try:
-        sts_client = boto3.client("sts")
-        account_id = sts_client.get_caller_identity()["Account"]
-        return account_id
-    except Exception as e:
-        print(f"Error retrieving AWS account ID: {e}", file=sys.stderr)
-        sys.exit(1)
 
 def docker_push(image_name, repository_name, aws_account_id, region):
     repository = f"{aws_account_id}.dkr.ecr.{region}.amazonaws.com/{repository_name}:latest"
@@ -67,6 +74,7 @@ def main():
     run_frontend_parser = subparsers.add_parser("run-frontend", help="Run latest frontend image")
     run_frontend_parser.add_argument("--container-name", help="Name of the Docker container", default="recruit-frontend-container")
     push_frontend_parser = subparsers.add_parser("push-frontend", help="Push latest frontend Docker image to AWS ECR")
+    deploy_frontend_parser = subparsers.add_parser("deploy-frontend", help="Deploy latest frontend, from ECR to Fargate")
 
     build_backend_parser = subparsers.add_parser("build-backend", help="Build backend image")
     run_backend_parser = subparsers.add_parser("run-backend", help="Run latest backend image")
@@ -81,6 +89,8 @@ def main():
         docker_run(image_name=frontend_image_name, container_name=args.container_name, port_mapping="80:80")
     elif args.command == "push-frontend":
         docker_push(frontend_image_name, ecr_repository_frontend, get_aws_account_id(), aws_region)
+    elif args.command == "deploy-frontend":
+        update_ecs_service(frontend_service_name)
     
     elif args.command == "build-backend":
         docker_build(image_name=backend_image_name, context="../backend")
