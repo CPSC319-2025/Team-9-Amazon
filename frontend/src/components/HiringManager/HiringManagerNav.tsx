@@ -21,8 +21,8 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
 
   useEffect(() => {
     // If on base job posting route, default to "Job Details"
-    if (location.pathname === ROUTES.jobPosting(jobPostingId!)) {
-      setTabValue(ROUTES.jobDetails(jobPostingId!));
+    if (location.pathname === ROUTES.hiringManager.jobPosting(jobPostingId!)) {
+      setTabValue(ROUTES.hiringManager.jobDetails(jobPostingId!));
     } else {
       setTabValue(location.pathname);
     }
@@ -112,13 +112,13 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
         centered
         sx={{ marginTop: 2 }}
       >
-        <Tab label="Job Details" value={ROUTES.jobDetails(jobPostingId!)} />
+        <Tab label="Job Details" value={ROUTES.hiringManager.jobDetails(jobPostingId!)} />
         <Tab
           label="Evaluation Metrics"
-          value={ROUTES.evaluationMetrics(jobPostingId!)}
+          value={ROUTES.hiringManager.evaluationMetrics(jobPostingId!)}
         />
-        <Tab label="Applications" value={ROUTES.applications(jobPostingId!)} />
-        <Tab label="Reports" value={ROUTES.reports(jobPostingId!)} />
+        <Tab label="Applications" value={ROUTES.hiringManager.applications(jobPostingId!)} />
+        <Tab label="Reports" value={ROUTES.hiringManager.reports(jobPostingId!)} />
       </Tabs>
     </Box>
   );

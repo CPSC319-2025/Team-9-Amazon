@@ -14,6 +14,7 @@ import JobPostingsPage from "../pages/JobPostingsPage";
 import JobPostings from "../pages/JobPostingsPage/JobPostings";
 import JobApplication from "../pages/JobPostingsPage/JobApplication";
 import EvaluationMetricsPage from "../pages/HiringManager/EvaluationMetricsPage";
+import CreateJobPostingPage from "../pages/HiringManager/CreateJobPostingPage";
 
 const AppRoutes = () => {
   return (
@@ -24,32 +25,42 @@ const AppRoutes = () => {
         <Route path="/login" element={<LoginPage />} />
 
         <Route
-          path={ROUTES.hiringManagerDashboard}
+          path={ROUTES.hiringManager.hiringManagerDashboard}
           element={
             <ProtectedRoute>
               <HiringManagerDashboardPage />
             </ProtectedRoute>
           }
         />
+
         <Route
-          path={ROUTES.jobPosting(":jobPostingId")}
+          path={ROUTES.hiringManager.hiringManagerCreateJob}
+          element={
+            <ProtectedRoute>
+              <CreateJobPostingPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={ROUTES.hiringManager.jobPosting(":jobPostingId")}
           element={<HiringManagerLayout />}
         >
           <Route index element={<JobDetails />} />
           <Route
-            path={ROUTES.jobDetails(":jobPostingId")}
+            path={ROUTES.hiringManager.jobDetails(":jobPostingId")}
             element={<JobDetails />}
           />
           <Route
-            path={ROUTES.evaluationMetrics(":jobPostingId")}
+            path={ROUTES.hiringManager.evaluationMetrics(":jobPostingId")}
             element={<EvaluationMetricsPage />}
           />
           <Route
-            path={ROUTES.applications(":jobPostingId")}
+            path={ROUTES.hiringManager.applications(":jobPostingId")}
             element={<JobPostingApplicationsPage />}
           />
           <Route
-            path={ROUTES.reports(":jobPostingId")}
+            path={ROUTES.hiringManager.reports(":jobPostingId")}
             element={<JobDetails />}
           />
         </Route>
