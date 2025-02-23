@@ -8,21 +8,24 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Button,
   Box,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { colors } from "../../../styles/commonStyles";
+import AddIcon from "@mui/icons-material/Add";
+import { colors, textButtonStyle } from "../../../styles/commonStyles";
 import {
   CriteriaGroup as CriteriaGroupType,
   Keyword,
-} from "../../../types/criteria.ts";
-import { KeywordRow } from "./KeywordRow.tsx";
+} from "../../../types/criteria";
+import { KeywordRow } from "./KeywordRow";
 
 interface CriteriaGroupProps {
   group: CriteriaGroupType;
   onDeleteGroup: (groupId: string) => void;
   onEditKeyword: (groupId: string, keyword: Keyword) => void;
   onDeleteKeyword: (groupId: string, keyword: Keyword) => void;
+  onAddKeyword: (groupId: string) => void;
 }
 
 export const CriteriaGroup = ({
@@ -30,6 +33,7 @@ export const CriteriaGroup = ({
   onDeleteGroup,
   onEditKeyword,
   onDeleteKeyword,
+  onAddKeyword,
 }: CriteriaGroupProps) => {
   return (
     <Paper
@@ -84,6 +88,15 @@ export const CriteriaGroup = ({
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ p: 2, borderTop: `1px solid ${colors.gray1}` }}>
+        <Button
+          startIcon={<AddIcon />}
+          onClick={() => onAddKeyword(group.id)}
+          sx={{ ...textButtonStyle }}
+        >
+          Add Keyword
+        </Button>
+      </Box>
     </Paper>
   );
 };
