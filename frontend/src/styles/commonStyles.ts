@@ -28,8 +28,9 @@ export const outlinedButtonStyle: CSSObject = {
   fontWeight: 600,
   padding: "8px 24px",
   borderWidth: "2px",
-  borderColor: colors.orange1,
-  color: colors.orange1,
+  borderColor: colors.blue1,
+  color: colors.blue1,
+  borderRadius: "0.5rem",
   "&:hover": {
     borderWidth: "2px",
     borderColor: colors.orange1,
@@ -43,6 +44,7 @@ export const filledButtonStyle: CSSObject = {
   padding: "8px 24px",
   backgroundColor: colors.orange1,
   color: colors.white,
+  borderRadius: "0.5rem",
   boxShadow: "none",
   "&:hover": {
     backgroundColor: colors.orange1,
