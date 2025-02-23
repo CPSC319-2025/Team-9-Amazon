@@ -14,6 +14,7 @@ import JobPostingsPage from "../pages/JobPostingsPage";
 import JobPostings from "../pages/JobPostingsPage/JobPostings";
 import JobApplication from "../pages/JobPostingsPage/JobApplication";
 import EvaluationMetricsPage from "../pages/HiringManager/EvaluationMetricsPage";
+import AccountManagerPage from "../pages/Admin/AccountManagerPage";
 
 const AppRoutes = () => {
   return (
@@ -60,6 +61,8 @@ const AppRoutes = () => {
           <Route path="apply/:id" element={<JobApplication />} />{" "}
           {/* Move inside */}
         </Route>
+
+        <Route path="/user-management" element={<AccountManagerPage />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
