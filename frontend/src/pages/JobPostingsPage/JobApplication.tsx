@@ -31,7 +31,8 @@ const applicationSchema = z.object({
   address: z.string()
     .min(1, "Address is required"),
   resume: z.string()
-    .min(1, "Resume is required")
+    .min(1, "Resume is required"),
+  personal_links: z.string().optional(),
 });
 
 
@@ -159,7 +160,7 @@ export default function JobApplication() {
         )}
         <div className="flex flex-row items-center justify-between gap-16 mb-8 mt-4">
           <div></div>
-          <h1 className="text-2xl font-bold">{job?.title}</h1>
+          <h1 className="text-2xl font-bold text-[#146eb4]">{job?.title}</h1>
           <p className="text-lg">{`#${job?.code}`}</p>
         </div>
         
@@ -205,6 +206,14 @@ export default function JobApplication() {
             register={register}
             errors={errors}
             required
+          />
+
+          <CustomFormTextField 
+              label="Personal Links (LinkedIn, GitHub, etc.)" 
+              name="personal_links" 
+              placeholder="https://linkedin.com/in/your-profile" 
+              register={register} 
+              errors={errors} 
           />
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Resume</label>
