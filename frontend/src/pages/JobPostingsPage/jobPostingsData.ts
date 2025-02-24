@@ -54,7 +54,7 @@ export const jobPostingsData: Job[] = [
     location: "Seattle, WA",
     description: "We are seeking a talented and passionate Web Developer to join our dynamic engineering team in Seattle, WA. As a Web Developer, you will be responsible for building and maintaining high-performance, scalable web applications using modern JavaScript frameworks, with a focus on React. You'll work in a collaborative environment, partnering with designers, product managers, and other developers to create exceptional user experiences. The ideal candidate should be committed to writing clean, maintainable code and staying current with the latest web technologies and best practices. This role offers excellent opportunities for professional growth and the chance to work on impactful projects that serve millions of users. You will have the opportunity to contribute to our core platform services, implement new features, and help shape the future of our web applications. We offer a supportive learning environment, mentorship opportunities, and the chance to work with",
     department: "Engineering",
-    job_type: "Full-time",
+    job_type: "Part-time",
     posted_at: "2024-01-01",
     qualifications: [
       "3+ years experience with modern JavaScript frameworks (React, Angular, or Vue)",
@@ -107,7 +107,7 @@ export const jobPostingsData: Job[] = [
     location: "Seattle, WA",
     description: "Looking for a data analyst to join our team here in Seattle, WA.",
     department: "Data",
-    job_type: "Full-time",
+    job_type: "Remote",
     posted_at: "2024-01-01",
     qualifications: [
       "Bachelor's degree in Statistics, Mathematics, or related field",
