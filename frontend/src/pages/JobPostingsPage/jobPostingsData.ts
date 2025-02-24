@@ -144,5 +144,28 @@ export const jobPostingsData: Job[] = [
       "Collaborate with data engineers to build scalable data pipelines",
       "Lead projects and drive innovation in data science"
     ]
+  },
+  {
+    id: '006',
+    code: "128",
+    title: "Data Scientist",
+    location: "Vanouver, BC",
+    description: "Looking for a data scientist to join our team in Vancouver, BC.",
+    department: "Data",
+    job_type: "Full-time",
+    posted_at: "2024-01-01",
+    qualifications: [
+      "PhD in Statistics, Mathematics, or related field",
+      "Expertise in machine learning and statistical modeling",
+      "Experience with big data technologies and cloud platforms",
+      "Strong analytical skills and ability to derive insights from data"
+    ],
+    responsibilities: [
+      "Develop and implement advanced machine learning models",
+      "Analyze large datasets and apply statistical methods to extract meaningful insights",
+      "Collaborate with data engineers to build scalable data pipelines",
+      "Lead projects and drive innovation in data science"
+    ]
   }
+
 ]
