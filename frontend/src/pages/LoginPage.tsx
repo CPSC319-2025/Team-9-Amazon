@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ROUTES } from "../routes/routePaths"
+import { ROUTES } from "../routes/routePaths";
 import CustomTextField from "../components/Common/FormInputs/CustomTextField";
 import CustomButton from "../components/Common/Buttons/CustomButton";
+import { TextField, IconButton, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    // Simple validation (optional)
     if (!username || !password) {
       alert("Please enter both username and password.");
       return;
@@ -41,11 +43,22 @@ export default function LoginPage() {
           minWidth={300}
         />
         
-        <CustomTextField 
+        {/* Password Field with Eye Icon */}
+        <TextField
+          type={showPassword ? "text" : "password"}
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          minWidth={300}
+          sx={{ minWidth: 300 }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
 
         {/* Login Button */}
