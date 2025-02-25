@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   const handleLogin = () => {
     if (!username || !password) {
-      alert("Please enter both username and password.");
+      alert("Please enter both email and password.");
       return;
     }
     
@@ -37,7 +37,7 @@ export default function LoginPage() {
       {/* Login Form */}
       <div className="w-[300px] flex flex-col gap-4">
         <CustomTextField 
-          placeholder="Username"
+          placeholder="Email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           minWidth={300}
