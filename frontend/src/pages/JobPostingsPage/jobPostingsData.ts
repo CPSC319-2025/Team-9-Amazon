@@ -6,7 +6,7 @@ export const jobPostingsData: Job[] = [
     code: "123",
     title: "Software Engineer",
     location: "Seattle, WA",
-    description: "We are looking for a software engineer to join our team. He will basically work hand in hand with the team to build the next generation of Amazon's web applications.",
+    description: "We are looking for a software engineer to join our team. You will work hand in hand with the team to build the next generation of Amazon's web applications.",
     job_type: "Full-time",
     department: "Engineering",
     posted_at: "2024-01-01",

@@ -88,10 +88,10 @@ export default function JobApplication() {
       const file = event.target.files?.[0];
       if (file) {
         // Check if file type is Word document
-        if (!file.type.match('application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        if (!file.type.match('application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|application/pdf')) {
           applicationForm.setError('resume', {
             type: 'manual',
-            message: 'Please upload only Word documents (.doc or .docx)'
+            message: 'Please upload only PDF or Word documents (.pdf, .doc, .docx)',
           });
           return;
         }
@@ -219,7 +219,7 @@ export default function JobApplication() {
             <label className="text-sm font-medium">Resume</label>
             <input
               type="file"
-              accept=".doc,.docx"
+              accept=".doc,.docx, .pdf"
               onChange={handleFileUpload}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
