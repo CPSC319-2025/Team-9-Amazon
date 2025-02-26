@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS job_posting (
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (criteria_id) REFERENCES criteria(criteria_id),
     status ENUM('DRAFT', 'PUBLISHED', 'CLOSED') NOT NULL
+    --I think we should also add in fields for location, job type (full-time, part-time, remote), 
+    --department & when it was posted. refer to jobPostingsData.ts
 );
 
 CREATE TABLE IF NOT EXISTS criteria (
