@@ -12,7 +12,7 @@ frontend_image_name = "recruit-frontend"
 frontend_service_name = "recruit-frontend-service"
 ecr_repository_frontend = "cpsc319/recruit/frontend"
 
-backend_image_name = "recruit-frontend"
+backend_image_name = "recruit-backend"
 ecr_repository_backend = "cpsc319/recruit/backend"
 
 def run_command(command):
