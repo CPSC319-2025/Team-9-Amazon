@@ -9,6 +9,7 @@ This repository contains a Python script `devopsTool.py` that helps automate var
     ```sh
     pip install -r requirements.txt
     ```
+- For pushing and deploying, you must have the AWS CLI installed and be logged in
 
 ## Usage
 

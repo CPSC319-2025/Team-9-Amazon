@@ -12,7 +12,7 @@ frontend_image_name = "recruit-frontend"
 frontend_service_name = "recruit-frontend-service"
 ecr_repository_frontend = "cpsc319/recruit/frontend"
 
-backend_image_name = "recruit-frontend"
+backend_image_name = "recruit-backend"
 ecr_repository_backend = "cpsc319/recruit/backend"
 
 def run_command(command):
@@ -67,39 +67,56 @@ def docker_push(image_name, repository_name, aws_account_id, region):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Devops CLI tool")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    while True:
+        print("This is the RECRUIT devops tool:")
+        print("")
+        print("Frontend:")
+        print("f1. Build")
+        print("f2. Run")
+        print("f3. Push")
+        print("f4. Deploy")
+        print("f5. Build, Push, Deploy")
+        print("")
+        print("Backend:")
+        print("b1. Build")
+        print("b2. Run")
+        print("b3. Push")
+        print("")
+        print("0. exit")
+        print("")
+        user_input = input("Enter your choice: ").strip().lower()
+        
+        if user_input == 'f1':
+            docker_build(image_name=frontend_image_name, context="../frontend")
+        elif user_input == 'f2':
+            docker_run(image_name=frontend_image_name, container_name="recruit-frontend-container", port_mapping="80:80")
+        elif user_input == "f3":
+            docker_push(frontend_image_name, ecr_repository_frontend, get_aws_account_id(), aws_region)
+        elif user_input == "f4":
+            update_ecs_service(frontend_service_name)
+        elif user_input == "f5":
+            docker_build(image_name=frontend_image_name, context="../frontend")
+            docker_push(frontend_image_name, ecr_repository_frontend, get_aws_account_id(), aws_region)
+            update_ecs_service(frontend_service_name)
+        
+        elif user_input == 'b1':
+            docker_build(image_name=backend_image_name, context="../backend")
+        elif user_input == 'b2':
+            docker_run(image_name=backend_image_name, container_name=args.container_name, port_mapping="3001:3001")
+        elif user_input == "b3":
+            docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
+        # elif user_input == "b4":
+        #     update_ecs_service(frontend_service_name)
+        # elif user_input == "b5":
+        #     docker_build(image_name=backend_image_name, context="../backend")
+        #     docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
+        #     update_ecs_service(backend_service_name)
+        elif user_input == '0':
+            print("Exiting the program.")
+            break
+        else:
+            print("Invalid option. Please try again.")
 
-    build_frontend_parser = subparsers.add_parser("build-frontend", help="Build frontend image")
-    run_frontend_parser = subparsers.add_parser("run-frontend", help="Run latest frontend image")
-    run_frontend_parser.add_argument("--container-name", help="Name of the Docker container", default="recruit-frontend-container")
-    push_frontend_parser = subparsers.add_parser("push-frontend", help="Push latest frontend Docker image to AWS ECR")
-    deploy_frontend_parser = subparsers.add_parser("deploy-frontend", help="Deploy latest frontend, from ECR to Fargate")
-
-    build_backend_parser = subparsers.add_parser("build-backend", help="Build backend image")
-    run_backend_parser = subparsers.add_parser("run-backend", help="Run latest backend image")
-    run_backend_parser.add_argument("--container-name", help="Name of the Docker container", default="recruit-backend-container")
-    push_backend_parser = subparsers.add_parser("push-backend", help="Push latest backend Docker image to AWS ECR")
-    
-    args = parser.parse_args()
-    
-    if args.command == "build-frontend":
-        docker_build(image_name=frontend_image_name, context="../frontend")
-    elif args.command == "run-frontend":
-        docker_run(image_name=frontend_image_name, container_name=args.container_name, port_mapping="80:80")
-    elif args.command == "push-frontend":
-        docker_push(frontend_image_name, ecr_repository_frontend, get_aws_account_id(), aws_region)
-    elif args.command == "deploy-frontend":
-        update_ecs_service(frontend_service_name)
-    
-    elif args.command == "build-backend":
-        docker_build(image_name=backend_image_name, context="../backend")
-    elif args.command == "run-backend":
-        docker_run(image_name=backend_image_name, container_name=args.container_name, port_mapping="3001:3001")
-    elif args.command == "push-backend":
-        docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
-    else:
-        parser.print_help()
 
 if __name__ == "__main__":
     main()

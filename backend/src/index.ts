@@ -1,5 +1,6 @@
 import { env } from "@/common/utils/envConfig";
 import { app, logger } from "@/server";
+import Database from "./database/database";
 
 const server = app.listen(env.PORT, () => {
   const { NODE_ENV, HOST, PORT } = env;
@@ -17,3 +18,10 @@ const onCloseSignal = () => {
 
 process.on("SIGINT", onCloseSignal);
 process.on("SIGTERM", onCloseSignal);
+
+
+
+const startApp = async () => {
+  await Database.InitDb();
+}
+startApp();
