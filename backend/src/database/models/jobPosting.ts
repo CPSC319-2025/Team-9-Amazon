@@ -11,7 +11,7 @@ interface JobPostingAttributes {
     title: string,
     subtitle: string | undefined,
     description: string | undefined,
-    userId: number,
+    staffId: number,
     criteriaId: number,
     status: JobPostingStatus
 }
@@ -21,7 +21,7 @@ export default class JobPosting extends Model<JobPostingAttributes> implements J
     title!: string;
     subtitle: string | undefined;
     description: string | undefined;
-    userId!: number;
+    staffId!: number;
     criteriaId!: number;
     status!: JobPostingStatus;
     
@@ -31,8 +31,8 @@ export default class JobPosting extends Model<JobPostingAttributes> implements J
             title: { type: DataTypes.STRING, allowNull: false},
             subtitle: { type: DataTypes.STRING},
             description: { type: DataTypes.STRING},
-            userId: { type: DataTypes.INTEGER, allowNull: false, references: {
-                model: "users", key: "id"
+            staffId: { type: DataTypes.INTEGER, allowNull: false, references: {
+                model: "staff", key: "id"
             }},
             criteriaId: { type: DataTypes.INTEGER, allowNull: false, references: {
                 model: "criteria", key: "id"

@@ -3,10 +3,10 @@ import Applicant from "./models/applicant";
 import Application from "./models/application";
 import Criteria from "./models/criteria";
 import JobPosting from "./models/jobPosting";
-import User from "./models/User";
+import Staff from "./models/staff";
 
 export default class Database {
-  private static models = [Applicant, Application, Criteria, JobPosting, User]
+  private static models = [Applicant, Application, Criteria, JobPosting, Staff]
   private static sequelize: Sequelize = new Sequelize(
     "recruitDev",
     "bobj0n3s",

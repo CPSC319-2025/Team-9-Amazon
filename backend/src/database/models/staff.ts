@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-interface UserAttributes {
+interface StaffAttributes {
     id: number | undefined;
     email: string;
     firstName: string;
@@ -9,7 +9,7 @@ interface UserAttributes {
     isAdmin: boolean;
     isHiringManager: boolean;
 }
-export default class User extends Model<UserAttributes> implements UserAttributes {
+export default class Staff extends Model<StaffAttributes> implements StaffAttributes {
     id!: number;
     email!: string;
     firstName!: string;
@@ -19,7 +19,7 @@ export default class User extends Model<UserAttributes> implements UserAttribute
     isHiringManager!: boolean;
 
     public static async initDb(sequelize: Sequelize) {
-        User.init({
+        Staff.init({
             id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
             email: { type: DataTypes.STRING, allowNull: false, unique: true},
             firstName: { type: DataTypes.STRING, allowNull: false},
@@ -29,7 +29,7 @@ export default class User extends Model<UserAttributes> implements UserAttribute
             isHiringManager: { type: DataTypes.BOOLEAN, defaultValue: false},
         },
         {
-            sequelize: sequelize, tableName: "users"
+            sequelize: sequelize, tableName: "staff"
         })
     }
 }
