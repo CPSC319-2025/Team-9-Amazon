@@ -61,7 +61,7 @@ export default class JobPosting extends Model<JobPostingAttributes> implements J
             created_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW}
         },
         {
-            sequelize: sequelize, tableName: "jobPostings"
+            sequelize: sequelize, tableName: "job_postings"
         })
     }
 }

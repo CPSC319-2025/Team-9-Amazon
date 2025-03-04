@@ -1,30 +1,30 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-interface TagJobPostingRelationAttributes {
+interface JobTagJobPostingRelationAttributes {
     id: number | undefined;
     tagId: number;
     jobPostingId: number;
 }
 
-export default class TagJobPostingRelation extends Model<TagJobPostingRelationAttributes> implements TagJobPostingRelationAttributes {
+export default class JobTagJobPostingRelation extends Model<JobTagJobPostingRelationAttributes> implements JobTagJobPostingRelationAttributes {
     id!: number;
     tagId!: number;
     jobPostingId!: number;
 
     public static async initDb(sequelize: Sequelize) {
-        TagJobPostingRelation.init(
+        JobTagJobPostingRelation.init(
             {
                 id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
                 tagId: { type: DataTypes.INTEGER, allowNull: false, references: {
-                    model: "tags", key: "id"
+                    model: "job_tags", key: "id"
                 }},
                 jobPostingId: { type: DataTypes.INTEGER, allowNull: false, references: {
-                    model: "jobPostings", key: "id"
+                    model: "job_postings", key: "id"
                 }},
             },
             {
                 sequelize: sequelize,
-                tableName: "tag_job_posting_relations",
+                tableName: "job_tag_job_posting_relations",
             }
         )
     }

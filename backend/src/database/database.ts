@@ -4,11 +4,11 @@ import Application from "./models/application";
 import Criteria from "./models/criteria";
 import JobPosting from "./models/jobPosting";
 import Staff from "./models/staff";
-import Tag from "./models/tag";
-import TagJobPostingRelation from "./models/tagJobPostingRelation";
+import JobTag from "./models/jobTag";
+import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
 
 export default class Database {
-  private static models = [Applicant, Application, Criteria, JobPosting, Staff, Tag, TagJobPostingRelation];
+  private static models = [Applicant, Application, Criteria, JobPosting, Staff, JobTag, JobTagJobPostingRelation];
   private static sequelize: Sequelize = new Sequelize(
     "recruitDev",
     "bobj0n3s",
