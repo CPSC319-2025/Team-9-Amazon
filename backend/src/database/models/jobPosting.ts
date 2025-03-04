@@ -17,7 +17,6 @@ interface JobPostingAttributes {
     criteriaId: number,
     status: JobPostingStatus,
     location: string,
-    tags: string[],
     num_applicants: number,
     num_machine_evaluated: number,
     num_processes: number,
@@ -35,7 +34,6 @@ export default class JobPosting extends Model<JobPostingAttributes> implements J
     location!: string;
     responsibilities: string | undefined;
     qualifications: string | undefined;
-    tags!: string[];
     num_applicants!: number;
     num_machine_evaluated!: number;
     num_processes!: number;
@@ -57,7 +55,6 @@ export default class JobPosting extends Model<JobPostingAttributes> implements J
             }},
             status: { type: DataTypes.STRING, allowNull: false, defaultValue: JobPostingStatus.DRAFT},
             location: { type: DataTypes.STRING, allowNull: false, defaultValue: ""},
-            tags: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: []},
             num_applicants: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
             num_machine_evaluated: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
             num_processes: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
