@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "bobj0n3s",
+    "password": "1234Recruit!",
+    "database": "recruitDev",
+    "host": "db.dev.amazonpleaserecruit.me",
+    "dialect": "mysql"
+  }
+}
