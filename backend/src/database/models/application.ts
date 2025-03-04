@@ -21,7 +21,7 @@ export default class Application extends Model<ApplicationAttributes> implements
                 model: 'applicants', key: 'id',
             }},
             jobPostingId: { type: DataTypes.INTEGER, allowNull: false, references: {
-                model: 'jobPostings', key: 'id',
+                model: 'job_postings', key: 'id',
             }},
             resumePath: { type: DataTypes.STRING, allowNull: false},
             score: { type: DataTypes.FLOAT, allowNull: true},
