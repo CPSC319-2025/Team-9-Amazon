@@ -27,12 +27,31 @@ docker stop $(docker ps -q) && docker rm $(docker ps -aq)
 
 # Database Information
 
+## Database Login
+
 The login credentials for the root user on the database are:
 username: `bobj0n3s`
 password: `1234Recruit!`
-I'll get on better security measures later
 
 You can login using:
 ```
 mysql -u bobj0n3s -p -h db.dev.amazonpleaserecruit.me
 ```
+
+## Database Migration
+
+In order migrate up, run:
+```
+npm run migrate:up
+```
+
+In order to migrate down, run:
+```
+npm run migrate:down
+```
+
+If you only want to migrate up/down to a specific migration, you can use the following (example):
+```
+npm run migrate:up -- --to="2 Migrate Staff.ts"
+```
+You can find the list of all migrations under `./src/database/migrations`
