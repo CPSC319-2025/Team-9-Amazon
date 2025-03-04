@@ -5,15 +5,16 @@ import Criteria from "./models/criteria";
 import JobPosting from "./models/jobPosting";
 import JobTag from "./models/jobTag";
 import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
+import dbConfig from "./config/config.json";
 
 const models = [Applicant, Staff, Criteria, JobPosting, JobTag, JobTagJobPostingRelation]
 export default class Database {
   private static sequelize: Sequelize = new Sequelize(
-    "recruitDev",
-    "bobj0n3s",
-    "1234Recruit!",
+    dbConfig.development.database,
+    dbConfig.development.username,
+    dbConfig.development.password,
     {
-      host: "db.dev.amazonpleaserecruit.me",
+      host: dbConfig.development.host,
       dialect: "mysql",
       define: {
         freezeTableName: true,
