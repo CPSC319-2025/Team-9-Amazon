@@ -119,6 +119,14 @@ export default function JobApplication() {
       setEducation([...education, { school: "", degree: "", from: "" }]);
     };
 
+    const removeWorkExperience = (index: number) => {
+      setWorkExperience(workExperience.filter((_, i) => i !== index));
+    };
+    
+    const removeEducation = (index: number) => {
+      setEducation(education.filter((_, i) => i !== index));
+    };
+
     // form
     const applicationForm = useForm<ApplicationFormData>({
       resolver: zodResolver(applicationSchema),
@@ -267,7 +275,15 @@ export default function JobApplication() {
 
           <h3 className="text-lg font-semibold">Work Experience</h3>
           {workExperience.map((_, index) => (
-            <div key={index} className="border p-2 space-y-2">
+            <div key={index} className= "relative border p-4 pt-8 space-y-2 bg-gray-50 rounded-lg shadow-md">
+              <button 
+                type="button"
+                onClick={() => removeWorkExperience(index)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+              >
+                ✕
+              </button>
+
               <CustomFormTextField 
                 label="Job Title" 
                 name={`work_experience.${index}.job_title`} 
@@ -293,18 +309,30 @@ export default function JobApplication() {
                 name={`work_experience.${index}.to`} 
                 register={register} 
                 placeholder="MM/YYYY" />
-              <CustomFormTextField 
-                label="Role Description" 
-                name={`work_experience.${index}.role_description`} 
+              <textarea
+                {...register(`work_experience.${index}.role_description`)}
                 placeholder="Describe your responsibilities and achievements"
-                register={register} required />
+                className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150 resize-none"
+                rows={2} // Default row size
+                onInput={(e) => {
+                  e.currentTarget.style.height = "auto"; // Reset height
+                  e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; // Set to scroll height
+                }}
+              />
             </div>
           ))}
           <CustomButton onClick={addWorkExperience} >Add Work Experience</CustomButton>
           
           <h3 className="text-lg font-semibold">Education</h3>
           {education.map((_, index) => (
-        <div key={index} className="border p-2 space-y-2">
+        <div key={index} className="relative border p-4 pt-8 space-y-2 bg-gray-50 rounded-lg shadow-md">
+            <button 
+              type="button"
+              onClick={() => removeEducation(index)}
+              className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
           <CustomFormTextField 
             label="School or University" 
             name={`education.${index}.school`} 
