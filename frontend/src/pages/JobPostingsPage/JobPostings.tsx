@@ -92,14 +92,20 @@ export default function JobPostings() {
 
       {/* Job Listings */}
       <div className="flex flex-wrap gap-8 justify-center flex-grow">
-        {filteredJobs.map((job) => (
+          {filteredJobs.length > 0 ? (
+        filteredJobs.map((job) => (
           <JobPost 
             key={job.id} 
             job={job} 
             onLearnMore={() => handleJobClick(job)}
             onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
           />
-        ))}
+        ))
+      ) : (
+        <p className="text-gray-600 text-lg font-semibold mt-4">
+          No job postings match your search criteria.
+        </p>
+  )}
       </div>
 
       {/* Job Details Modal */}
