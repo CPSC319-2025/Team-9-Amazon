@@ -33,6 +33,26 @@ const applicationSchema = z.object({
   resume: z.string()
     .min(1, "Resume is required"),
   personal_links: z.string().optional(),
+  work_experience: z.array(
+    z.object({
+      job_title: z.string().min(1, "Job Title is required"),
+      company: z.string().min(1, "Company is required"),
+      location: z.string().optional(),
+      currently_working: z.boolean().optional(),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional(),
+      role_description: z.string().optional(),
+    })
+  ).optional(),
+  education: z.array(
+    z.object({
+      school: z.string().min(1, "School or University is required"),
+      degree: z.string().min(1, "Degree is required"),
+      field_of_study: z.string().optional(),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional(),
+    })
+  ).optional(),
 });
 
 
@@ -69,6 +89,35 @@ export default function JobApplication() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [fileName, setFileName] = useState<string>("");
     const navigate = useNavigate();
+
+    type WorkExperienceEntry = {
+      job_title: string;
+      company: string;
+      location?: string;
+      currently_working?: boolean;
+      from: string;
+      to?: string;
+      role_description?: string;
+    };
+    
+    type EducationEntry = {
+      school: string;
+      degree: string;
+      field_of_study?: string;
+      from: string;
+      to?: string;
+    };
+
+    const [workExperience, setWorkExperience] = useState<WorkExperienceEntry[]>([]);
+    const [education, setEducation] = useState<EducationEntry[]>([]);
+
+    const addWorkExperience = () => {
+      setWorkExperience([...workExperience, { job_title: "", company: "", from: "" }]);
+    };
+    
+    const addEducation = () => {
+      setEducation([...education, { school: "", degree: "", from: "" }]);
+    };
 
     // form
     const applicationForm = useForm<ApplicationFormData>({
@@ -215,6 +264,85 @@ export default function JobApplication() {
               register={register} 
               errors={errors} 
           />
+
+          <h3 className="text-lg font-semibold">Work Experience</h3>
+          {workExperience.map((_, index) => (
+            <div key={index} className="border p-2 space-y-2">
+              <CustomFormTextField 
+                label="Job Title" 
+                name={`work_experience.${index}.job_title`} 
+                placeholder="Software Engineer"
+                register={register} required />
+              <CustomFormTextField 
+                label="Company" 
+                name={`work_experience.${index}.company`} 
+                placeholder="AWS"
+                register={register} required />
+              <CustomFormTextField 
+                label="Location" 
+                name={`work_experience.${index}.location`} 
+                placeholder="Washington, DC"
+                register={register} />
+              <CustomFormTextField 
+              label="From" 
+              name={`work_experience.${index}.from`} 
+              register={register} required 
+              placeholder="MM/YYYY" />
+              <CustomFormTextField 
+                label="To (leave blank if role hasn't terminated)" 
+                name={`work_experience.${index}.to`} 
+                register={register} 
+                placeholder="MM/YYYY" />
+              <CustomFormTextField 
+                label="Role Description" 
+                name={`work_experience.${index}.role_description`} 
+                placeholder="Describe your responsibilities and achievements"
+                register={register} required />
+            </div>
+          ))}
+          <CustomButton onClick={addWorkExperience} >Add Work Experience</CustomButton>
+          
+          <h3 className="text-lg font-semibold">Education</h3>
+          {education.map((_, index) => (
+        <div key={index} className="border p-2 space-y-2">
+          <CustomFormTextField 
+            label="School or University" 
+            name={`education.${index}.school`} 
+            placeholder="University of ..."
+            register={register} required />
+          
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">Degree</label>
+            <select 
+              {...register(`education.${index}.degree`)} 
+              className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150"
+            >
+              <option value="in progress">In Progress</option>
+              <option value="undergrad">Undergrad</option>
+              <option value="masters">Masters</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+
+          <CustomFormTextField 
+            label="Field of Study" 
+            name={`education.${index}.field_of_study`} 
+            placeholder="Computer Science"
+            register={register} required  />
+          <CustomFormTextField 
+            label="From" 
+            name={`education.${index}.from`} 
+            register={register} required 
+            placeholder="MM/YYYY" />
+          <CustomFormTextField 
+          label="To" 
+          name={`education.${index}.to`} 
+          register={register} 
+          placeholder="MM/YYYY" />
+        </div>
+        ))}
+        <CustomButton onClick={addEducation} >Add Education</CustomButton>
+
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Resume</label>
             <input
