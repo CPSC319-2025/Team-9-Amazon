@@ -14,7 +14,6 @@ interface JobPostingAttributes {
   responsibilities: string | undefined;
   qualifications: string | undefined;
   staffId: number;
-  criteriaId: number;
   status: JobPostingStatus;
   location: string;
   num_applicants: number;
@@ -38,14 +37,6 @@ export const JobPostingSchema = {
     allowNull: false,
     references: {
       model: "staff",
-      key: "id",
-    },
-  },
-  criteriaId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: "criteria",
       key: "id",
     },
   },
@@ -91,7 +82,6 @@ export default class JobPosting
   subtitle: string | undefined;
   description!: string;
   staffId!: number;
-  criteriaId!: number;
   status!: JobPostingStatus;
   location!: string;
   responsibilities: string | undefined;
