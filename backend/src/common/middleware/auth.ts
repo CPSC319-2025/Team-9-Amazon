@@ -1,11 +1,13 @@
 import { expressjwt } from "express-jwt";
 import { Request, Response, NextFunction } from "express";
 import { env } from "@/common/utils/envConfig";
+import jwt from "jsonwebtoken";
 
 // Define the JWT payload interface
 interface JWTPayload {
   id: number;
   isHiringManager: boolean;
+  isAdmin: boolean;
   [key: string]: any;
 }
 
@@ -61,3 +63,7 @@ export const requireAdmin = async (
     });
   }
 };
+
+export const signToken = (payload: any) => {
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: "24h" });
+}

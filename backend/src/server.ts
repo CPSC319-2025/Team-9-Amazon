@@ -5,12 +5,14 @@ import { pino } from "pino";
 
 import { openAPIRouter } from "@/api-docs/openAPIRouter";
 import { healthCheckRouter } from "@/api/healthCheck/healthCheckRouter";
-import { userRouter } from "@/api/user/userRouter";
 import errorHandler from "@/common/middleware/errorHandler";
 import rateLimiter from "@/common/middleware/rateLimiter";
 import requestLogger from "@/common/middleware/requestLogger";
 import { env } from "@/common/utils/envConfig";
-import authRouter from "./api/auth/authRouter";
+
+// Routers
+import loginRouter from "./api/login/loginRouter";
+import adminRouter from "./api/admin/adminRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -30,8 +32,8 @@ app.use(requestLogger);
 
 // Routes
 app.use("/health-check", healthCheckRouter);
-app.use("/users", userRouter);
-app.use("/auth", authRouter);
+app.use("/login", loginRouter);
+app.use("/admin", adminRouter)
 
 // Swagger UI
 app.use(openAPIRouter);
