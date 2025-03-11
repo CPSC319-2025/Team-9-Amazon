@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+import { JobPostingTableName } from "./jobPosting";
 
 interface JobTagJobPostingRelationAttributes {
   id: number | undefined;
@@ -19,7 +20,7 @@ export const JobTagPostingRelationSchema = {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "job_postings",
+      model: JobPostingTableName,
       key: "id",
     },
   },
