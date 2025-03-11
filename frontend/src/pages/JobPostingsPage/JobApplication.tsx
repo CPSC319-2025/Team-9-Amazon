@@ -120,13 +120,13 @@ export default function JobApplication() {
     };
 
     const removeWorkExperience = (index: number) => {
-      setWorkExperience(workExperience.filter((_, i) => i !== index));
+      setWorkExperience((prev) => prev.filter((_, i) => i !== index));
     };
     
     const removeEducation = (index: number) => {
-      setEducation(education.filter((_, i) => i !== index));
+      setEducation((prev) => prev.filter((_, i) => i !== index));
     };
-
+    
     // form
     const applicationForm = useForm<ApplicationFormData>({
       resolver: zodResolver(applicationSchema),
@@ -285,24 +285,24 @@ export default function JobApplication() {
               </button>
 
               <CustomFormTextField 
-                label="Job Title" 
+                label="Job Title *" 
                 name={`work_experience.${index}.job_title`} 
                 placeholder="Software Engineer"
-                register={register} required />
+                register={register}/>
               <CustomFormTextField 
-                label="Company" 
+                label="Company *" 
                 name={`work_experience.${index}.company`} 
                 placeholder="AWS"
-                register={register} required />
+                register={register}/>
               <CustomFormTextField 
                 label="Location" 
                 name={`work_experience.${index}.location`} 
                 placeholder="Washington, DC"
                 register={register} />
               <CustomFormTextField 
-              label="From" 
+              label="From *" 
               name={`work_experience.${index}.from`} 
-              register={register} required 
+              register={register} 
               placeholder="MM/YYYY" />
               <CustomFormTextField 
                 label="To (leave blank if role hasn't terminated)" 
@@ -311,7 +311,7 @@ export default function JobApplication() {
                 placeholder="MM/YYYY" />
               <textarea
                 {...register(`work_experience.${index}.role_description`)}
-                placeholder="Describe your responsibilities and achievements"
+                placeholder="Describe your responsibilities and achievements *"
                 className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150 resize-none"
                 rows={2} // Default row size
                 onInput={(e) => {
@@ -334,13 +334,13 @@ export default function JobApplication() {
               ✕
             </button>
           <CustomFormTextField 
-            label="School or University" 
+            label="School or University *" 
             name={`education.${index}.school`} 
             placeholder="University of ..."
-            register={register} required />
+            register={register} />
           
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">Degree</label>
+            <label className="text-sm font-medium text-gray-700 mb-1">Degree *</label>
             <select 
               {...register(`education.${index}.degree`)} 
               className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150"
@@ -353,14 +353,14 @@ export default function JobApplication() {
           </div>
 
           <CustomFormTextField 
-            label="Field of Study" 
+            label="Field of Study *" 
             name={`education.${index}.field_of_study`} 
             placeholder="Computer Science"
-            register={register} required  />
+            register={register}  />
           <CustomFormTextField 
-            label="From" 
+            label="From *" 
             name={`education.${index}.from`} 
-            register={register} required 
+            register={register}
             placeholder="MM/YYYY" />
           <CustomFormTextField 
           label="To" 
