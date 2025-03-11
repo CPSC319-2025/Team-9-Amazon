@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import JobPosting from "./jobPosting";
+import JobPosting, { JobPostingTableName } from "./jobPosting";
 
 interface Token {
   points_per_year_of_experience: number;
@@ -72,7 +72,7 @@ export const CriteriaSchema = {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: "job_postings",
+      model: JobPostingTableName,
       key: "id",
     },
   },
