@@ -19,9 +19,14 @@ const onCloseSignal = () => {
 process.on("SIGINT", onCloseSignal);
 process.on("SIGTERM", onCloseSignal);
 
-
-
 const startApp = async () => {
-  await Database.InitDb();
-}
+  try {
+    await Database.InitDb();
+    logger.info("Database and models initialized successfully");
+  } catch (error) {
+    logger.error("Failed to initialize database:", error);
+    process.exit(1);
+  }
+};
+
 startApp();
