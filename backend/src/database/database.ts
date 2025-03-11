@@ -74,12 +74,11 @@ export default class Database {
         model.initialize(this.sequelize);
       }
 
-      // Sync with alter option for development
+      // Set "force: true" to drop and recreate tables
+      // Set "alter: true" to update tables
       // await this.sequelize.sync({ force: true, alter: true });
-
-      // Create initial admin
+      
       await this.createInitialAdmin();
-
       return this.sequelize;
     } catch (error) {
       console.error("Database initialization failed:", error);
