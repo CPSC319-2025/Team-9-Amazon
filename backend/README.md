@@ -55,3 +55,25 @@ If you only want to migrate up/down to a specific migration, you can use the fol
 npm run migrate:up -- --to="2 Migrate Staff.ts"
 ```
 You can find the list of all migrations under `./src/database/migrations`
+
+## Database Seeding (Sample Data)
+
+We can seed the database (fill it with sample data). The seeder files are defined under `database/seeders`. You can run all the seeder, using:
+```
+npm run seed:all
+```
+
+Here's an example of how you can run a specific seeder file:
+```
+npm run seed -- --seed database/seeders/manual_data
+```
+
+If you want to remove all the seeded data, you can run:
+```
+npm run seed:undo:all
+```
+
+Here's an example of how you can remove seed data from a specific seeder file. By default (if you don't provide a seed file name), this will undo the latest seed:
+```
+npm run seed:undo -- --seed database/seeders/manual_data
+```
