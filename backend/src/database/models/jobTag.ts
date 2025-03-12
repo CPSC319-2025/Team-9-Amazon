@@ -19,10 +19,7 @@ export const JobTagSchema = {
   },
 };
 export const JobTagTableName = "job_tags";
-export default class JobTag
-  extends Model<JobTagAttributes>
-  implements JobTagAttributes
-{
+export default class JobTag extends Model<JobTagAttributes> implements JobTagAttributes {
   id!: number;
   name!: string;
 
@@ -31,5 +28,9 @@ export default class JobTag
       sequelize,
       tableName: JobTagTableName,
     });
+  }
+
+  static associate() {
+    // No associations
   }
 }

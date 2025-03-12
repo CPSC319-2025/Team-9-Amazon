@@ -56,4 +56,8 @@ export default class Application
       tableName: ApplicationTableName,
     });
   }
+
+  static associate() {
+    // No associations
+  }
 }

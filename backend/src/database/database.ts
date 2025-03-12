@@ -36,12 +36,10 @@ export default class Database {
     }
   );
 
-private static setupAssociations() {
-  // JobPosting associations
-  JobPosting.associate();
-
-  // Criteria associations
-  Criteria.associate();
+private static InitAssociations() {
+  for (const model of models) {
+    model.associate();
+  }
 }
 
 public static async InitDb() {
@@ -52,8 +50,9 @@ public static async InitDb() {
       initModels(this.sequelize);
 
       // Set up associations after all models are initialized
-      this.setupAssociations();
+      this.InitAssociations();
 
+      // Development Tool:
       // Set "force: true" to drop and recreate tables
       // Set "alter: true" to update tables
       // await this.sequelize.sync({ force: true, alter: true });

@@ -50,4 +50,8 @@ export default class JobTagJobPostingRelation
       tableName: JobTagPostingRelationTableName,
     });
   }
+
+  static associate() {
+    // No associations
+  }
 }

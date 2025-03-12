@@ -95,13 +95,6 @@ export default class JobPosting
   num_processes!: number;
   createdAt!: Date;
 
-  static associate() {
-    JobPosting.hasMany(Criteria, {
-      foreignKey: "jobPostingId",
-      as: "criteria",
-    });
-  }
-
   static initialize(sequelize: Sequelize) {
     const jobPosting = JobPosting.init(JobPostingSchema, {
       sequelize,
@@ -109,5 +102,12 @@ export default class JobPosting
     });
 
     return jobPosting;
+  }
+
+  static associate() {
+    JobPosting.hasMany(Criteria, {
+      foreignKey: "jobPostingId",
+      as: "criteria",
+    });
   }
 }
