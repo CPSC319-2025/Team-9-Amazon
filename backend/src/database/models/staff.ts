@@ -14,7 +14,7 @@ interface StaffAttributes {
   updatedAt: Date;
 }
 
-interface StaffCreationAttributes
+export interface StaffCreationAttributes
   extends Omit<StaffAttributes, "id" | "createdAt" | "updatedAt"> {}
 
 export const StaffSchema = {
