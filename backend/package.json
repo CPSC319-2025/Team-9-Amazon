@@ -18,7 +18,11 @@
     "test": "vitest run",
     "prepare": "husky",
     "migrate:up": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:migrate",
-    "migrate:down": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:migrate:undo:all"
+    "migrate:down": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:migrate:undo:all",
+    "seed": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:seed",
+    "seed:all": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:seed:all",
+    "seed:undo": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:seed:undo",
+    "seed:undo:all": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:seed:undo:all"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.0.0",
