@@ -200,6 +200,39 @@ export default function CandidateReportPage() {
                 </>
               )}
             </Paper>
+
+            {/* Keywords Analysis */}
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
+                Keywords Analysis
+              </Typography>
+              <Box>
+                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                  Matched Keywords
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+                  {candidateData.keywords.matched.map((keyword, index) => (
+                    <Chip
+                      key={index}
+                      label={keyword}
+                      sx={{ ...chipStyle, bgcolor: `${colors.green1}20`, color: colors.green1, mb: 1 }}
+                    />
+                  ))}
+                </Stack>
+                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                  Missing Keywords
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
+                  {candidateData.keywords.missing.map((keyword, index) => (
+                    <Chip
+                      key={index}
+                      label={keyword}
+                      sx={{ ...chipStyle, bgcolor: `${colors.red1}20`, color: colors.red1, mb: 1 }}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            </Paper>
           </Stack>
         </Grid>
 
@@ -213,25 +246,13 @@ export default function CandidateReportPage() {
               </Typography>
               <Grid container spacing={2}>
                 {candidateData.criteria.map((criterion, index) => (
-                  <Grid item xs={12} key={index}>
-                    <Box sx={{ mb: 2 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          mb: 1,
-                        }}
-                      >
-                        <Typography
-                          variant="body1"
-                          sx={{ color: colors.black1 }}
-                        >
+                  <Grid item xs={12} sm={6} key={index}>
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ color: colors.gray2 }}>
                           {criterion.name}
                         </Typography>
-                        <Typography
-                          variant="body1"
-                          sx={{ color: colors.orange1, fontWeight: 500 }}
-                        >
+                        <Typography variant="body2" sx={{ color: colors.orange1 }}>
                           {criterion.score}%
                         </Typography>
                       </Box>
@@ -239,12 +260,12 @@ export default function CandidateReportPage() {
                         variant="determinate"
                         value={criterion.score}
                         sx={{
-                          height: 8,
-                          borderRadius: 4,
+                          height: 6,
+                          borderRadius: 3,
                           bgcolor: `${colors.orange1}20`,
                           "& .MuiLinearProgress-bar": {
                             bgcolor: colors.orange1,
-                            borderRadius: 4,
+                            borderRadius: 3,
                           },
                         }}
                       />
@@ -254,36 +275,26 @@ export default function CandidateReportPage() {
               </Grid>
             </Paper>
 
-            {/* Rules Analysis */}
-            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+            {/* Resume Viewer */}
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1, minHeight: '600px' }}>
               <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
-                Rules Analysis
+                Resume
               </Typography>
-              <Box>
-                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                  Matched Rules
+              <Box 
+                sx={{ 
+                  width: '100%',
+                  height: '550px',
+                  bgcolor: colors.white,
+                  borderRadius: 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: `1px dashed ${colors.gray2}`
+                }}
+              >
+                <Typography variant="body1" sx={{ color: colors.gray2 }}>
+                  Resume viewer will be integrated here
                 </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
-                  {candidateData.rules.matched.map((rule, index) => (
-                    <Chip
-                      key={index}
-                      label={rule}
-                      sx={{
-                        bgcolor: `${colors.orange1}20`,
-                        color: colors.orange1,
-                        fontWeight: 500,
-                      }}
-                    />
-                  ))}
-                </Box>
-                <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                  Missing Rules
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {candidateData.rules.missing.map((rule, index) => (
-                    <Chip key={index} label={rule} sx={{ ...chipStyle }} />
-                  ))}
-                </Box>
               </Box>
             </Paper>
           </Stack>
