@@ -1,4 +1,4 @@
-import { getToken } from "../services/auth";
+import { getToken } from "../api/login";
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();

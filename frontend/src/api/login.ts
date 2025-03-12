@@ -1,4 +1,4 @@
-import { apis } from "../lib/apis";
+import { apiUrls } from "./apiUrls";
 
 export interface LoginResponse {
   token: string;
@@ -13,11 +13,8 @@ export interface LoginResponse {
   };
 }
 
-export const login = async (
-  email: string,
-  password: string
-): Promise<LoginResponse> => {
-  const response = await fetch(apis.login, {
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
+  const response = await fetch(apiUrls.loginUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,7 +29,7 @@ export const login = async (
     throw new Error(error.error || "Failed to login");
   }
 
-  const data = await response.json();
+  const data: LoginResponse = await response.json();
   localStorage.setItem("token", data.token);
   return data;
 };
