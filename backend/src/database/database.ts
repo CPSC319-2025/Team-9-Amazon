@@ -10,8 +10,8 @@ import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
 const models = [
   Applicant,
   Staff,
-  Criteria,
   JobPosting,
+  Criteria,
   JobTag,
   JobTagJobPostingRelation,
 ];
@@ -36,13 +36,23 @@ export default class Database {
     }
   );
 
-  public static async InitDb() {
+private static InitAssociations() {
+  for (const model of models) {
+    model.associate();
+  }
+}
+
+public static async InitDb() {
     try {
       await this.sequelize.authenticate();
 
       // Initialize models
       initModels(this.sequelize);
 
+      // Set up associations after all models are initialized
+      this.InitAssociations();
+
+      // Development Tool:
       // Set "force: true" to drop and recreate tables
       // Set "alter: true" to update tables
       // await this.sequelize.sync({ force: true, alter: true });

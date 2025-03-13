@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+import Criteria from "./criteria";
 
 export enum JobPostingStatus {
   DRAFT = "DRAFT",
@@ -21,6 +22,7 @@ interface JobPostingAttributes {
   num_processes: number;
   createdAt: Date;
 }
+
 export const JobPostingSchema = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false },
@@ -72,7 +74,9 @@ export const JobPostingSchema = {
     defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
   },
 };
+
 export const JobPostingTableName = "job_postings";
+
 export default class JobPosting
   extends Model<JobPostingAttributes>
   implements JobPostingAttributes
@@ -92,9 +96,18 @@ export default class JobPosting
   createdAt!: Date;
 
   static initialize(sequelize: Sequelize) {
-    JobPosting.init(JobPostingSchema, {
+    const jobPosting = JobPosting.init(JobPostingSchema, {
       sequelize,
       tableName: JobPostingTableName,
+    });
+
+    return jobPosting;
+  }
+
+  static associate() {
+    JobPosting.hasMany(Criteria, {
+      foreignKey: "jobPostingId",
+      as: "criteria",
     });
   }
 }

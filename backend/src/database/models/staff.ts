@@ -109,6 +109,10 @@ class Staff extends Model<StaffAttributes, StaffCreationAttributes> {
 
     return Staff;
   }
+
+  static associate() {
+    // No associations
+  }
 }
 
 export default Staff;

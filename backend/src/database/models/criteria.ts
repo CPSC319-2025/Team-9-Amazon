@@ -12,12 +12,15 @@ interface CriteriaJSON {
 }
 
 interface CriteriaAttributes {
-  id: number;
+  id?: number;
   name: string;
   criteriaJson: CriteriaJSON;
   criteriaType: "global" | "local";
   jobPostingId?: number | null;
 }
+
+interface CriteriaCreationAttributes
+  extends Omit<CriteriaAttributes, "id" | "createdAt" | "updatedAt"> {}
 
 export const CriteriaSchema = {
   id: {
@@ -90,15 +93,18 @@ export const CriteriaSchema = {
 
 export const CriteriaTableName = "criteria";
 
-export default class Criteria
-  extends Model<CriteriaAttributes>
-  implements CriteriaAttributes
-{
-  id!: number;
-  name!: string;
-  criteriaJson!: CriteriaJSON;
-  criteriaType!: "global" | "local";
-  jobPostingId?: number | null;
+export default class Criteria extends Model<
+  CriteriaAttributes,
+  CriteriaCreationAttributes
+> {
+  declare id: number;
+  declare name: string;
+  declare criteriaJson: CriteriaJSON;
+  declare criteriaType: "global" | "local";
+  declare jobPostingId?: number | null;
+  declare createdAt: Date;
+  declare updatedAt: Date;
+  declare jobPosting?: JobPosting;
 
   static initialize(sequelize: Sequelize) {
     const criteria = Criteria.init(CriteriaSchema, {
@@ -119,5 +125,12 @@ export default class Criteria
     });
 
     return criteria;
+  }
+
+  static associate() {
+    Criteria.belongsTo(JobPosting, {
+      foreignKey: "jobPostingId",
+      as: "jobPosting",
+    });
   }
 }

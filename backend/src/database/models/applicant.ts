@@ -44,4 +44,8 @@ export default class Applicant
       tableName: ApplicantTableName,
     });
   }
+
+  static associate() {
+    // No associations
+  }
 }

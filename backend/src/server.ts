@@ -13,6 +13,7 @@ import { env } from "@/common/utils/envConfig";
 // Routers
 import loginRouter from "./api/login/loginRouter";
 import adminRouter from "./api/admin/adminRouter";
+import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -42,7 +43,8 @@ app.use(requestLogger);
 // Routes
 app.use("/health-check", healthCheckRouter);
 app.use("/login", loginRouter);
-app.use("/admin", adminRouter)
+app.use("/admin", adminRouter);
+app.use("/job-postings", jobPostingsRouter);
 
 // Swagger UI
 app.use(openAPIRouter);
