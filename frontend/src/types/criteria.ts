@@ -1,6 +1,6 @@
 export interface Keyword {
   name: string;
-  pointsPerMatch: number;
+  pointsPerYearOfExperience: number;
   maxPoints: number;
 }
 

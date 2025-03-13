@@ -19,7 +19,7 @@ export const KeywordRow = ({ keyword, onEdit, onDelete }: KeywordRowProps) => {
       }}
     >
       <TableCell>{keyword.name}</TableCell>
-      <TableCell align="center">{keyword.pointsPerMatch}</TableCell>
+      <TableCell align="center">{keyword.pointsPerYearOfExperience}</TableCell>
       <TableCell align="center">{keyword.maxPoints}</TableCell>
       <TableCell align="right">
         <IconButton

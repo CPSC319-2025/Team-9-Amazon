@@ -25,29 +25,35 @@ export const EditKeywordDialog = ({
   onSave,
 }: EditKeywordDialogProps) => {
   const [name, setName] = useState(keyword?.name || "");
-  const [pointsPerMatch, setPointsPerMatch] = useState(
-    keyword?.pointsPerMatch.toString() || "1"
+  const [pointsPerYearOfExperience, setPointsPerYearOfExperience] = useState(
+    keyword?.pointsPerYearOfExperience.toString() || "1"
   );
   const [maxPoints, setMaxPoints] = useState(
     keyword?.maxPoints.toString() || "5"
   );
   const [errors, setErrors] = useState({
     name: "",
-    pointsPerMatch: "",
+    pointsPerYearOfExperience: "",
     maxPoints: "",
   });
 
   useEffect(() => {
     if (open) {
       setName(keyword?.name || "");
-      setPointsPerMatch(keyword?.pointsPerMatch.toString() || "1");
+      setPointsPerYearOfExperience(
+        keyword?.pointsPerYearOfExperience.toString() || "1"
+      );
       setMaxPoints(keyword?.maxPoints.toString() || "5");
-      setErrors({ name: "", pointsPerMatch: "", maxPoints: "" });
+      setErrors({ name: "", pointsPerYearOfExperience: "", maxPoints: "" });
     }
   }, [open, keyword]);
 
   const validateFields = () => {
-    const newErrors = { name: "", pointsPerMatch: "", maxPoints: "" };
+    const newErrors = {
+      name: "",
+      pointsPerYearOfExperience: "",
+      maxPoints: "",
+    };
     let isValid = true;
 
     if (!name.trim()) {
@@ -55,11 +61,11 @@ export const EditKeywordDialog = ({
       isValid = false;
     }
 
-    const ppm = parseInt(pointsPerMatch);
+    const ppm = parseInt(pointsPerYearOfExperience);
     const mp = parseInt(maxPoints);
 
     if (isNaN(ppm) || ppm < 0) {
-      newErrors.pointsPerMatch = "Must be a positive number";
+      newErrors.pointsPerYearOfExperience = "Must be a positive number";
       isValid = false;
     }
 
@@ -69,7 +75,7 @@ export const EditKeywordDialog = ({
     }
 
     if (ppm > mp) {
-      newErrors.pointsPerMatch = "Cannot exceed max points";
+      newErrors.pointsPerYearOfExperience = "Cannot exceed max points";
       isValid = false;
     }
 
@@ -82,7 +88,7 @@ export const EditKeywordDialog = ({
       onSave(
         {
           name,
-          pointsPerMatch: parseInt(pointsPerMatch),
+          pointsPerYearOfExperience: parseInt(pointsPerYearOfExperience),
           maxPoints: parseInt(maxPoints),
         },
         !keyword // isNew flag
@@ -107,12 +113,12 @@ export const EditKeywordDialog = ({
         />
         <TextField
           fullWidth
-          label="Points per Match"
+          label="Points per Year of Experience"
           type="number"
-          value={pointsPerMatch}
-          onChange={(e) => setPointsPerMatch(e.target.value)}
-          error={!!errors.pointsPerMatch}
-          helperText={errors.pointsPerMatch}
+          value={pointsPerYearOfExperience}
+          onChange={(e) => setPointsPerYearOfExperience(e.target.value)}
+          error={!!errors.pointsPerYearOfExperience}
+          helperText={errors.pointsPerYearOfExperience}
           sx={{ mt: 2 }}
         />
         <TextField

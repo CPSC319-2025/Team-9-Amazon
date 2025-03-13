@@ -15,7 +15,11 @@ interface AddCriteriaDialogProps {
   onClose: () => void;
   onAdd: (
     name: string,
-    keywords: { name: string; pointsPerMatch: number; maxPoints: number }[]
+    keywords: {
+      name: string;
+      pointsPerYearOfExperience: number;
+      maxPoints: number;
+    }[]
   ) => void;
 }
 
@@ -26,7 +30,7 @@ export const AddCriteriaDialog = ({
 }: AddCriteriaDialogProps) => {
   const [name, setName] = useState("");
   const [keywords, setKeywords] = useState([
-    { name: "", pointsPerMatch: 1, maxPoints: 5 },
+    { name: "", pointsPerYearOfExperience: 1, maxPoints: 5 },
   ]);
   const [errors, setErrors] = useState({ name: "", keywords: [] as string[] });
 
@@ -51,7 +55,10 @@ export const AddCriteriaDialog = ({
   };
 
   const handleAddKeyword = () => {
-    setKeywords([...keywords, { name: "", pointsPerMatch: 1, maxPoints: 5 }]);
+    setKeywords([
+      ...keywords,
+      { name: "", pointsPerYearOfExperience: 1, maxPoints: 5 },
+    ]);
   };
 
   const handleRemoveKeyword = (index: number) => {
@@ -72,7 +79,7 @@ export const AddCriteriaDialog = ({
     if (validateFields()) {
       onAdd(name, keywords);
       setName("");
-      setKeywords([{ name: "", pointsPerMatch: 1, maxPoints: 5 }]);
+      setKeywords([{ name: "", pointsPerYearOfExperience: 1, maxPoints: 5 }]);
     }
   };
 
@@ -106,11 +113,11 @@ export const AddCriteriaDialog = ({
               <TextField
                 type="number"
                 label="Points/Match"
-                value={keyword.pointsPerMatch}
+                value={keyword.pointsPerYearOfExperience}
                 onChange={(e) =>
                   handleKeywordChange(
                     index,
-                    "pointsPerMatch",
+                    "pointsPerYearOfExperience",
                     parseInt(e.target.value) || 0
                   )
                 }
