@@ -15,29 +15,30 @@ import {
 // import { Header } from "../../components/Common/Header";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
+import { Keyword } from "../../types/criteria";
 
 const dummyCriterias = [
   {
     id: 1,
     name: "frontend",
-    rules: [
+    keywords: [
       {
-        target_text: "Node.js",
+        name: "Node.js",
         pointsPerYearOfExperience: 1,
         maxPoints: 6,
       },
       {
-        target_text: "React",
+        name: "React",
         pointsPerYearOfExperience: 5,
         maxPoints: 10,
       },
       {
-        target_text: "CSS",
+        name: "CSS",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        target_text: "Typescript",
+        name: "Typescript",
         pointsPerYearOfExperience: 2,
         maxPoints: 8,
       },
@@ -46,19 +47,19 @@ const dummyCriterias = [
   {
     id: 2,
     name: "devops",
-    rules: [
+    keywords: [
       {
-        target_text: "CI/CD",
+        name: "CI/CD",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
       {
-        target_text: "Docker",
+        name: "Docker",
         pointsPerYearOfExperience: 4,
         maxPoints: 12,
       },
       {
-        target_text: "Git",
+        name: "Git",
         pointsPerYearOfExperience: 2,
         maxPoints: 6,
       },
@@ -67,14 +68,14 @@ const dummyCriterias = [
   {
     id: 3,
     name: "soft_skills",
-    rules: [
+    keywords: [
       {
-        target_text: "Team",
+        name: "Team",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        target_text: "Communication",
+        name: "Communication",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
@@ -83,24 +84,24 @@ const dummyCriterias = [
   {
     id: 4,
     name: "frontend",
-    rules: [
+    keywords: [
       {
-        target_text: "Node.js",
+        name: "Node.js",
         pointsPerYearOfExperience: 1,
         maxPoints: 6,
       },
       {
-        target_text: "React",
+        name: "React",
         pointsPerYearOfExperience: 5,
         maxPoints: 10,
       },
       {
-        target_text: "CSS",
+        name: "CSS",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        target_text: "Typescript",
+        name: "Typescript",
         pointsPerYearOfExperience: 2,
         maxPoints: 8,
       },
@@ -109,19 +110,19 @@ const dummyCriterias = [
   {
     id: 5,
     name: "devops",
-    rules: [
+    keywords: [
       {
-        target_text: "CI/CD",
+        name: "CI/CD",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
       {
-        target_text: "Docker",
+        name: "Docker",
         pointsPerYearOfExperience: 4,
         maxPoints: 12,
       },
       {
-        target_text: "Git",
+        name: "Git",
         pointsPerYearOfExperience: 2,
         maxPoints: 6,
       },
@@ -130,26 +131,20 @@ const dummyCriterias = [
   {
     id: 6,
     name: "soft_skills",
-    rules: [
+    keywords: [
       {
-        target_text: "Team",
+        name: "Team",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        target_text: "Communication",
+        name: "Communication",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
     ],
   },
 ];
-
-interface CriteriaRule {
-  target_text: string;
-  pointsPerYearOfExperience: number;
-  maxPoints: number;
-}
 
 const CriteriaManagerPage = () => {
   const [rows, setRows] = React.useState(dummyCriterias);
@@ -173,12 +168,10 @@ const CriteriaManagerPage = () => {
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
     {
-      field: "rules",
+      field: "keywords",
       headerName: "Keywords",
-      valueGetter: (value: CriteriaRule[]) => {
-        const targetTexts = value.map(
-          (element: CriteriaRule) => element.target_text
-        );
+      valueGetter: (value: Keyword[]) => {
+        const targetTexts = value.map((element: Keyword) => element.name);
         return targetTexts.join(", ");
       },
       minWidth: 200,
