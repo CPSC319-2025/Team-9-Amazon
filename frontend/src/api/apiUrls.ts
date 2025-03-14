@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:3001";
+const apiUrl = import.meta.env.VITE_BACKEND_URL;
 const jobPostingsUrl = `${apiUrl}/job-postings`;
 const criteriaUrl = `${apiUrl}/criteria`;
 
