@@ -1,7 +1,11 @@
-import { getToken } from "../api/login";
+import { getToken } from "./login";
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
+
+  if (!token) {
+    throw new Error("Authentication required");
+  }
 
   const headers = {
     ...options.headers,

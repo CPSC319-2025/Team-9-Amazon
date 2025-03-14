@@ -14,6 +14,7 @@ import { env } from "@/common/utils/envConfig";
 import loginRouter from "./api/login/loginRouter";
 import adminRouter from "./api/admin/adminRouter";
 import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
+import criteriaRouter from "./api/criteria/criteriaRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -45,6 +46,7 @@ app.use("/health-check", healthCheckRouter);
 app.use("/login", loginRouter);
 app.use("/admin", adminRouter);
 app.use("/job-postings", jobPostingsRouter);
+app.use("/criteria", criteriaRouter);
 
 // Swagger UI
 app.use(openAPIRouter);

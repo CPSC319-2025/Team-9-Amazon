@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Container,
@@ -13,6 +13,7 @@ import {
   Checkbox,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   colors,
@@ -21,29 +22,90 @@ import {
 } from "../../styles/commonStyles";
 import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup";
 import { EditKeywordDialog } from "../../components/HiringManager/Evaluation/EditKeywordDialog";
-import { CriteriaGroup, Keyword } from "../../types/criteria";
-import { mockCriteriaGroups } from "../../utils/mockData";
+import { Keyword } from "../../types/criteria";
+import SaveIcon from "@mui/icons-material/Save";
+import {
+  CriteriaGroupRepresentation,
+  transformToRequestData,
+} from "../../representations/criteria";
+import {
+  transformCriteriaData,
+  useCreateJobPostingCriteria,
+  useDeleteJobPostingCriteria,
+  useEditJobPostingCriteria,
+  useGetJobPostingCriteria,
+} from "../../queries/jobPosting";
+import { useGetGlobalCriteria } from "../../queries/criteria";
+import { useParams } from "react-router";
 
 const EvaluationMetricsPage = () => {
-  const [activeCriteria, setActiveCriteria] = useState<CriteriaGroup[]>([]);
-  const [availableCriteria, setAvailableCriteria] =
-    useState<CriteriaGroup[]>(mockCriteriaGroups);
+  const { jobPostingId } = useParams();
   const [editingKeyword, setEditingKeyword] = useState<{
     groupId: string;
     keyword: Keyword | null;
   } | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success"
+  );
   const [selectedCriteria, setSelectedCriteria] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [localActiveCriteria, setLocalActiveCriteria] = useState<
+    CriteriaGroupRepresentation[]
+  >([]);
+  const [initialCriteria, setInitialCriteria] = useState<
+    CriteriaGroupRepresentation[]
+  >([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const {
+    data: criteriaData,
+    isLoading: isLoadingCriteria,
+    error: criteriaError,
+  } = useGetJobPostingCriteria(jobPostingId || "");
+
+  const {
+    data: globalCriteriaData,
+    isLoading: isLoadingGlobal,
+    error: globalError,
+  } = useGetGlobalCriteria();
+
+  const createCriteriaMutation = useCreateJobPostingCriteria(
+    jobPostingId || ""
+  );
+  const editCriteriaMutation = useEditJobPostingCriteria(jobPostingId || "");
+  const deleteCriteriaMutation = useDeleteJobPostingCriteria(
+    jobPostingId || ""
+  );
+
+  useEffect(() => {
+    if (criteriaData) {
+      const transformedCriteria = transformCriteriaData(criteriaData);
+      setLocalActiveCriteria(transformedCriteria);
+      setInitialCriteria(transformedCriteria);
+      setHasUnsavedChanges(false);
+    }
+  }, [criteriaData]);
+
+  const availableCriteria = globalCriteriaData
+    ? transformCriteriaData(globalCriteriaData).filter(
+        (global) =>
+          !localActiveCriteria.some(
+            (local) =>
+              local.id === `existing-${global.id}` || local.id === global.id
+          )
+      )
+    : [];
 
   const handleDeleteGroup = (groupId: string) => {
-    const criteriaToMove = activeCriteria.find((c) => c.id === groupId);
-    if (criteriaToMove) {
-      setActiveCriteria((prev) => prev.filter((c) => c.id !== groupId));
-      setAvailableCriteria((prev) => [...prev, criteriaToMove]);
-      setSnackbarMessage("Criteria removed");
-      setSnackbarOpen(true);
-    }
+    setLocalActiveCriteria((prev) =>
+      prev.filter((criteria) => criteria.id !== groupId)
+    );
+    setHasUnsavedChanges(true);
+    setSnackbarMessage("Criteria removed. Don't forget to save your changes!");
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
   };
 
   const handleEditKeyword = (groupId: string, keyword: Keyword) => {
@@ -54,11 +116,31 @@ const EvaluationMetricsPage = () => {
     setEditingKeyword({ groupId, keyword: null });
   };
 
+  const handleEditName = (groupId: string, newName: string) => {
+    setLocalActiveCriteria((prev) =>
+      prev.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              name: newName,
+            }
+          : group
+      )
+    );
+    setHasUnsavedChanges(true);
+    setSnackbarMessage(
+      "Criteria name updated. Don't forget to save your changes!"
+    );
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
+  };
+
   const handleSaveKeyword = (updatedKeyword: Keyword, isNew: boolean) => {
     if (editingKeyword) {
-      setActiveCriteria((prev) =>
+      const groupId = editingKeyword.groupId;
+      setLocalActiveCriteria((prev) =>
         prev.map((group) =>
-          group.id === editingKeyword.groupId
+          group.id === groupId
             ? {
                 ...group,
                 keywords: isNew
@@ -72,18 +154,21 @@ const EvaluationMetricsPage = () => {
             : group
         )
       );
+
       setEditingKeyword(null);
+      setHasUnsavedChanges(true);
       setSnackbarMessage(
         isNew
-          ? "New keyword added successfully"
-          : "Keyword updated successfully"
+          ? "Keyword added. Don't forget to save your changes!"
+          : "Keyword updated. Don't forget to save your changes!"
       );
+      setSnackbarSeverity("success");
       setSnackbarOpen(true);
     }
   };
 
   const handleDeleteKeyword = (groupId: string, keyword: Keyword) => {
-    setActiveCriteria((prev) =>
+    setLocalActiveCriteria((prev) =>
       prev.map((group) =>
         group.id === groupId
           ? {
@@ -93,7 +178,9 @@ const EvaluationMetricsPage = () => {
           : group
       )
     );
-    setSnackbarMessage("Keyword deleted successfully");
+    setHasUnsavedChanges(true);
+    setSnackbarMessage("Keyword deleted. Don't forget to save your changes!");
+    setSnackbarSeverity("success");
     setSnackbarOpen(true);
   };
 
@@ -106,16 +193,90 @@ const EvaluationMetricsPage = () => {
   };
 
   const handleAddSelectedCriteria = () => {
-    const criteriaToAdd = availableCriteria.filter((c) =>
-      selectedCriteria.includes(c.id)
-    );
-    if (criteriaToAdd.length > 0) {
-      setActiveCriteria((prev) => [...prev, ...criteriaToAdd]);
-      setAvailableCriteria((prev) =>
-        prev.filter((c) => !selectedCriteria.includes(c.id))
+    const criteriaToAdd = availableCriteria
+      .filter((c) => selectedCriteria.includes(c.id))
+      .map((criteria) => ({
+        ...criteria,
+        id: criteria.id.replace("existing-", ""),
+      }));
+
+    setLocalActiveCriteria((prev) => [...prev, ...criteriaToAdd]);
+    setSelectedCriteria([]);
+    setHasUnsavedChanges(true);
+    setSnackbarMessage("Criteria added. Don't forget to save your changes!");
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      setIsSaving(true);
+
+      // Find deleted criteria
+      const deletedCriteria = initialCriteria.filter(
+        (initialCriteria) =>
+          !localActiveCriteria.some(
+            (currentCriteria) => currentCriteria.id === initialCriteria.id
+          )
       );
-      setSelectedCriteria([]);
-      setSnackbarMessage("Selected criteria added successfully");
+
+      // Find modified criteria
+      const modifiedCriteria = localActiveCriteria.filter((currentCriteria) => {
+        if (!currentCriteria.id.startsWith("existing-")) return false;
+
+        const initialCriterion = initialCriteria.find(
+          (ic) => ic.id === currentCriteria.id
+        );
+        if (!initialCriterion) return false;
+
+        // Check for both keyword and name changes
+        return (
+          JSON.stringify(currentCriteria.keywords) !==
+            JSON.stringify(initialCriterion.keywords) ||
+          currentCriteria.name !== initialCriterion.name
+        );
+      });
+
+      // Find new criteria (including those added from available)
+      const newCriteria = localActiveCriteria.filter(
+        (criteria) => !criteria.id.startsWith("existing-")
+      );
+
+      // Delete removed criteria
+      await Promise.all(
+        deletedCriteria.map((criteria) => {
+          const criteriaId = criteria.id.replace("existing-", "");
+          return deleteCriteriaMutation.mutateAsync(criteriaId);
+        })
+      );
+
+      // Update modified criteria
+      await Promise.all(
+        modifiedCriteria.map((criteria) => {
+          const criteriaId = criteria.id.replace("existing-", "");
+          return editCriteriaMutation.mutateAsync({
+            criteriaId,
+            data: transformToRequestData(criteria),
+          });
+        })
+      );
+
+      // Create new criteria
+      await Promise.all(
+        newCriteria.map((criteria) =>
+          createCriteriaMutation.mutateAsync(transformToRequestData(criteria))
+        )
+      );
+
+      setHasUnsavedChanges(false);
+      setSnackbarMessage("All changes saved successfully");
+      setSnackbarSeverity("success");
+    } catch (error) {
+      console.error("Error saving criteria:", error);
+      setSnackbarMessage("Failed to save changes. Please try again.");
+      setSnackbarSeverity("error");
+    } finally {
+      setIsSaving(false);
       setSnackbarOpen(true);
     }
   };
@@ -124,9 +285,71 @@ const EvaluationMetricsPage = () => {
     setSnackbarOpen(false);
   };
 
+  if (!jobPostingId) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">No job posting ID provided.</Typography>
+      </Box>
+    );
+  }
+
+  if (isLoadingCriteria || isLoadingGlobal) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (criteriaError || globalError) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">
+          Error loading criteria. Please try again later.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={handleSaveChanges}
+            disabled={isSaving || !hasUnsavedChanges}
+            sx={{
+              ...filledButtonStyle,
+              minWidth: 150,
+            }}
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        </Box>
+
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
             <Typography
@@ -136,7 +359,7 @@ const EvaluationMetricsPage = () => {
             >
               Active Evaluation Criteria
             </Typography>
-            {activeCriteria.map((group) => (
+            {localActiveCriteria.map((group) => (
               <CriteriaGroupComponent
                 key={group.id}
                 group={group}
@@ -144,9 +367,10 @@ const EvaluationMetricsPage = () => {
                 onEditKeyword={handleEditKeyword}
                 onDeleteKeyword={handleDeleteKeyword}
                 onAddKeyword={handleAddKeyword}
+                onEditName={handleEditName}
               />
             ))}
-            {activeCriteria.length === 0 && (
+            {localActiveCriteria.length === 0 && (
               <Paper
                 elevation={0}
                 sx={{
@@ -179,6 +403,7 @@ const EvaluationMetricsPage = () => {
                       border: `1px solid ${colors.gray1}`,
                       borderRadius: 1,
                       mb: 1,
+                      bgcolor: colors.white,
                     }}
                   >
                     <ListItemIcon>
@@ -194,11 +419,22 @@ const EvaluationMetricsPage = () => {
                       />
                     </ListItemIcon>
                     <ListItemText
-                      primary={`${criteria.name} #${criteria.id}`}
+                      primary={`${criteria.name} #${criteria.id.replace(
+                        "existing-",
+                        ""
+                      )}`}
                       secondary={`${criteria.keywords.length} keywords`}
                     />
                   </ListItem>
                 ))}
+                {availableCriteria.length === 0 && (
+                  <Typography
+                    variant="body2"
+                    sx={{ textAlign: "center", py: 2, color: colors.gray2 }}
+                  >
+                    No global criteria available.
+                  </Typography>
+                )}
               </List>
               <Button
                 fullWidth
@@ -231,10 +467,11 @@ const EvaluationMetricsPage = () => {
       >
         <Alert
           onClose={handleCloseSnackbar}
-          severity="success"
+          severity={snackbarSeverity}
           sx={{
             width: "100%",
-            bgcolor: colors.blue1,
+            bgcolor:
+              snackbarSeverity === "success" ? colors.blue1 : colors.orange1,
             color: "white",
             "& .MuiAlert-icon": {
               color: "white",
