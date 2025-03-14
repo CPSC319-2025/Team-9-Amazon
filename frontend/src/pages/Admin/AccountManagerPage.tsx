@@ -1,20 +1,14 @@
 // import { PlusCircle, Trash2,  } from "lucide-react";
 import * as React from 'react'
-import { Box, IconButton, Stack, } from "@mui/material";
+import { Box, IconButton, Stack, Chip } from "@mui/material";
 import { DataGrid, GridColDef, GridActionsCellItem, GridRowId, GridToolbar } from "@mui/x-data-grid";
 import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material"
 // import { Header } from "../../components/Common/Header";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from '../../components/Common/Modals/ConfirmationModal';
 import { FormModal } from '../../components/Common/Modals/FormModal';
+import AccountData from '../../components/Admin/AccountData';
 
-interface AccountData {
-    id: number;
-    email: string;
-    first_name: string;
-    last_name: string;
-    role: string[];
-}
 const dummyAccounts = [
     {
         id: 1,
@@ -65,7 +59,7 @@ const AccountManagerPage = () => {
         email: "",
         first_name: "",
         last_name: "",
-        role: ["Hiring Manager", "Admin"],
+        role: [],
     }
 
     const handleCloseModal = () => {
@@ -99,15 +93,23 @@ const AccountManagerPage = () => {
         {
             field: 'role', 
             headerName: 'Role', 
-            valueGetter: (value: string[]) => {
-                if (value.length == 1) {
-                    return value[0]
-                }
-                else {
-                    return value[0] + ", " + value[1]
-                }
-
-            },
+            renderCell: (params) => {
+                return (
+                    <Stack 
+                    direction="row" 
+                    alignItems='center' 
+                    spacing={0.5}
+                    sx={{
+                        height: '100%',
+                        width: '100%',
+                        flexWrap: 'wrap',
+                      }}>
+                        {params.value.map((role: string, index: number) => (
+                            <Chip key={index} label={role} size='small'/>
+                        ))}
+                    </Stack>
+                );
+              },
             flex: 1
         },
         {   
@@ -118,27 +120,6 @@ const AccountManagerPage = () => {
             align: 'right',
             cellClassName: 'actions',
             getActions: ({ id }) => {
-            //   const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-      
-            //   if (isInEditMode) {
-            //     return [
-            //       <GridActionsCellItem
-            //         icon={<SaveIcon />}
-            //         label="Save"
-            //         sx={{
-            //           color: 'primary.main',
-            //         }}
-            //         onClick={handleSaveClick(id)}
-            //       />,
-            //       <GridActionsCellItem
-            //         icon={<CancelIcon />}
-            //         label="Cancel"
-            //         className="textPrimary"
-            //         onClick={handleCancelClick(id)}
-            //         color="inherit"
-            //       />,
-            //     ];
-            //   }
       
               return [
                 <GridActionsCellItem
