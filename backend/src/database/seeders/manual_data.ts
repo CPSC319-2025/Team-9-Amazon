@@ -25,7 +25,9 @@ export default {
   up: async (queryInterface: QueryInterface): Promise<void> => {
     initModels(queryInterface.sequelize);
 
-    await Staff.bulkCreate(listOfStaff, {ignoreDuplicates: true});
+    for (const staff of listOfStaff) {
+      await Staff.create(staff);
+    }
   },
 
   down: async (queryInterface: QueryInterface, Sequelize: Sequelize): Promise<void> => {

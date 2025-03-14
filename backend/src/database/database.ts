@@ -20,6 +20,9 @@ export const initModels = (sequelize: Sequelize) => {
   for (const model of models) {
     model.initialize(sequelize);
   }
+  for (const model of models) {
+    model.associate();
+  }
 }
 
 export default class Database {
@@ -36,21 +39,12 @@ export default class Database {
     }
   );
 
-private static InitAssociations() {
-  for (const model of models) {
-    model.associate();
-  }
-}
-
 public static async InitDb() {
     try {
       await this.sequelize.authenticate();
 
       // Initialize models
       initModels(this.sequelize);
-
-      // Set up associations after all models are initialized
-      this.InitAssociations();
 
       // Development Tool:
       // Set "force: true" to drop and recreate tables
