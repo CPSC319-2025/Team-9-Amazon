@@ -12,9 +12,11 @@ frontend_service_name = "recruit-frontend-service"
 ecr_repository_frontend = "cpsc319/recruit/frontend"
 
 backend_image_name = "recruit-backend"
+backend_service_name = "recruit-backend-service"
 ecr_repository_backend = "cpsc319/recruit/backend"
 
 def run_command(command):
+    # print(command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     while True:
         output = process.stdout.readline()
@@ -80,6 +82,8 @@ def main():
         print("b1. Build")
         print("b2. Run")
         print("b3. Push")
+        print("b4. Deploy")
+        print("b5. Build, Push, Deploy")
         print("")
         print("0. exit")
         print("")
@@ -104,12 +108,12 @@ def main():
             docker_run(image_name=backend_image_name, container_name="recruit-backend-container", port_mapping="3001:3001")
         elif user_input == "b3":
             docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
-        # elif user_input == "b4":
-        #     update_ecs_service(frontend_service_name)
-        # elif user_input == "b5":
-        #     docker_build(image_name=backend_image_name, context="../backend")
-        #     docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
-        #     update_ecs_service(backend_service_name)
+        elif user_input == "b4":
+            update_ecs_service(backend_service_name)
+        elif user_input == "b5":
+            docker_build(image_name=backend_image_name, context="../backend")
+            docker_push(backend_image_name, ecr_repository_backend, get_aws_account_id(), aws_region)
+            update_ecs_service(backend_service_name)
         elif user_input == '0':
             print("Exiting the program.")
             break

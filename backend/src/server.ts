@@ -23,11 +23,37 @@ const app: Express = express();
 app.set("trust proxy", true);
 
 // Middlewares
+const corsOrigins = (origin: string | undefined, callback : (err: Error | null, allow?: boolean) => void) => {
+  if (!origin) {
+    return callback(null, true); // Allow non-browser requests
+  }
+
+  const allowedOrigins = env.CORS_ORIGIN;
+  if (allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+  // Check wildcard subdomains
+  const isAllowed = allowedOrigins.split(" ").some((allowedOrigin) => {
+    if (allowedOrigin.includes("*")) {
+      const regex = new RegExp("^" + allowedOrigin.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$");
+      return regex.test(origin);
+    }
+    return false;
+  });
+
+  if (isAllowed) {
+    return callback(null, true);
+  }
+
+  return callback(new Error("Not allowed by CORS"));
+};
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: corsOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
