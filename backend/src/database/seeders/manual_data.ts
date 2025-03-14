@@ -26,7 +26,7 @@ export default {
     initModels(queryInterface.sequelize);
 
     for (const staff of listOfStaff) {
-      await Staff.create(staff);
+      await Staff.findOrCreate({where: {email: staff.email}, defaults: staff});
     }
   },
 
