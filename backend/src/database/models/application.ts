@@ -1,11 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting, { JobPostingTableName } from "./jobPosting";
 import Applicant, { ApplicantTableName } from "./applicant";
-export interface ApplicationWithApplicant extends Application {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-}
 
 interface Experience {
   title: string;
@@ -26,6 +21,7 @@ interface ApplicationAttributes {
   resumePath: string;
   score: number | undefined;
   experienceJson: ExperienceJSON;
+  applicant?: Applicant;
 }
 
 interface ApplicationCreationAttributes

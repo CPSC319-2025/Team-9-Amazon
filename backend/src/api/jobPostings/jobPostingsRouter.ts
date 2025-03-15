@@ -5,11 +5,8 @@ import {
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { Router } from "express";
-import Application, {
-  ApplicationWithApplicant,
-} from "@/database/models/application";
+import Application from "@/database/models/application";
 import Applicant from "@/database/models/applicant";
-import Database from "@/database/database";
 
 const router = Router();
 
@@ -218,7 +215,6 @@ router.get(
   async (req, res) => {
     try {
       const { jobPostingId } = req.params;
-      const sequelize = Database.GetSequelize();
 
       // Verify the job posting exists and belongs to this hiring manager
       const jobPosting = await JobPosting.findOne({
