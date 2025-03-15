@@ -148,7 +148,9 @@ const JobPostingApplicationsPage = () => {
         </Box>
 
         <Grid container spacing={4}>
-          <Grid item xs={12}>
+          {/*TODO*/}
+          {/*<Grid item xs={12} md={scanned ? 6 : 12}>*/}
+          <Grid item xs={12} md={12}>
             <Paper elevation={0} sx={paperStyle}>
               <Box
                 sx={{
@@ -161,7 +163,7 @@ const JobPostingApplicationsPage = () => {
                 <Typography
                   variant="h5"
                   component="h1"
-                  sx={{ color: colors.black1 }}
+                  sx={{ mb: 3, color: colors.black1 }}
                 >
                   Applications ({summaryData?.totalApplications || 0})
                 </Typography>
@@ -175,10 +177,36 @@ const JobPostingApplicationsPage = () => {
                 applications={filteredApplications}
                 onViewApplicant={handleViewApplicant}
                 onAddCandidate={handleAddCandidate}
-                showAddButton
               />
             </Paper>
           </Grid>
+
+          {/*TODO*/
+          /* {scanned && filteredDatabaseCandidates.length > 0 && (
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  ...paperStyle,
+                  border: `2px solid ${colors.blue1}15`,
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  component="h1"
+                  sx={{ mb: 3, color: colors.black1 }}
+                >
+                  Potential Candidates{" "}
+                </Typography>
+                <ApplicantList
+                  applications={filteredDatabaseCandidates}
+                  onViewApplicant={handleViewApplicant}
+                  onAddCandidate={handleAddCandidate}
+                  showAddButton
+                />
+              </Paper>
+            </Grid>
+          )} */}
         </Grid>
       </Container>
 
