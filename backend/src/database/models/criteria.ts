@@ -1,6 +1,10 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting from "./jobPosting";
 import { ApplicationScoring } from "@/services/applicationScoring";
+export enum CriteriaType {
+  global = "global",
+  local = "local",
+}
 
 export enum CriteriaType {
   global = "global",
