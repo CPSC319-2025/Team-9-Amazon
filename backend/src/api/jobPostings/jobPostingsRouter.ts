@@ -260,9 +260,9 @@ router.get(
         return {
           score: application.score || 0,
           applicant: {
-            firstName: applicantData.firstName,
-            lastName: applicantData.lastName,
-            email: applicantData.email,
+            firstName: applicantData?.firstName,
+            lastName: applicantData?.lastName,
+            email: applicantData?.email,
           },
         };
       });
