@@ -8,6 +8,7 @@ import { Op } from "sequelize";
 
 const router = Router();
 
+// get applicant details for Candidate Report page
 router.get(
   "/email/:applicantEmail/job-postings/:jobPostingId",
   authenticateJWT,
@@ -59,7 +60,7 @@ router.get(
 
       
     //MOCK DATA TODO!!!
-      const keywordAnalysis = {
+      const skills = {
         matched: ["NodeJS", "React", "TypeScript"],
         missing: ["MongoDB", "AWS"],
       };
@@ -82,13 +83,29 @@ router.get(
       };
 
       const application = {
-        id: 456,
-        applicantId: applicant.id,
-        jobPostingId: Number(jobPostingId),
-        resumePath: "https://example.com/resumes/johndoe.pdf",
-        createdAt: new Date().toISOString(),
-        score: null
+        jobPostingId: 456,
+        applicantId: 123,
+        resumePath: "https://example.com/resumes/johndoe_resume.pdf",
+        createdAt: new Date(),  // Fix: removed toISOString()
+        score: 89,        // Fix: changed null to undefined
+        experienceJson: {
+            experiences: [{
+                title: 'Software Engineer',
+                company: 'Google',
+                startDate: new Date().toISOString(),
+                endDate: new Date().toISOString(),
+                skills: [],
+                description: 'Googler'
+            }]
+        },
+        updatedAt: new Date()
       };
+
+      const allSkills: string[] = [];
+
+      for (const experience of application.experienceJson.experiences) {
+        allSkills.push(...experience.skills);
+      }
 
       res.json({
         applicant: {
@@ -96,7 +113,6 @@ router.get(
           firstName: applicant.firstName,
           lastName: applicant.lastName,
           role: jobPosting.title,
-          matchScore: application.score || matchScore,
           details: {
             email: applicant.email,
             phone: applicant.phone || "Not provided",
@@ -104,11 +120,12 @@ router.get(
           },
         },
         application: {
-          id: application.id,
+          id: application.jobPostingId,
           resumePath: application.resumePath,
+          matchScore: application.score || matchScore,
           createdAt: application.createdAt,
         },
-        keywords: keywordAnalysis,
+        keywords: allSkills,
         criteria: criteriaScores,
       });
     } catch (error) {

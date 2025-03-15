@@ -466,6 +466,7 @@ router.get(
         });
       }
 
+      //COMMENTED OUT FOR TIME BEING UNTIL APPLICATIONS IMPLEMENTATION IS DONE
       // const applications = await Application.findAll({
       //   where: { 
       //     jobPostingId: jobPostingId
@@ -525,6 +526,7 @@ router.get(
   }
 );
 
+//Get all job postings associated with a hiring manager
 router.get(
   "/",
   authenticateJWT,
@@ -548,6 +550,7 @@ router.get(
   }
 );
 
+// Get detailed related to a jobPostingId
 router.get(
   "/:jobPostingId",
   authenticateJWT,

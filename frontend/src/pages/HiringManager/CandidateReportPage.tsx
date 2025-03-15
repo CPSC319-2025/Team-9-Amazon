@@ -29,7 +29,6 @@ interface CandidateDetails {
     firstName: string;
     lastName: string;
     role: string;
-    matchScore: number;
     details: {
       email: string;
       phone: string;
@@ -39,12 +38,10 @@ interface CandidateDetails {
   application: {
     id: number;
     resumePath: string;
+    matchScore: number;
     createdAt: string;
   };
-  keywords: {
-    matched: string[];
-    missing: string[];
-  };
+  keywords: string[];
   criteria: {
     id: number;
     name: string;
@@ -174,7 +171,7 @@ export default function CandidateReportPage() {
                   <Box sx={{ flexGrow: 1, mr: 2 }}>
                     <LinearProgress
                       variant="determinate"
-                      value={candidateData.applicant.matchScore}
+                      value={candidateData.application.matchScore}
                       sx={{
                         height: 8,
                         borderRadius: 4,
@@ -187,7 +184,7 @@ export default function CandidateReportPage() {
                     />
                   </Box>
                   <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
-                    {candidateData.applicant.matchScore}%
+                    {candidateData.application.matchScore}%
                   </Typography>
                 </Box>
               </Box>
@@ -269,7 +266,7 @@ export default function CandidateReportPage() {
                   Matched Keywords
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
-                  {candidateData.keywords.matched.map((keyword, index) => (
+                  {candidateData.keywords.map((keyword, index) => (
                     <Chip
                       key={index}
                       label={keyword}
@@ -280,7 +277,7 @@ export default function CandidateReportPage() {
                 <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
                   Missing Keywords
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                {/* <Stack direction="row" spacing={1} flexWrap="wrap">
                   {candidateData.keywords.missing.map((keyword, index) => (
                     <Chip
                       key={index}
@@ -288,7 +285,7 @@ export default function CandidateReportPage() {
                       sx={{ ...chipStyle, bgcolor: `${colors.red1}20`, color: colors.red1, mb: 1 }}
                     />
                   ))}
-                </Stack>
+                </Stack> */}
               </Box>
             </Paper>
           </Stack>
