@@ -1,4 +1,4 @@
-import Criteria from "@/database/models/criteria";
+import Criteria, { CriteriaType } from "@/database/models/criteria";
 import JobPosting from "@/database/models/jobPosting";
 import {
   authenticateJWT,
@@ -137,7 +137,7 @@ router.post(
       const criteria = await Criteria.create({
         name,
         criteriaJson,
-        criteriaType: "local",
+        criteriaType: CriteriaType.local,
         jobPostingId: parseInt(jobPostingId),
       });
 

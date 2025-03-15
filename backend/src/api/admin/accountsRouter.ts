@@ -1,7 +1,6 @@
 // routes/staffRoutes.js
 import { authenticateJWT, requireAdmin } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
-import { s3DownloadPdfBase64, s3UploadPdfBase64 } from "@/common/utils/awsTools";
 import Staff from "@/database/models/staff";
 import { Router } from "express";
 import { z } from "zod";
@@ -24,7 +23,7 @@ accountsRouter.get("/", authenticateJWT, requireAdmin, async (req, res) => {
 // Get specific account
 accountsRouter.get("/:account_id", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.account_id)
+    const id = parseInt(req.params.account_id);
     const staff = await Staff.findByPk(id, {
       attributes: { exclude: ["password"] },
       raw: true,
@@ -34,7 +33,6 @@ accountsRouter.get("/:account_id", authenticateJWT, requireAdmin, async (req, re
     handleZodError(error, res, "Failed to get staff members");
   }
 });
-
 
 // Create new account
 const createAccountReq = z.object({
@@ -57,7 +55,7 @@ accountsRouter.post("/", authenticateJWT, requireAdmin, async (req, res) => {
       isHiringManager = false,
       isAdmin = false,
     } = createAccountReq.parse(req.body);
-    
+
     const existingStaff = await Staff.findOne({
       where: { email },
       raw: false,
@@ -107,29 +105,17 @@ const editAccountReq = z.object({
 });
 accountsRouter.put("/:account_id", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.account_id)
-    const {email, password, firstName, lastName, phone, isHiringManager, isAdmin, } = editAccountReq.parse(req.body);
+    const id = parseInt(req.params.account_id);
+    const { email, password, firstName, lastName, phone, isHiringManager, isAdmin } = editAccountReq.parse(req.body);
     const staff = await Staff.findByPk(id);
     if (!staff) {
       return res.status(404).json({ error: "Staff member not found" });
     }
-    if (email) staff.email = email;
-    if (password) staff.password = password;
-    if (firstName) staff.firstName = firstName;
-    if (lastName) staff.lastName = lastName;
-    if (phone) staff.phone = phone;
-    if (isHiringManager !== undefined) staff.isHiringManager = isHiringManager;
-    if (isAdmin !== undefined) staff.isAdmin = isAdmin;
-    await staff.save();
-    res.status(200).json({
-      id: staff.id,
-      email: staff.email,
-      firstName: staff.firstName,
-      lastName: staff.lastName,
-      phone: staff.phone,
-      isHiringManager: staff.isHiringManager,
-      isAdmin: staff.isAdmin,
+    await staff.update({ email, password, firstName, lastName, phone, isHiringManager, isAdmin });
+    const updatedStaff = await Staff.findByPk(id, {
+      attributes: { exclude: ["password"] },
     });
+    res.status(200).json(updatedStaff);
   } catch (error) {
     handleZodError(error, res, "Failed to edit staff member");
   }
@@ -138,31 +124,17 @@ accountsRouter.put("/:account_id", authenticateJWT, requireAdmin, async (req, re
 // Delete account
 accountsRouter.delete("/:account_id", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.account_id)
+    const id = parseInt(req.params.account_id);
+    if ((await Staff.findByPk(id)) === null) {
+      return res.status(404).json({ error: `Staff member with id ${id} not found` });
+    }
     await Staff.destroy({
       where: { id },
     });
-    res.status(200).json({ message: `Staff member with id ${id} deleted` });
+    res.status(200).json({ message: `Successfully deleted staff member with id ${id}` });
   } catch (error) {
     handleZodError(error, res, "Failed to edit staff member");
   }
 });
 
-
-// I am testing
-const testReq = z.object({
-  name: z.string().min(1),
-  pdf: z.string().min(1),
-});
-accountsRouter.post("/test", async (req, res) => {
-  try {
-    const { name, pdf } = testReq.parse(req.body);
-    await s3UploadPdfBase64(name, pdf);
-    const temp = await s3DownloadPdfBase64(name);
-    res.status(200).json({ message: temp });
-  } catch (error) {
-    handleZodError(error, res, "Failed to test");
-  }
-});
-
-export default accountsRouter
+export default accountsRouter;
