@@ -264,6 +264,8 @@ router.get(
             lastName: applicantData?.lastName,
             email: applicantData?.email,
           },
+          applicationId: application.applicantId,
+          jobPostingId: application.jobPostingId,
         };
       });
 
