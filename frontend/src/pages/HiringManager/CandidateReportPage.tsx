@@ -1,6 +1,6 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router";
-import { ROUTES } from "../../routes/routePaths";
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router';
+import { ROUTES } from '../../routes/routePaths';
 import {
   Box,
   Typography,
@@ -15,45 +15,120 @@ import {
   Chip,
   Stack,
   Link,
-} from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import {
-  colors,
-  titleStyle,
-  paperStyle,
-  chipStyle,
-} from "../../styles/commonStyles";
+  CircularProgress,
+  Button,
+  Alert,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { colors, titleStyle, paperStyle, chipStyle } from '../../styles/commonStyles';
+import { apiUrls } from '../../api/apiUrls';
 
-// Dummy data
-const candidateData = {
-  name: "Robbie Laughlen",
-  role: "SDE1 Intern",
-  matchScore: 92,
-  details: {
-    email: "robbie@laughlen.com",
-    phone: "333-333-3333",
-    location: "Vancouver",
-    personalLinks: ["https://www.linkedin.com/in/robbielaughlen/"],
-  },
-  rules: {
-    matched: ["NodeJS", "React", "Docker"],
-    missing: ["MongoDB"],
-  },
-  criteria: [
-    { name: "Technical Skills", score: 95 },
-    { name: "Experience", score: 88 },
-    { name: "Education", score: 90 },
-    { name: "Cultural Fit", score: 85 },
-  ],
-};
+interface CandidateDetails {
+  applicant: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    role: string;
+    matchScore: number;
+    details: {
+      email: string;
+      phone: string;
+      personalLinks: string[];
+    };
+  };
+  application: {
+    id: number;
+    resumePath: string;
+    createdAt: string;
+  };
+  keywords: {
+    matched: string[];
+    missing: string[];
+  };
+  criteria: {
+    id: number;
+    name: string;
+    score: number;
+  }[];
+}
 
 export default function CandidateReportPage() {
-  const { jobPostingId } = useParams();
   const navigate = useNavigate();
+  const { jobPostingId, applicantEmail } = useParams();
+  
+  const [candidateData, setCandidateData] = useState<CandidateDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCandidateData = async () => {
+      if (!jobPostingId || !applicantEmail) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          apiUrls.getApplicantDetailsByEmail(decodeURIComponent(applicantEmail), jobPostingId),
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setCandidateData(data);
+      } catch (err) {
+        console.error('Error fetching candidate data:', err);
+        setError('Failed to load candidate data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCandidateData();
+  }, [jobPostingId, applicantEmail]);
 
   const handleBack = () => {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+        <Button sx={{ mt: 2 }} variant="outlined" onClick={handleBack}>
+          Go Back
+        </Button>
+      </Box>
+    );
+  }
+
+  if (!candidateData) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">No data available for this candidate.</Alert>
+        <Button sx={{ mt: 2 }} variant="outlined" onClick={handleBack}>
+          Go Back
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -83,10 +158,10 @@ export default function CandidateReportPage() {
             {/* Basic Info Card */}
             <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
               <Typography variant="h5" sx={{ ...titleStyle, mb: 2 }}>
-                {candidateData.name}
+                {candidateData.applicant.firstName} {candidateData.applicant.lastName}
               </Typography>
               <Typography variant="body1" sx={{ color: colors.gray2, mb: 1 }}>
-                {candidateData.role}
+                {candidateData.applicant.role}
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Typography
@@ -99,7 +174,7 @@ export default function CandidateReportPage() {
                   <Box sx={{ flexGrow: 1, mr: 2 }}>
                     <LinearProgress
                       variant="determinate"
-                      value={candidateData.matchScore}
+                      value={candidateData.applicant.matchScore}
                       sx={{
                         height: 8,
                         borderRadius: 4,
@@ -111,11 +186,8 @@ export default function CandidateReportPage() {
                       }}
                     />
                   </Box>
-                  <Typography
-                    variant="body1"
-                    sx={{ color: colors.orange1, fontWeight: 500 }}
-                  >
-                    {candidateData.matchScore}%
+                  <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                    {candidateData.applicant.matchScore}%
                   </Typography>
                 </Box>
               </Box>
@@ -130,10 +202,10 @@ export default function CandidateReportPage() {
                 <ListItem disablePadding sx={{ mb: 1 }}>
                   <ListItemText
                     primary="Email"
-                    secondary={candidateData.details.email}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      sx: { color: colors.gray2 },
+                    secondary={candidateData.applicant.details.email}
+                    primaryTypographyProps={{ 
+                      variant: 'body2',
+                      sx: { color: colors.gray2 }
                     }}
                     secondaryTypographyProps={{
                       variant: "body1",
@@ -144,24 +216,10 @@ export default function CandidateReportPage() {
                 <ListItem disablePadding sx={{ mb: 1 }}>
                   <ListItemText
                     primary="Phone"
-                    secondary={candidateData.details.phone}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      sx: { color: colors.gray2 },
-                    }}
-                    secondaryTypographyProps={{
-                      variant: "body1",
-                      sx: { color: colors.black1 },
-                    }}
-                  />
-                </ListItem>
-                <ListItem disablePadding>
-                  <ListItemText
-                    primary="Location"
-                    secondary={candidateData.details.location}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      sx: { color: colors.gray2 },
+                    secondary={candidateData.applicant.details.phone}
+                    primaryTypographyProps={{ 
+                      variant: 'body2',
+                      sx: { color: colors.gray2 }
                     }}
                     secondaryTypographyProps={{
                       variant: "body1",
@@ -170,7 +228,7 @@ export default function CandidateReportPage() {
                   />
                 </ListItem>
               </List>
-              {candidateData.details.personalLinks.length > 0 && (
+              {candidateData.applicant.details.personalLinks && candidateData.applicant.details.personalLinks.length > 0 && (
                 <>
                   <Divider sx={{ my: 2 }} />
                   <Typography
@@ -179,7 +237,7 @@ export default function CandidateReportPage() {
                   >
                     Personal Links
                   </Typography>
-                  {candidateData.details.personalLinks.map((link, index) => (
+                  {candidateData.applicant.details.personalLinks.map((link, index) => (
                     <Link
                       key={index}
                       href={link}
@@ -239,20 +297,20 @@ export default function CandidateReportPage() {
         {/* Right Column */}
         <Grid item xs={12} md={8}>
           <Stack spacing={3}>
-            {/* Evaluation Criteria */}
+            {/* Criteria Scores */}
             <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
               <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
                 Evaluation Criteria
               </Typography>
               <Grid container spacing={2}>
                 {candidateData.criteria.map((criterion, index) => (
-                  <Grid item xs={12} sm={6} key={index}>
-                    <Box>
+                  <Grid item xs={12} md={6} key={index}>
+                    <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" sx={{ color: colors.gray2 }}>
+                        <Typography variant="body1" sx={{ color: colors.black1 }}>
                           {criterion.name}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: colors.orange1 }}>
+                        <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
                           {criterion.score}%
                         </Typography>
                       </Box>

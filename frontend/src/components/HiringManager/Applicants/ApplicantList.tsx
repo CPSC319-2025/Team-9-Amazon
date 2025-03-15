@@ -82,14 +82,7 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
             <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
               <IconButton
                 edge="end"
-                onClick={() =>
-                  navigate(
-                    ROUTES.hiringManager.candidateReport(
-                      jobPostingId!,
-                      application.applicant.email
-                    )
-                  )
-                }
+                onClick={() => navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, encodeURIComponent(applicant.email)))}
                 sx={{
                   color: colors.black1,
                   transition: "all 0.2s ease",
