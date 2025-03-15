@@ -2,25 +2,55 @@ import { Outlet, useLocation, useNavigate, useParams } from "react-router";
 import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../routes/routePaths";
-import { mockJobPostings } from "../utils/mockData";
 import { JobPosting } from "../types/JobPosting/jobPosting";
+import { apiUrls } from "../api/apiUrls";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [jobPosting, setJobPosting] = useState<JobPosting | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch job posting data based on jobPostingId
   useEffect(() => {
-    const jobPostings = mockJobPostings; // TODO: Change to actual API call when available
-    const jobData = jobPostings.find((job) => job.id === jobPostingId);
-    if (jobData) {
-      console.log(jobData);
-      setJobPosting(jobData);
-    } else {
-      // Redirect if jobPostingId is invalid
-      navigate(ROUTES.hiringManager.hiringManagerDashboard, { replace: true });
+    const fetchJobPosting = async () => {
+      if (!jobPostingId) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          apiUrls.getJobPosting(jobPostingId),
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setJobPosting(data);
+      } catch (err) {
+        console.error('Error fetching job posting:', err);
+        setError('Failed to load job posting');
+        // Redirect if jobPostingId is invalid or there's an error
+        navigate(ROUTES.hiringManager.hiringManagerDashboard, { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (jobPostingId) {
+      fetchJobPosting();
     }
   }, [jobPostingId, navigate]);
 
@@ -30,7 +60,11 @@ const HiringManagerLayout = () => {
     }
   }, [location.pathname, jobPostingId, navigate]);
 
-  if (!jobPosting) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error || !jobPosting) {
     return null;
   }
 

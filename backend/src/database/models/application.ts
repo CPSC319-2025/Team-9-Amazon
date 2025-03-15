@@ -1,5 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { JobPostingTableName } from "./jobPosting";
+import Applicant from "./applicant";
 
 interface ApplicationAttributes {
   id: number | undefined;
@@ -7,6 +8,8 @@ interface ApplicationAttributes {
   applicantId: number;
   resumePath: string;
   score: number | undefined;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export const ApplicationSchema = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -49,6 +52,8 @@ export default class Application
   applicantId!: number;
   resumePath!: string;
   score: number | undefined;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   static initialize(sequelize: Sequelize) {
     Application.init(ApplicationSchema, {
