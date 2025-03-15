@@ -1,14 +1,14 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting, { JobPostingTableName } from "./jobPosting";
 
-interface Token {
-  points_per_year_of_experience: number;
-  max_points: number;
-  word: string;
+interface Rule {
+  pointsPerYearOfExperience: number;
+  maxPoints: number;
+  skill: string;
 }
 
 interface CriteriaJSON {
-  tokens: Token[];
+  rules: Rule[];
 }
 
 interface CriteriaAttributes {
@@ -45,21 +45,21 @@ export const CriteriaSchema = {
     validate: {
       isValidJSON(value: any) {
         if (
-          !value.tokens ||
-          !Array.isArray(value.tokens) ||
-          value.tokens.length === 0
+          !value.rules ||
+          !Array.isArray(value.rules) ||
+          value.rules.length === 0
         ) {
-          throw new Error("criteriaJson must contain at least one token");
+          throw new Error("criteriaJson must contain at least one rule");
         }
 
-        value.tokens.forEach((token: any) => {
+        value.rules.forEach((rule: any) => {
           if (
-            typeof token.points_per_year_of_experience !== "number" ||
-            typeof token.max_points !== "number" ||
-            typeof token.word !== "string"
+            typeof rule.pointsPerYearOfExperience !== "number" ||
+            typeof rule.maxPoints !== "number" ||
+            typeof rule.skill !== "string"
           ) {
             throw new Error(
-              "Each token must have points_per_year_of_experience (number), max_points (number), and word (string)"
+              "Each rule must have pointsPerYearOfExperience (number), maxPoints (number), and skill (string)"
             );
           }
         });

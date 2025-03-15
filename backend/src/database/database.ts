@@ -6,11 +6,13 @@ import JobPosting from "./models/jobPosting";
 import JobTag from "./models/jobTag";
 import Staff from "./models/staff";
 import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
+import Application from "./models/application";
 
 const models = [
   Applicant,
   Staff,
   JobPosting,
+  Application,
   Criteria,
   JobTag,
   JobTagJobPostingRelation,
@@ -23,7 +25,7 @@ export const initModels = (sequelize: Sequelize) => {
   for (const model of models) {
     model.associate();
   }
-}
+};
 
 export default class Database {
   private static sequelize: Sequelize = new Sequelize(
@@ -39,7 +41,7 @@ export default class Database {
     }
   );
 
-public static async InitDb() {
+  public static async InitDb() {
     try {
       await this.sequelize.authenticate();
 
@@ -50,7 +52,7 @@ public static async InitDb() {
       // Set "force: true" to drop and recreate tables
       // Set "alter: true" to update tables
       // await this.sequelize.sync({ force: true, alter: true });
-      
+
       return this.sequelize;
     } catch (error) {
       console.error("Database initialization failed:", error);

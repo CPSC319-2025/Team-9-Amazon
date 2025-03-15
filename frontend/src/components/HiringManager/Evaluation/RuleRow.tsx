@@ -1,16 +1,16 @@
 import { IconButton, TableCell, TableRow } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { colors } from "../../../styles/commonStyles";
-import { Keyword } from "../../../types/criteria.ts";
+import { colors } from "../../../styles/commonStyles.ts";
+import { Rule } from "../../../types/criteria.ts";
 
-interface KeywordRowProps {
-  keyword: Keyword;
-  onEdit: (keyword: Keyword) => void;
-  onDelete: (keyword: Keyword) => void;
+interface RuleRowProps {
+  rule: Rule;
+  onEdit: (rule: Rule) => void;
+  onDelete: (rule: Rule) => void;
 }
 
-export const KeywordRow = ({ keyword, onEdit, onDelete }: KeywordRowProps) => {
+export const RuleRow = ({ rule, onEdit, onDelete }: RuleRowProps) => {
   return (
     <TableRow
       sx={{
@@ -18,20 +18,20 @@ export const KeywordRow = ({ keyword, onEdit, onDelete }: KeywordRowProps) => {
         "&:hover": { bgcolor: `${colors.blue1}10` },
       }}
     >
-      <TableCell>{keyword.name}</TableCell>
-      <TableCell align="center">{keyword.pointsPerYearOfExperience}</TableCell>
-      <TableCell align="center">{keyword.maxPoints}</TableCell>
+      <TableCell>{rule.skill}</TableCell>
+      <TableCell align="center">{rule.pointsPerYearOfExperience}</TableCell>
+      <TableCell align="center">{rule.maxPoints}</TableCell>
       <TableCell align="right">
         <IconButton
           size="small"
-          onClick={() => onEdit(keyword)}
+          onClick={() => onEdit(rule)}
           sx={{ color: colors.black1 }}
         >
           <EditIcon fontSize="small" />
         </IconButton>
         <IconButton
           size="small"
-          onClick={() => onDelete(keyword)}
+          onClick={() => onDelete(rule)}
           sx={{ color: colors.black1, ml: 1 }}
         >
           <DeleteIcon fontSize="small" />
