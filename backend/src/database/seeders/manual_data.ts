@@ -19,6 +19,14 @@ const listOfStaff: StaffCreationAttributes[] = [
     isAdmin: true,
     isHiringManager: true,
   },
+  {
+    email: "lloyd@forger.com",
+    password: "anya123",
+    firstName: "Lloyd",
+    lastName: "Forger",
+    isAdmin: true,
+    isHiringManager: true,
+  },
 ];
 
 export default {
