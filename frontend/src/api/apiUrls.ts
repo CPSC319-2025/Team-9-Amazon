@@ -12,6 +12,8 @@ export const apiUrls = {
   getJobPostingUrl: jobPostingsUrl + "/:jobPostingId",
   getJobPostingApplicationsSummaryUrl:
     jobPostingsUrl + "/:jobPostingId/applications/summary",
+  getJobPostingPotentialCandidatesUrl:
+    jobPostingsUrl + "/:jobPostingId/potential-candidates",
   loginUrl: `${apiUrl}/login/`,
   getGlobalCriteriaUrl: criteriaUrl + "/",
 };

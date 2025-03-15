@@ -17,16 +17,9 @@ import { ApplicationSummary } from "../../../types/application";
 
 interface ApplicantListProps {
   applications: ApplicationSummary[];
-  onViewApplicant: (email: string) => void;
-  onAddCandidate?: (email: string) => void;
-  showAddButton?: boolean;
 }
 
-export const ApplicantList = ({
-  applications,
-  onAddCandidate,
-  showAddButton,
-}: ApplicantListProps) => {
+export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
 
@@ -48,9 +41,7 @@ export const ApplicantList = ({
       <List sx={{ py: 0 }}>
         {applications.map((application, index) => (
           <ListItem
-            key={[application.applicationId, application.jobPostingId].join(
-              "-"
-            )}
+            key={[application.applicantId, application.jobPostingId].join("-")}
             sx={{
               borderBottom:
                 index < applications.length - 1
@@ -78,7 +69,6 @@ export const ApplicantList = ({
                 display: "flex",
                 alignItems: "center",
                 gap: 3,
-                mr: showAddButton ? 8 : 4,
               }}
             >
               {application.score !== undefined && (
@@ -91,22 +81,6 @@ export const ApplicantList = ({
               )}
             </Box>
             <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
-              {showAddButton && onAddCandidate && (
-                <IconButton
-                  edge="end"
-                  onClick={() => onAddCandidate(application.applicant.email)}
-                  sx={{
-                    color: colors.blue1,
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      color: colors.blue1,
-                      bgcolor: `${colors.blue1}15`,
-                    },
-                  }}
-                >
-                  <PlusCircle size={20} />
-                </IconButton>
-              )}
               <IconButton
                 edge="end"
                 onClick={() =>

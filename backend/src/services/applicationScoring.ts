@@ -28,7 +28,6 @@ export class ApplicationScoring {
     }
     return 0;
   }
-
   static async evaluateApplication(
     application: Application,
     criteria: Criteria[]
@@ -39,6 +38,9 @@ export class ApplicationScoring {
     const rules: Rule[] = criteria.flatMap(
       (criterion) => criterion.criteriaJson.rules
     );
+
+    // **Track points per rule to enforce maxPoints globally**
+    const ruleScores = new Map<string, number>();
 
     // Evaluate each experience
     for (const experience of application.experienceJson.experiences) {
@@ -51,10 +53,20 @@ export class ApplicationScoring {
       for (const skill of experience.skills) {
         for (const rule of rules) {
           const skillScore = this.evaluateSkill(skill, duration, rule);
-          totalScore += skillScore;
+
+          // **Ensure maxPoints isn't exceeded across all experiences**
+          const currentScore = ruleScores.get(rule.skill) || 0;
+          const newScore = Math.min(currentScore + skillScore, rule.maxPoints);
+          ruleScores.set(rule.skill, newScore);
         }
       }
     }
+
+    // **Sum up the final capped scores**
+    totalScore = [...ruleScores.values()].reduce(
+      (sum, score) => sum + score,
+      0
+    );
 
     return totalScore;
   }
@@ -67,7 +79,7 @@ export class ApplicationScoring {
         include: [
           {
             model: JobPosting,
-            as: "jobPostings",
+            as: "jobPosting",
             required: true,
             include: [
               {

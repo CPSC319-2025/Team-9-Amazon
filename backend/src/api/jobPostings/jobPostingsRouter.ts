@@ -7,6 +7,8 @@ import {
 import { Router } from "express";
 import Application from "@/database/models/application";
 import Applicant from "@/database/models/applicant";
+import { Op } from "sequelize";
+import { ApplicationScoring } from "@/services/applicationScoring";
 
 const router = Router();
 
@@ -264,7 +266,7 @@ router.get(
             lastName: applicantData?.lastName,
             email: applicantData?.email,
           },
-          applicationId: application.applicantId,
+          applicantId: application.applicantId,
           jobPostingId: application.jobPostingId,
         };
       });
@@ -283,4 +285,121 @@ router.get(
     }
   }
 );
+// Scan database for potential top 10 candidates
+router.get(
+  "/:jobPostingId/potential-candidates",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error:
+            "Job posting not found or you don't have permission to scan for it",
+        });
+      }
+
+      // Get criteria for this job posting
+      const criteria = await Criteria.findAll({
+        where: { jobPostingId },
+      });
+
+      if (!criteria.length) {
+        return res.status(400).json({
+          error: "No criteria found for this job posting",
+        });
+      }
+
+      // **Get current applicants who already applied for this job**
+      const currentApplicants = await Application.findAll({
+        where: { jobPostingId },
+        attributes: ["applicantId"],
+      });
+      const currentApplicantIds = currentApplicants.map(
+        (app) => app.applicantId
+      );
+
+      // Get all applications from other job postings (excluding current applicants)
+      const otherApplications = await Application.findAll({
+        where: {
+          jobPostingId: {
+            [Op.ne]: jobPostingId, // Not equal to current job posting
+          },
+          applicantId: {
+            [Op.notIn]: currentApplicantIds, // Exclude current applicants
+          },
+        },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email"],
+          },
+        ],
+      });
+
+      // Score each application against current job posting criteria
+      const scoredApplications = await Promise.all(
+        otherApplications.map(async (application) => {
+          const score = await ApplicationScoring.evaluateApplication(
+            application,
+            criteria
+          );
+
+          const applicantData = application.get({ plain: true }).applicant;
+
+          return {
+            applicantId: application.applicantId,
+            jobPostingId: application.jobPostingId,
+            score,
+            applicant: {
+              firstName: applicantData?.firstName || "",
+              lastName: applicantData?.lastName || "",
+              email: applicantData?.email || "",
+            },
+          };
+        })
+      );
+
+      // **Filter to keep only the best application per applicant**
+      const bestApplicationsPerApplicant = new Map();
+
+      scoredApplications.forEach((app) => {
+        if (
+          !bestApplicationsPerApplicant.has(app.applicantId) ||
+          bestApplicationsPerApplicant.get(app.applicantId).score < app.score
+        ) {
+          bestApplicationsPerApplicant.set(app.applicantId, app);
+        }
+      });
+
+      // Sort by score descending and return top 10 matches
+      const sortedApplications = [...bestApplicationsPerApplicant.values()]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      res.json({
+        totalApplications: sortedApplications.length,
+        applications: sortedApplications,
+      });
+    } catch (error) {
+      console.error("Error scanning database:", error);
+      res.status(500).json({
+        error: "Failed to scan database",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
 export default router;

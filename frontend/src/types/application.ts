@@ -1,5 +1,5 @@
 export interface ApplicationSummary {
-  applicationId: number;
+  applicantId: number;
   jobPostingId: number;
   score: number;
   applicant: {
@@ -11,6 +11,11 @@ export interface ApplicationSummary {
 
 export interface ApplicationsSummaryResponse {
   totalPossibleScore: number;
+  totalApplications: number;
+  applications: ApplicationSummary[];
+}
+
+export interface PotentialCandidatesResponse {
   totalApplications: number;
   applications: ApplicationSummary[];
 }
