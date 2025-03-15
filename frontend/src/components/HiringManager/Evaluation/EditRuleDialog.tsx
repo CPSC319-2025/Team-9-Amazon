@@ -55,7 +55,7 @@ export const EditRuleDialog = ({
     let isValid = true;
 
     if (!skill.trim()) {
-      newErrors.skill = "Rule skill is required";
+      newErrors.skill = "Skill is required";
       isValid = false;
     }
 
@@ -102,7 +102,7 @@ export const EditRuleDialog = ({
       <DialogContent>
         <TextField
           fullWidth
-          label="Rule Skill"
+          label="Skill"
           value={skill}
           onChange={(e) => setSkill(e.target.value)}
           error={!!errors.skill}
