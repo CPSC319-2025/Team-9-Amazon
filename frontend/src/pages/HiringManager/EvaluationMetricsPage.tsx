@@ -21,7 +21,6 @@ import {
   paperStyle,
 } from "../../styles/commonStyles";
 import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup";
-import { EditRuleDialog } from "../../components/HiringManager/Evaluation/EditRuleDialog";
 import { Rule } from "../../types/criteria";
 import SaveIcon from "@mui/icons-material/Save";
 import {
@@ -37,6 +36,7 @@ import {
 } from "../../queries/jobPosting";
 import { useGetGlobalCriteria } from "../../queries/criteria";
 import { useParams } from "react-router";
+import { EditRuleDialog } from "../../components/HiringManager/Evaluation/EditRuleDialog";
 
 const EvaluationMetricsPage = () => {
   const { jobPostingId } = useParams();
