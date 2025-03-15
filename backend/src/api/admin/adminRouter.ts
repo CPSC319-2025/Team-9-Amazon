@@ -1,78 +1,29 @@
 // routes/staffRoutes.js
-import { authenticateJWT, requireAdmin, signToken } from "@/common/middleware/auth";
-import Staff from "@/database/models/staff";
+import { handleZodError } from "@/common/middleware/errorHandler";
+import { s3DownloadPdfBase64, s3UploadPdfBase64 } from "@/common/utils/awsTools";
 import { Router } from "express";
 import { z } from "zod";
-import { handleZodError } from "@/common/middleware/errorHandler";
+import accountsRouter from "./accountsRouter";
 
-const router = Router();
+const adminRouter = Router();
+adminRouter.use("/accounts", accountsRouter)
 
-// Create new account
-const createAccountReq = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  phone: z.string().optional(),
-  isHiringManager: z.boolean().optional(),
-  isAdmin: z.boolean().optional(),
-});
-router.post("/accounts", authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phone,
-      isHiringManager = false,
-      isAdmin = false,
-    } = createAccountReq.parse(req.body);
-    
-    const existingStaff = await Staff.findOne({
-      where: { email },
-      raw: false,
-    });
-    if (existingStaff) {
-      return res.status(400).json({
-        error: "Staff member with this email already exists",
-      });
-    }
 
-    // Create new staff member
-    const staff = await Staff.create({
-      email,
-      password,
-      firstName,
-      lastName,
-      phone,
-      isHiringManager,
-      isAdmin,
-    });
 
-    // Generate JWT token
-    const token = signToken({
-      id: staff.id,
-      email: staff.email,
-      isHiringManager: staff.isHiringManager,
-      isAdmin: staff.isAdmin,
-    });
+// I am testing
+// const testReq = z.object({
+//   name: z.string().min(1),
+//   pdf: z.string().min(1),
+// });
+// adminRouter.post("/test", async (req, res) => {
+//   try {
+//     const { name, pdf } = testReq.parse(req.body);
+//     await s3UploadPdfBase64(name, pdf);
+//     const temp = await s3DownloadPdfBase64(name);
+//     res.status(200).json({ message: temp });
+//   } catch (error) {
+//     handleZodError(error, res, "Failed to test");
+//   }
+// });
 
-    res.status(201).json({
-      token,
-      staff: {
-        id: staff.id,
-        email: staff.email,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
-        phone: staff.phone,
-        isHiringManager: staff.isHiringManager,
-        isAdmin: staff.isAdmin,
-      },
-    });
-  } catch (error) {
-    handleZodError(error, res, "Failed to register staff member");
-  }
-});
-
-export default router
+export default adminRouter

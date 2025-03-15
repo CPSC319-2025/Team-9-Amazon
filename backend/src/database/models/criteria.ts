@@ -1,6 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting, { JobPostingTableName } from "./jobPosting";
 
+export enum CriteriaType {
+  global = "global",
+  local = "local",
+}
+
 interface Rule {
   pointsPerYearOfExperience: number;
   maxPoints: number;
@@ -15,7 +20,7 @@ interface CriteriaAttributes {
   id?: number;
   name: string;
   criteriaJson: CriteriaJSON;
-  criteriaType: "global" | "local";
+  criteriaType: CriteriaType;
   jobPostingId?: number | null;
 }
 
@@ -67,9 +72,9 @@ export const CriteriaSchema = {
     },
   },
   criteriaType: {
-    type: DataTypes.ENUM("global", "local"),
+    type: DataTypes.ENUM(...Object.values(CriteriaType)),
     allowNull: false,
-    defaultValue: "local",
+    defaultValue: CriteriaType.local,
   },
   jobPostingId: {
     type: DataTypes.INTEGER,
@@ -100,7 +105,7 @@ export default class Criteria extends Model<
   declare id: number;
   declare name: string;
   declare criteriaJson: CriteriaJSON;
-  declare criteriaType: "global" | "local";
+  declare criteriaType: CriteriaType;
   declare jobPostingId?: number | null;
   declare createdAt: Date;
   declare updatedAt: Date;
@@ -112,10 +117,10 @@ export default class Criteria extends Model<
       tableName: CriteriaTableName,
       validate: {
         criteriaTypeValidation() {
-          if (this.criteriaType === "local" && !this.jobPostingId) {
+          if (this.criteriaType === CriteriaType.local && !this.jobPostingId) {
             throw new Error("Local criteria must have a job posting reference");
           }
-          if (this.criteriaType === "global" && this.jobPostingId) {
+          if (this.criteriaType === CriteriaType.global && this.jobPostingId) {
             throw new Error(
               "Global criteria cannot have a job posting reference"
             );

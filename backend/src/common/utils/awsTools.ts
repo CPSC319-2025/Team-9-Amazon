@@ -1,45 +1,57 @@
-import AWS from "aws-sdk";
-import fs from "fs";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { Readable } from "stream";
 import { env } from "./envConfig";
-import { ManagedUpload } from "aws-sdk/clients/s3";
 
 const bucketName = "recruit-store";
-const resumeBucketName = bucketName + "/resumes";
+const resumeDirectory = `resumes`;
 
-AWS.config.update({
-  accessKeyId: env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+const s3Client = new S3Client({
   region: "ca-central-1",
+  credentials: {
+    accessKeyId: env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+  },
 });
-const s3 = new AWS.S3();
 
-export const s3UploadPdfBase64 = async (fileName: string, base64String: string): Promise<AWS.S3.ManagedUpload> => {
+export const s3UploadPdfBase64 = async (fileName: string, base64String: string): Promise<void> => {
   const fileContent = Buffer.from(base64String, "base64");
-  const params: AWS.S3.PutObjectRequest = {
-    Bucket: resumeBucketName,
-    Key: fileName,
+  const params = {
+    Bucket: bucketName,
+    Key: `${resumeDirectory}/${fileName}`,
     Body: fileContent,
     ContentEncoding: "base64",
     ContentType: "application/pdf",
   };
-  return s3.upload(params);
+
+  const upload = new Upload({
+    client: s3Client,
+    params,
+  });
+
+  await upload.done();
 };
 
-export const s3DownloadPdfBase64 = (fileName: string): Promise<string> => {
+export const s3DownloadPdfBase64 = async (fileName: string): Promise<string> => {
   const params = {
-    Bucket: resumeBucketName,
-    Key: fileName,
+    Bucket: bucketName,
+    Key: `${resumeDirectory}/${fileName}`,
   };
-  
-  return new Promise((resolve, reject) => {
-    s3.getObject(params, (err: AWS.AWSError, data: AWS.S3.GetObjectOutput) => {
-      if (err) {
-        return reject(err);
-      }
-      if (!data.Body) {
-        return reject(new Error("No data body returned from S3"));
-      }
-      resolve(data.Body.toString('base64'));
+
+  const command = new GetObjectCommand(params);
+  const data = await s3Client.send(command);
+
+  if (!data.Body) {
+    throw new Error("No data body returned from S3");
+  }
+
+  const streamToString = (stream: Readable): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const chunks: Uint8Array[] = [];
+      stream.on("data", (chunk) => chunks.push(chunk));
+      stream.on("error", reject);
+      stream.on("end", () => resolve(Buffer.concat(chunks).toString("base64")));
     });
-  });
+
+  return streamToString(data.Body as Readable);
 };

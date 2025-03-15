@@ -12,16 +12,11 @@ const addErrorToRequestLog: ErrorRequestHandler = (err, _req, res, next) => {
 };
 
 export const handleZodError = (error: any, res: Response, message: string) => {
-  if (error instanceof z.ZodError) {
-    return res.status(400).json({
-      error: "Validation error",
-      details: error.errors,
-    });
-  }
-
-  res.status(500).json({
+  const errorDetails = error.errors ? error.errors.map((err: any) => err.message) : error.message ?? "Unknown error";
+  
+  return res.status(500).json({
     error: message,
-    details: error instanceof Error ? error.message : "Unknown error",
+    details: errorDetails,
   });
 }
 
