@@ -132,10 +132,7 @@ const JobPostingApplicationsPage = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
-          <ActionButtons
-            onEvaluateAll={handleEvaluateAll}
-            onScanDatabase={handleScanDatabase}
-          />
+          <ActionButtons onScanDatabase={handleScanDatabase} />
           <SearchBar
             placeholder="Search applicants..."
             onSearch={handleSearch}

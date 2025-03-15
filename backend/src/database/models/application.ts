@@ -1,6 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting, { JobPostingTableName } from "./jobPosting";
 import Applicant, { ApplicantTableName } from "./applicant";
+export interface ApplicationWithApplicant extends Application {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
 
 interface Experience {
   title: string;
@@ -136,18 +141,29 @@ export default class Application
 
   static associate() {
     // Define associations
-    Application.belongsToMany(JobPosting, {
+    Applicant.belongsToMany(JobPosting, {
       through: Application,
       foreignKey: "applicantId",
       otherKey: "jobPostingId",
       as: "jobPostings",
     });
 
-    Application.belongsToMany(Applicant, {
+    JobPosting.belongsToMany(Applicant, {
       through: Application,
       foreignKey: "jobPostingId",
       otherKey: "applicantId",
       as: "applicants",
+    });
+
+    // Define associations
+    Application.belongsTo(JobPosting, {
+      foreignKey: "jobPostingId",
+      as: "jobPosting",
+    });
+
+    Application.belongsTo(Applicant, {
+      foreignKey: "applicantId",
+      as: "applicant",
     });
   }
 }

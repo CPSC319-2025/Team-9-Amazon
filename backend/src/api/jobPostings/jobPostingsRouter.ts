@@ -5,6 +5,11 @@ import {
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { Router } from "express";
+import Application, {
+  ApplicationWithApplicant,
+} from "@/database/models/application";
+import Applicant from "@/database/models/applicant";
+import Database from "@/database/database";
 
 const router = Router();
 
@@ -52,19 +57,19 @@ router.get(
 
 // Update specific criteria for a job posting
 router.put(
-  "/:jobId/criteria/:criteriaId",
+  "/:jobPostingId/criteria/:criteriaId",
   authenticateJWT,
   requireHiringManager,
   async (req, res) => {
     try {
-      const { jobId, criteriaId } = req.params;
+      const { jobPostingId, criteriaId } = req.params;
       const { name, criteriaJson } = req.body;
 
       // Find the criteria and verify it belongs to this job posting
       const criteria = await Criteria.findOne({
         where: {
           id: criteriaId,
-          jobPostingId: jobId,
+          jobPostingId: jobPostingId,
           criteriaType: "local",
         },
         include: [
@@ -205,4 +210,79 @@ router.delete(
   }
 );
 
+// Get applications summary for a job posting
+router.get(
+  "/:jobPostingId/applications/summary",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+      const sequelize = Database.GetSequelize();
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error:
+            "Job posting not found or you don't have permission to view its applications",
+        });
+      }
+
+      // Get all criteria for this job posting to calculate total possible score
+      const criteria = await Criteria.findAll({
+        where: { jobPostingId: jobPostingId },
+      });
+
+      // Calculate total possible score from criteria
+      const totalPossibleScore = criteria.reduce((total, criterion) => {
+        return total + criterion.criteriaMaxScore;
+      }, 0);
+
+      // Get all applications with applicant information
+      const applications = await Application.findAll({
+        where: { jobPostingId: jobPostingId },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email"],
+          },
+        ],
+        order: [["score", "DESC"]],
+      });
+
+      // Transform the data for response
+      const applicationsSummary = applications.map((application) => {
+        const applicantData = application.get({ plain: true }).applicant;
+        return {
+          score: application.score || 0,
+          applicant: {
+            firstName: applicantData.firstName,
+            lastName: applicantData.lastName,
+            email: applicantData.email,
+          },
+        };
+      });
+
+      res.json({
+        totalPossibleScore,
+        totalApplications: applications.length,
+        applications: applicationsSummary,
+      });
+    } catch (error) {
+      console.error("Error fetching applications summary:", error);
+      res.status(500).json({
+        error: "Failed to fetch applications summary",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
 export default router;
