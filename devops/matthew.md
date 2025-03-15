@@ -23,11 +23,13 @@ What I've accomplished:
 * I can build express backend docker image, upload to AWS ECR, and deploy it to AWS Fargate
 * I can route traffic from dev.amazonpleaserecruit.me to our frontend and backend
 * I spun up MySQL database using AWS RDS, which can be accessed through db.dev.amazonpleaserecruit.me. We will use password authentication for now
+* Set up Sequelize infrastructure for our project. This includes database reads, writes, migrations, and seeding
+* Set up application load balancers to route traffic for frontend and backend
+* Set up s3 storage buckets for storing application resumes, and set up utility functions to upload/download resources from s3
 
 Still to do:
-* Get an elasticIP (load balancer?) for frontend, backend
-* Route traffic from Nginx container to nextjs container
-* Run Nginx container on AWS
+* Create seeder to generate sample data (Faker)
+* Get SSL certificate
+
 
 Later to do:
-* Get SSL certificate
