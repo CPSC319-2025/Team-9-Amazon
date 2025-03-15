@@ -59,14 +59,8 @@ export const ApplicationSchema = {
     defaultValue: { experiences: [] },
     validate: {
       isValidJSON(value: any) {
-        if (
-          !value.experiences ||
-          !Array.isArray(value.experiences) ||
-          value.experiences.length === 0
-        ) {
-          throw new Error(
-            "experienceJson must contain at least one experience"
-          );
+        if (!value.experiences || !Array.isArray(value.experiences)) {
+          throw new Error("experienceJson must be in array format");
         }
 
         value.experiences.forEach((exp: any) => {
