@@ -120,7 +120,7 @@ export const CriteriaGroup = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Rule</TableCell>
+              <TableCell>Skill</TableCell>
               <TableCell align="center">
                 Points per Year of Experience
               </TableCell>
