@@ -15,7 +15,7 @@ interface JobTagsProps {
 }
 
 const JobTags: React.FC<JobTagsProps> = ({ jobPosting, editable, editMode, toggleEditMode, handleChange }) => {
-    const [tags, setTags] = useState<string[]>(jobPosting.tags);
+    const [tags, setTags] = useState<string[]>(jobPosting.tags || []);
     const [newTag, setNewTag] = useState("");
 
     useEffect(() => {
@@ -53,15 +53,21 @@ const JobTags: React.FC<JobTagsProps> = ({ jobPosting, editable, editMode, toggl
 
             {/* Tags */}
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {tags.map((tag) => (
-                    <Chip
-                        key={tag}
-                        label={tag}
-                        onDelete={editMode === EditMode.Tags ? () => handleDeleteTag(tag) : undefined}
-                        color="primary"
-                        variant="outlined"
-                    />
-                ))}
+                {tags && tags.length > 0 ? (
+                    tags.map((tag) => (
+                        <Chip
+                            key={tag}
+                            label={tag}
+                            onDelete={editMode === EditMode.Tags ? () => handleDeleteTag(tag) : undefined}
+                            color="primary"
+                            variant="outlined"
+                        />
+                    ))
+                ) : (
+                    <Typography variant="body2" color="text.secondary">
+                        {editMode === EditMode.Tags ? "Add tags below" : "No tags added"}
+                    </Typography>
+                )}
             </Box>
 
             {/* Input field */}

@@ -23,6 +23,8 @@ interface ApplicationAttributes {
   score: number | undefined;
   experienceJson: ExperienceJSON;
   applicant?: Applicant;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface ApplicationCreationAttributes

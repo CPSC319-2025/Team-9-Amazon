@@ -26,4 +26,7 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
+  getJobPostStatistics: (jobPostingId: string) => `${jobPostingsUrl}/${jobPostingId}/statistics`,
+  getAllJobPostings: `${jobPostingsUrl}`,
+  getJobPosting: (id: string) => `${jobPostingsUrl}/${id}`,
 };
