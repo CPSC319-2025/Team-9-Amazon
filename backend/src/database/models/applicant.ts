@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 interface ApplicantAttributes {
-  id?: number;
+  id: number | undefined;
   email: string;
   firstName: string;
   lastName: string;

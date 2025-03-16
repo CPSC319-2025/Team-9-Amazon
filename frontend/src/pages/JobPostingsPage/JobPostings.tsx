@@ -4,7 +4,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import JobPost from "../../components/Common/JobPost";
 import { Job } from "../../components/Common/JobPost";
 //TODO: resolve databse jobPosting schema conflict before replace jobs with jobPostings
-import { jobPostingsData as jobs } from "./jobPostingsData";
+//import { jobPostingsData as jobs } from "./jobPostingsData";
 import { useOutletContext, useNavigate } from "react-router";
 import { apiUrls } from "../../api/apiUrls";
 
@@ -17,8 +17,12 @@ type ContextType = {
 
 export default function JobPostings() {
   const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-  setHeaderTitle("Job Postings");
-  setShowSearchBar(true);
+  // setHeaderTitle("Job Postings");
+  // setShowSearchBar(true);
+  useEffect(() => {
+    setHeaderTitle("Job Postings");
+    setShowSearchBar(true);
+  }, [setHeaderTitle, setShowSearchBar]);
 
   const { searchTerm, location } = useOutletContext<ContextType>();
   const [jobPostings, setJobPostings] = useState<Job[]>([]);
@@ -69,7 +73,7 @@ export default function JobPostings() {
   };
 
   // Filtered job postings
-  const filteredJobs = jobs.filter((job) => { //TODO: GET jobPostings fetch database data
+  const filteredJobs = jobPostings.filter((job) => {
     const searchTermLower = searchTerm.toLowerCase();
     const locationLower = location.toLowerCase();
     
@@ -80,12 +84,12 @@ export default function JobPostings() {
     return (
       jobTypeMatch &&
       (
-        job.id.toLowerCase().includes(searchTermLower) ||
+        job.id.toString().includes(searchTermLower) ||
         job.code.toLowerCase().includes(searchTermLower) ||
         job.title.toLowerCase().includes(searchTermLower) ||
         job.description.toLowerCase().includes(searchTermLower) ||
-        job.job_type.toLowerCase().includes(searchTermLower) ||
-        job.department.toLowerCase().includes(searchTermLower) ||
+        //job.job_type.toLowerCase().includes(searchTermLower) ||
+        //job.department.toLowerCase().includes(searchTermLower) ||
         job.qualifications.some((qual) => qual.toLowerCase().includes(searchTermLower)) ||
         job.responsibilities.some((resp) => resp.toLowerCase().includes(searchTermLower))
       ) &&
@@ -128,7 +132,9 @@ export default function JobPostings() {
             key={job.id} 
             job={job} 
             onLearnMore={() => handleJobClick(job)}
-            onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
+            //onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
+            onApply={() => navigate(`/applicant/job-postings/apply/${job.id}?title=${encodeURIComponent(job.title)}`)}
+
           />
         ))
       ) : (

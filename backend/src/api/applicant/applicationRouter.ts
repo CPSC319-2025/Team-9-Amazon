@@ -30,8 +30,11 @@ router.post("/", async (req, res) => {
     }
 
     console.log("Checking if applicant already exists...");
-    let applicant = await Applicant.findOne({ where: { email } });
-    console.log("Applicant found:", applicant);
+    let applicant = await Applicant.findOne({
+      where: { email },
+      attributes: ["id", "email", "firstName", "lastName", "phone", "linkedIn"], 
+    });
+    console.log("Applicant found:", applicant?.dataValues);
 
     if (!applicant) {
       console.log("Creating new applicant...");
@@ -46,8 +49,10 @@ router.post("/", async (req, res) => {
     }
 
     const existingApplication = await Application.findOne({
-      where: { applicantId: applicant.id, jobPostingId },
+      where: { applicantId: applicant?.dataValues?.id, jobPostingId },
     });
+    
+    console.log("existingApplication:", existingApplication);
 
     if (existingApplication) {
       return res.status(StatusCodes.CONFLICT).json({ error: "You have already applied for this job." });
