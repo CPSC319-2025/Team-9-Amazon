@@ -1,27 +1,47 @@
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
-import { applicationSchema } from "@/validation/applicationSchema"; // Import validation schema
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
 import { ZodError } from "zod";
 
 const router = Router();
 
+// POST /applicant/application
 router.post("/", async (req, res) => {
   try {
-    const validatedData = applicationSchema.parse(req.body);
-    const { first_name, last_name, email, phone, address, resume, jobPostingId } = validatedData;
+    console.log("Received application submission:", req.body);
+    const { first_name, last_name, email, phone, address, jobPostingId } = req.body;
 
+    const formattedData = {
+      firstName: first_name,
+      lastName: last_name,
+      email,
+      phone,
+      address,
+      jobPostingId,
+    };
+
+    if (!email || !jobPostingId) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Missing required fields: email, jobPostingId",
+      });
+    }
+
+    console.log("Checking if applicant already exists...");
     let applicant = await Applicant.findOne({ where: { email } });
+    console.log("Applicant found:", applicant);
 
     if (!applicant) {
+      console.log("Creating new applicant...");
       applicant = await Applicant.create({
-        first_name,
-        last_name,
-        email,
-        phone,
-        address,
+        firstName: formattedData.firstName,
+        lastName: formattedData.lastName,
+        email: formattedData.email,
+        phone: formattedData.phone,
+        //address: formattedData.address,
       });
+      console.log("New applicant created:", applicant);
     }
 
     const existingApplication = await Application.findOne({
@@ -32,11 +52,13 @@ router.post("/", async (req, res) => {
       return res.status(StatusCodes.CONFLICT).json({ error: "You have already applied for this job." });
     }
 
+    console.log("Creating new application entry...");
     const application = await Application.create({
       applicantId: applicant.id,
       jobPostingId,
-      resumePath: resume,
+      resumePath: "resumeURL",
     });
+    console.log("New application created:", application);
 
     res.status(StatusCodes.CREATED).json({ applicationId: application.applicantId });
   } catch (error) {

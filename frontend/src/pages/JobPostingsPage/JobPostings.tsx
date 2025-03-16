@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Box, IconButton, FormControlLabel, Checkbox } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import JobPost from "../../components/Common/JobPost";
 import { Job } from "../../components/Common/JobPost";
+//TODO: resolve databse jobPosting schema conflict before replace jobs with jobPostings
 import { jobPostingsData as jobs } from "./jobPostingsData";
 import { useOutletContext, useNavigate } from "react-router";
+import { apiUrls } from "../../api/apiUrls";
 
 type ContextType = {
   searchTerm: string;
@@ -19,12 +21,40 @@ export default function JobPostings() {
   setShowSearchBar(true);
 
   const { searchTerm, location } = useOutletContext<ContextType>();
+  const [jobPostings, setJobPostings] = useState<Job[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   // State for job type filter
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+
+  // Fetch job positings from backend when the page loads
+  useEffect(() => {
+    const fetchJobPostings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(apiUrls.applicantJobPostingsUrl);
+        const data = await response.json();
+
+        if (data.success) {
+          setJobPostings(data.data);
+        } else {
+          setError("Failed to load job postings.");
+        }
+      } catch (error) {
+        setError("Error fetching job postings.");
+        console.error("Error fetching job postings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobPostings();
+  }, []);
 
   const handleJobClick = (job: Job) => {
     setSelectedJob(job);
@@ -39,7 +69,7 @@ export default function JobPostings() {
   };
 
   // Filtered job postings
-  const filteredJobs = jobs.filter((job) => {
+  const filteredJobs = jobs.filter((job) => { //TODO: GET jobPostings fetch database data
     const searchTermLower = searchTerm.toLowerCase();
     const locationLower = location.toLowerCase();
     

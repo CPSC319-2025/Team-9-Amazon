@@ -9,6 +9,7 @@ import { jobPostingsData } from "./jobPostingsData";
 import CustomButton from "../../components/Common/Buttons/CustomButton";
 import { Box, Modal } from "@mui/material";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
+import { apiUrls } from "../../api/apiUrls";
 
 type ContextType = {
   setHeaderTitle: (title: string) => void;
@@ -179,11 +180,34 @@ export default function JobApplication() {
         console.log("Submitting application:", data);
 
         // simulate calling api
-        setTimeout(() => {
+        // setTimeout(() => {
+        //   setIsModalOpen(true);
+        //   setApplicationId(new Date().getTime().toString()); // TODO: get application id from api
+        //   setIsSubmitting(false);
+        // }, 2000);
+        const applicationPayload = {
+          ...data,
+          jobPostingId: id,
+        };
+    
+        console.log("Submitting application to:", apiUrls.applicationUrl);
+
+        const response = await fetch(apiUrls.applicationUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(applicationPayload),
+        });
+    
+        const responseData = await response.json();
+    
+        if (response.ok) {
           setIsModalOpen(true);
-          setApplicationId(new Date().getTime().toString()); // TODO: get application id from api
-          setIsSubmitting(false);
-        }, 2000);
+          setApplicationId(responseData.applicationId);
+        } else {
+          console.error("Error submitting application:", responseData.message);
+        }
+    
+        setIsSubmitting(false);
       } catch (error) {
         console.error("Error submitting application:", error);
         setIsSubmitting(false);
