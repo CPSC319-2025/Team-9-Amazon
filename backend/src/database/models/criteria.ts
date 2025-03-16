@@ -6,11 +6,6 @@ export enum CriteriaType {
   local = "local",
 }
 
-export enum CriteriaType {
-  global = "global",
-  local = "local",
-}
-
 export interface Rule {
   pointsPerYearOfExperience: number;
   maxPoints: number;
