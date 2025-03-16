@@ -5,10 +5,14 @@ import {
   DialogActions,
   Button,
   TextField,
+  CircularProgress,
+  Typography,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Rule } from "../../../types/criteria";
 import { colors } from "../../../styles/commonStyles";
+import { useGetSkills } from "../../../queries/skill";
+import Autocomplete from "@mui/material/Autocomplete";
 
 interface EditRuleDialogProps {
   open: boolean;
@@ -23,6 +27,7 @@ export const EditRuleDialog = ({
   onClose,
   onSave,
 }: EditRuleDialogProps) => {
+  const { data: skills, isLoading, error } = useGetSkills(); // Fetch skills
   const [skill, setSkill] = useState(rule?.skill || "");
   const [pointsPerYearOfExperience, setPointsPerYearOfExperience] = useState(
     rule?.pointsPerYearOfExperience.toString() || "1"
@@ -99,26 +104,45 @@ export const EditRuleDialog = ({
         {rule ? `Edit Rule` : "Add New Rule"}
       </DialogTitle>
       <DialogContent>
-        <TextField
-          fullWidth
-          label="Skill"
-          value={skill}
-          onChange={(e) => setSkill(e.target.value)}
-          error={!!errors.skill}
-          helperText={errors.skill}
-          sx={{ mt: 2 }}
-        />
+        {/* Skill Searchable Dropdown */}
+        {isLoading ? (
+          <CircularProgress size={24} sx={{ mt: 2 }} />
+        ) : error ? (
+          <Typography color="error" sx={{ mt: 2 }}>
+            Failed to load skills
+          </Typography>
+        ) : (
+          <Autocomplete
+            options={skills?.map((s) => s.name) || []}
+            value={skill}
+            onChange={(_, newValue) => setSkill(newValue || "")}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Skill"
+                error={!!errors.skill}
+                helperText={errors.skill}
+                sx={{ mt: 2 }}
+              />
+            )}
+            freeSolo={false} // Prevents users from entering custom values
+          />
+        )}
+
+        {/* Points per Year */}
         <TextField
           fullWidth
           label="Points per Year of Experience"
           type="number"
-          inputProps={{ step: "any" }} //
+          inputProps={{ step: "any" }}
           value={pointsPerYearOfExperience}
           onChange={(e) => setPointsPerYearOfExperience(e.target.value)}
           error={!!errors.pointsPerYearOfExperience}
           helperText={errors.pointsPerYearOfExperience}
           sx={{ mt: 2 }}
         />
+
+        {/* Max Points */}
         <TextField
           fullWidth
           label="Max Points"
@@ -131,6 +155,7 @@ export const EditRuleDialog = ({
           sx={{ mt: 2 }}
         />
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose} sx={{ color: colors.black1 }}>
           Cancel
