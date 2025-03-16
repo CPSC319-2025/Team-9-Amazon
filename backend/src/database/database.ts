@@ -7,8 +7,10 @@ import JobTag from "./models/jobTag";
 import Staff from "./models/staff";
 import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
 import Application from "./models/application";
+import Skill from "./models/skill";
 
 const models = [
+  Skill,
   Applicant,
   Staff,
   JobPosting,
