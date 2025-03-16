@@ -13,7 +13,6 @@ import { colors } from "../../../styles/commonStyles";
 interface EditRuleDialogProps {
   open: boolean;
   rule: Rule | null;
-  groupId: string;
   onClose: () => void;
   onSave: (rule: Rule, isNew: boolean) => void;
 }
@@ -59,8 +58,8 @@ export const EditRuleDialog = ({
       isValid = false;
     }
 
-    const ppm = parseInt(pointsPerYearOfExperience);
-    const mp = parseInt(maxPoints);
+    const ppm = parseFloat(pointsPerYearOfExperience);
+    const mp = parseFloat(maxPoints);
 
     if (isNaN(ppm) || ppm < 0) {
       newErrors.pointsPerYearOfExperience = "Must be a positive number";
@@ -86,8 +85,8 @@ export const EditRuleDialog = ({
       onSave(
         {
           skill,
-          pointsPerYearOfExperience: parseInt(pointsPerYearOfExperience),
-          maxPoints: parseInt(maxPoints),
+          pointsPerYearOfExperience: parseFloat(pointsPerYearOfExperience),
+          maxPoints: parseFloat(maxPoints),
         },
         !rule // isNew flag
       );
@@ -97,7 +96,7 @@ export const EditRuleDialog = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ color: colors.black1 }}>
-        {rule ? `Edit Rule: ${rule.skill}` : "Add New Rule"}
+        {rule ? `Edit Rule` : "Add New Rule"}
       </DialogTitle>
       <DialogContent>
         <TextField
@@ -113,6 +112,7 @@ export const EditRuleDialog = ({
           fullWidth
           label="Points per Year of Experience"
           type="number"
+          inputProps={{ step: "any" }} //
           value={pointsPerYearOfExperience}
           onChange={(e) => setPointsPerYearOfExperience(e.target.value)}
           error={!!errors.pointsPerYearOfExperience}
@@ -123,6 +123,7 @@ export const EditRuleDialog = ({
           fullWidth
           label="Max Points"
           type="number"
+          inputProps={{ step: "any" }}
           value={maxPoints}
           onChange={(e) => setMaxPoints(e.target.value)}
           error={!!errors.maxPoints}
