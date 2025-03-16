@@ -10,7 +10,7 @@ const router = Router();
 router.post("/", async (req, res) => {
   try {
     console.log("Received application submission:", req.body);
-    const { first_name, last_name, email, phone, address, jobPostingId } = req.body;
+    const { first_name, last_name, email, phone, address, jobPostingId, experienceJson } = req.body;
 
     const formattedData = {
       firstName: first_name,
@@ -19,6 +19,7 @@ router.post("/", async (req, res) => {
       phone,
       address,
       jobPostingId,
+      experienceJson,
     };
 
     if (!email || !jobPostingId) {
@@ -57,6 +58,7 @@ router.post("/", async (req, res) => {
       applicantId: applicant.id,
       jobPostingId,
       resumePath: "resumeURL",
+      experienceJson: experienceJson,
     });
     console.log("New application created:", application);
 
