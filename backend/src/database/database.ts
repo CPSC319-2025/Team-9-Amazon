@@ -7,8 +7,10 @@ import JobTag from "./models/jobTag";
 import Staff from "./models/staff";
 import JobTagJobPostingRelation from "./models/tagJobPostingRelation";
 import Application from "./models/application";
+import Skill from "./models/skill";
 
 const models = [
+  Skill,
   Applicant,
   Staff,
   JobPosting,
@@ -51,7 +53,7 @@ export default class Database {
       // Development Tool:
       // Set "force: true" to drop and recreate tables
       // Set "alter: true" to update tables
-      // await this.sequelize.sync({ force: true, alter: true });
+      // await this.sequelize.sync({ force: false, alter: true });
 
       return this.sequelize;
     } catch (error) {

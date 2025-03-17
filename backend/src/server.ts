@@ -15,6 +15,7 @@ import loginRouter from "./api/login/loginRouter";
 import adminRouter from "./api/admin/adminRouter";
 import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
 import criteriaRouter from "./api/criteria/criteriaRouter";
+import skillsRouter from "./api/skills/skillsRouter";
 import applicantJobPostingRouter from "./api/applicant/applicantJobPostingRouter";
 import applicationRouter from "./api/applicant/applicationRouter";
 
@@ -25,7 +26,10 @@ const app: Express = express();
 app.set("trust proxy", true);
 
 // Middlewares
-const corsOrigins = (origin: string | undefined, callback : (err: Error | null, allow?: boolean) => void) => {
+const corsOrigins = (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) => {
   if (!origin) {
     return callback(null, true); // Allow non-browser requests
   }
@@ -37,7 +41,9 @@ const corsOrigins = (origin: string | undefined, callback : (err: Error | null, 
   // Check wildcard subdomains
   const isAllowed = allowedOrigins.split(" ").some((allowedOrigin) => {
     if (allowedOrigin.includes("*")) {
-      const regex = new RegExp("^" + allowedOrigin.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$");
+      const regex = new RegExp(
+        "^" + allowedOrigin.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$"
+      );
       return regex.test(origin);
     }
     return false;
@@ -49,7 +55,6 @@ const corsOrigins = (origin: string | undefined, callback : (err: Error | null, 
 
   return callback(new Error("Not allowed by CORS"));
 };
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

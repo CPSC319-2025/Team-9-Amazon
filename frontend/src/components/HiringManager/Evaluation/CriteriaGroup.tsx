@@ -18,12 +18,7 @@ import {
   CriteriaGroup as CriteriaGroupType,
   Rule,
 } from "../../../types/criteria";
-import {
-  colors,
-  filledButtonStyle,
-  paperStyle,
-  textButtonStyle,
-} from "../../../styles/commonStyles";
+import { colors, textButtonStyle } from "../../../styles/commonStyles";
 import { useState } from "react";
 import { EditCriteriaNameDialog } from "./EditCriteriaNameDialog";
 

@@ -1,12 +1,12 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import JobPosting, { JobPostingTableName } from "./jobPosting";
-
+import JobPosting from "./jobPosting";
+import { ApplicationScoring } from "@/services/applicationScoring";
 export enum CriteriaType {
   global = "global",
   local = "local",
 }
 
-interface Rule {
+export interface Rule {
   pointsPerYearOfExperience: number;
   maxPoints: number;
   skill: string;
@@ -22,10 +22,14 @@ interface CriteriaAttributes {
   criteriaJson: CriteriaJSON;
   criteriaType: CriteriaType;
   jobPostingId?: number | null;
+  criteriaMaxScore: number;
 }
 
 interface CriteriaCreationAttributes
-  extends Omit<CriteriaAttributes, "id" | "createdAt" | "updatedAt"> {}
+  extends Omit<
+    CriteriaAttributes,
+    "id" | "createdAt" | "updatedAt" | "criteriaMaxScore"
+  > {}
 
 export const CriteriaSchema = {
   id: {
@@ -80,9 +84,14 @@ export const CriteriaSchema = {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: JobPostingTableName,
+      model: "job_postings",
       key: "id",
     },
+  },
+  criteriaMaxScore: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -98,18 +107,25 @@ export const CriteriaSchema = {
 
 export const CriteriaTableName = "criteria";
 
-export default class Criteria extends Model<
-  CriteriaAttributes,
-  CriteriaCreationAttributes
-> {
+export default class Criteria
+  extends Model<CriteriaAttributes, CriteriaCreationAttributes>
+  implements CriteriaAttributes
+{
   declare id: number;
   declare name: string;
   declare criteriaJson: CriteriaJSON;
   declare criteriaType: CriteriaType;
   declare jobPostingId?: number | null;
+  declare criteriaMaxScore: number;
   declare createdAt: Date;
   declare updatedAt: Date;
-  declare jobPosting?: JobPosting;
+
+  private calculateCriteriaMaxScore(): number {
+    return this.criteriaJson.rules.reduce(
+      (total, rule) => total + rule.maxPoints,
+      0
+    );
+  }
 
   static initialize(sequelize: Sequelize) {
     const criteria = Criteria.init(CriteriaSchema, {
@@ -123,6 +139,37 @@ export default class Criteria extends Model<
           if (this.criteriaType === CriteriaType.global && this.jobPostingId) {
             throw new Error(
               "Global criteria cannot have a job posting reference"
+            );
+          }
+        },
+      },
+      hooks: {
+        beforeCreate: async (criteria: Criteria) => {
+          criteria.criteriaMaxScore = criteria.calculateCriteriaMaxScore();
+        },
+        beforeUpdate: async (criteria: Criteria) => {
+          if (criteria.changed("criteriaJson")) {
+            criteria.criteriaMaxScore = criteria.calculateCriteriaMaxScore();
+          }
+        },
+        afterCreate: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
+            );
+          }
+        },
+        afterUpdate: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
+            );
+          }
+        },
+        afterDestroy: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
             );
           }
         },

@@ -21,6 +21,7 @@ interface ApplicationAttributes {
   resumePath: string;
   score: number | undefined;
   experienceJson: ExperienceJSON;
+  applicant?: Applicant;
 }
 
 interface ApplicationCreationAttributes
@@ -136,18 +137,29 @@ export default class Application
 
   static associate() {
     // Define associations
-    Application.belongsToMany(JobPosting, {
+    Applicant.belongsToMany(JobPosting, {
       through: Application,
       foreignKey: "applicantId",
       otherKey: "jobPostingId",
       as: "jobPostings",
     });
 
-    Application.belongsToMany(Applicant, {
+    JobPosting.belongsToMany(Applicant, {
       through: Application,
       foreignKey: "jobPostingId",
       otherKey: "applicantId",
       as: "applicants",
+    });
+
+    // Define associations
+    Application.belongsTo(JobPosting, {
+      foreignKey: "jobPostingId",
+      as: "jobPosting",
+    });
+
+    Application.belongsTo(Applicant, {
+      foreignKey: "applicantId",
+      as: "applicant",
     });
   }
 }
