@@ -25,6 +25,7 @@ interface JobDetailsSectionProps {
   onApply?: () => void;
   onCancel?: () => void;
   onSave?: (jobPosting: JobPosting) => void;
+
 }
 
 const JobDetailsView = ({
@@ -191,7 +192,7 @@ const JobDetailsView = ({
           <Box sx={{ display: "flex", alignItems: "center", marginTop: 2 }}>
             <AccessTimeIcon color="info" />
             <Typography sx={{ marginLeft: 1 }}>
-              Created at: {jobPosting.created_at}
+              Created at: {jobPosting.createdAt.toString()}
             </Typography>
           </Box>
 

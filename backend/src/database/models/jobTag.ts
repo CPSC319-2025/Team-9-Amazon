@@ -1,4 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+import JobPosting from "./jobPosting";
+import JobTagJobPostingRelation from "./tagJobPostingRelation";
 
 export interface JobTagAttributes {
   id: number | undefined;
@@ -31,6 +33,11 @@ export default class JobTag extends Model<JobTagAttributes> implements JobTagAtt
   }
 
   static associate() {
-    // No associations
+    JobTag.belongsToMany(JobPosting, {
+      through: JobTagJobPostingRelation,
+      as: "jobPostings",
+      foreignKey: "tagId",
+      otherKey: "jobPostingId",
+    });
   }
 }

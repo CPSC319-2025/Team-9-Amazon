@@ -29,7 +29,7 @@ const JobTextSection: React.FC<JobTextSectionProps> = ({ field, title, jobPostin
         {editMode === field ? (
           <TextField value={jobPosting[field] as string} onChange={(e) => handleChange(field, e.target.value)} fullWidth multiline rows={3} variant="outlined" />
         ) : (
-          <Typography variant="body1">{jobPosting[field]}</Typography>
+          <Typography variant="body1">{jobPosting[field]?.toString()}</Typography>
         )}
       </Box>
     </>

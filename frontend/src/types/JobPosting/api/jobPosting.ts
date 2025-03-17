@@ -21,3 +21,14 @@ export interface JobTagAttributes {
   id: number | undefined;
   name: string;
 }
+
+export interface JobPostingCreationRequest {
+  title: string;
+  subtitle?: string;
+  description: string;
+  responsibilities?: string;
+  qualifications?: string;
+  staffId: number;
+  location: string;
+  tags?: string[];
+}

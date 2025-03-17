@@ -1,5 +1,21 @@
-import { DataTypes, Model, Sequelize } from "sequelize";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import Criteria from "./criteria";
+import JobTag from "./jobTag";
+import JobTagJobPostingRelation from "./tagJobPostingRelation";
+import { JobPostingTableName } from "./jobPosting.constants";
+
+// types
+import {
+  BelongsToManyGetAssociationsMixin,
+  BelongsToManySetAssociationsMixin,
+  BelongsToManyAddAssociationMixin,
+  BelongsToManyAddAssociationsMixin,
+  BelongsToManyRemoveAssociationMixin,
+  BelongsToManyRemoveAssociationsMixin,
+  BelongsToManyHasAssociationMixin,
+  BelongsToManyHasAssociationsMixin,
+  BelongsToManyCountAssociationsMixin,
+} from "sequelize";
 
 export enum JobPostingStatus {
   DRAFT = "DRAFT",
@@ -22,6 +38,11 @@ export interface JobPostingAttributes {
   num_processes: number;
   createdAt: Date;
 }
+
+export interface JobPostingCreationAttributes extends Optional<
+  JobPostingAttributes,
+  "id" | "createdAt" | "status" | "num_applicants" | "num_machine_evaluated" | "num_processes"
+> {}
 
 export const JobPostingSchema = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -75,10 +96,9 @@ export const JobPostingSchema = {
   },
 };
 
-export const JobPostingTableName = "job_postings";
 
 export default class JobPosting
-  extends Model<JobPostingAttributes>
+  extends Model<JobPostingAttributes, JobPostingCreationAttributes>
   implements JobPostingAttributes
 {
   id!: number;
@@ -95,6 +115,17 @@ export default class JobPosting
   num_processes!: number;
   createdAt!: Date;
 
+  // for typescript
+  public getJobTags!: BelongsToManyGetAssociationsMixin<JobTag>;
+  public setJobTags!: BelongsToManySetAssociationsMixin<JobTag, number>;
+  public addJobTag!: BelongsToManyAddAssociationMixin<JobTag, number>;
+  public addJobTags!: BelongsToManyAddAssociationsMixin<JobTag, number>;
+  public removeJobTag!: BelongsToManyRemoveAssociationMixin<JobTag, number>;
+  public removeJobTags!: BelongsToManyRemoveAssociationsMixin<JobTag, number>;
+  public hasJobTag!: BelongsToManyHasAssociationMixin<JobTag, number>;
+  public hasJobTags!: BelongsToManyHasAssociationsMixin<JobTag, number>;
+  public countJobTags!: BelongsToManyCountAssociationsMixin;
+
   static initialize(sequelize: Sequelize) {
     const jobPosting = JobPosting.init(JobPostingSchema, {
       sequelize,
@@ -108,6 +139,13 @@ export default class JobPosting
     JobPosting.hasMany(Criteria, {
       foreignKey: "jobPostingId",
       as: "criteria",
+    });
+
+    JobPosting.belongsToMany(JobTag, {
+      through: JobTagJobPostingRelation,
+      as: "jobTags",
+      foreignKey: "jobPostingId",
+      otherKey: "tagId",
     });
   }
 }

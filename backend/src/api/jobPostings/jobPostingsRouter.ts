@@ -1,5 +1,5 @@
 import Criteria from "@/database/models/criteria";
-import JobPosting, { JobPostingAttributes } from "@/database/models/jobPosting";
+import JobPosting, { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
@@ -7,6 +7,7 @@ import {
 import { Router } from "express";
 import JobTag, { JobTagAttributes } from "@/database/models/jobTag";
 import JobTagJobPostingRelation from "@/database/models/tagJobPostingRelation";
+import Database from "@/database/database";
 
 const router = Router();
 
@@ -17,54 +18,94 @@ router.get("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
   try {
     const { jobPostingId } = req.params;
 
-    // Find the job posting
     const jobPosting = await JobPosting.findOne({
-      where: {
-        id: jobPostingId,
-      },
+      where: { id: jobPostingId },
+      include: [{
+        model: JobTag,
+        as: "jobTags",
+        attributes: ["id", "name"],
+        through: { attributes: [] },
+      }],
     });
 
     if (!jobPosting) {
       return res.status(404).json({ error: "Job posting not found" });
     }
 
-    // get job tags for this job posting: the tag-jobposting relation table stores the job tags id and job posting id
-    // and the job tags table stores the job tags id and the job tags name
-    const jobTagIds = await JobTagJobPostingRelation.findAll({
-      where: {
-        jobPostingId: jobPostingId,
-      },
-    });
-
-    const jobTags = await Promise.all(
-      jobTagIds.map(async (jobTagId) => {
-        const tag
-        = await JobTag.findOne({
-          where: {
-            id: jobTagId.tagId,
-          },
-        });
-        return tag;
-      })
-    );
-
-    // validate if the job tags are found
-    if (!jobTags) {
-      return res.status(404).json({ error: "Job tags not found" });
-    }
-    // remove null values from the job tags array
-    const jobTagsFiltered = jobTags.filter((tag) => tag !== null);
-
-    const jobPostingWithTags: JobPostingWithTags = {
-      ...jobPosting.toJSON(),
-      jobTags: jobTagsFiltered.map((tag) => tag?.toJSON()),
-    };
-
-    res.json(jobPostingWithTags);
+    res.json(jobPosting);
 
   } catch (error) {
     res.status(500).json({
       error: "Failed to fetch job posting",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+type JobPostingRequest = JobPostingCreationAttributes & { tags?: string[] };
+
+// POST /job-postings
+router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
+  const {
+    title,
+    subtitle,
+    description,
+    responsibilities,
+    qualifications,
+    staffId,
+    location,
+    tags, // optional tags array
+  } = req.body as JobPostingRequest;
+
+  if (!title || !description || !staffId || !location) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Wrap the creation process in a transaction for atomicity.
+  const t = await Database.GetSequelize().transaction();
+  try {
+    const newJobPosting = await JobPosting.create(
+      {
+        title,
+        subtitle,
+        description,
+        responsibilities,
+        qualifications,
+        staffId,
+        status: JobPostingStatus.DRAFT, // default status
+        location,
+        num_applicants: 0,
+        num_machine_evaluated: 0,
+        num_processes: 0,
+      },
+      { transaction: t }
+    );
+
+    // If tags were provided, process them.
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      const tagInstances = await Promise.all(
+        tags.map(async (tagName) => {
+          const [tag] = await JobTag.findOrCreate({
+            where: { name: tagName },
+            defaults: { name: tagName },
+            transaction: t,
+          });
+          return tag;
+        })
+      );
+      // Associate tags with the job posting using the defined belongsToMany relationship.
+      await newJobPosting.setJobTags(tagInstances, { transaction: t });
+    }
+
+    // Commit the transaction
+    await t.commit();
+
+    res.status(201).json(newJobPosting.toJSON());
+  } catch (error) {
+    await t.rollback();
+    console.error("Error creating job posting:", error);
+    res.status(500).json({
+      error: "Failed to create job posting",
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }

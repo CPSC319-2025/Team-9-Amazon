@@ -1,3 +1,4 @@
+
 const apiUrl = "http://localhost:3001";
 const jobPostingsUrl = `${apiUrl}/job-postings`;
 const criteriaUrl = `${apiUrl}/criteria`;
@@ -14,5 +15,6 @@ export const apiUrls = {
   getGlobalCriteriaUrl: criteriaUrl + "/",
   jobPostings: {
     jobPostingById: (jobPostingId: string) => `${jobPostingsUrl}/${jobPostingId}`,
+    createJobPosting: jobPostingsUrl,
   }
 };

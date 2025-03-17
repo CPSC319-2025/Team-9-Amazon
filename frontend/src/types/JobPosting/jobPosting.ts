@@ -11,7 +11,7 @@ export interface JobPosting {
   description: string;
   location: string;
   status: string;
-  created_at: Date;
+  createdAt: Date;
   qualifications?: string;
   responsibilities?: string;
   tags: string[];

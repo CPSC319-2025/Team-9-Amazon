@@ -15,7 +15,7 @@ import { apiUrls } from "../api/apiUrls";
 import { fetchWithAuth } from "../api/apiUtils";
 import { criteriaKeys } from "./criteria";
 import { JobPosting } from "../types/JobPosting/jobPosting";
-import { JobPostingAttributes, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
+import { JobPostingAttributes, JobPostingCreationRequest, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
 
 // Query keys
 export const jobPostingKeys = {
@@ -54,7 +54,7 @@ export const useGetJobPosting = (
         description: data.description,
         location: data.location,
         status: data.status,
-        created_at: data.createdAt,
+        createdAt: data.createdAt,
         qualifications: data.qualifications,
         responsibilities: data.responsibilities,
         tags: data.jobTags.map((tag) => tag.name),
@@ -100,6 +100,34 @@ export const useGetJobPostingCriteria = (
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     retry: 2,
     refetchOnWindowFocus: false,
+  });
+};
+
+
+export const useCreateJobPosting = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<JobPosting, ApiError, JobPostingCreationRequest>({
+    mutationFn: async (newJobPosting: JobPostingCreationRequest) => {
+      const url = apiUrls.jobPostings.createJobPosting;
+      const response = await fetchWithAuth(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newJobPosting),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate or refetch job postings list queries to reflect the new posting.
+      queryClient.invalidateQueries({ queryKey: ["jobPosting"] });
+    },
   });
 };
 

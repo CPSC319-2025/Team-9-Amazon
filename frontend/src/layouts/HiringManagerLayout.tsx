@@ -5,6 +5,7 @@ import { ROUTES } from "../routes/routePaths";
 // import { mockJobPostings } from "../utils/mockData";
 import { JobPosting } from "../types/JobPosting/jobPosting";
 import { useGetJobPosting } from "../queries/jobPosting";
+import { Box, Typography } from "@mui/material";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();
@@ -37,8 +38,23 @@ const HiringManagerLayout = () => {
     }
   }, [location.pathname, jobPostingId, navigate]);
 
-  if (!jobPosting) {
-    return null;
+  if (!jobPosting || jobPostingDataError) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">
+          Error loading job posting. Please try again later.
+        </Typography>
+        {jobPostingDataError?.message}
+        {jobPostingDataError?.details}
+      </Box>
+    );
   }
 
   return (
