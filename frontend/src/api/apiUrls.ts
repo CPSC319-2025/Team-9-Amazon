@@ -4,6 +4,8 @@ const criteriaUrl = `${apiUrl}/criteria`;
 const skillsUrl = `${apiUrl}/skills`;
 
 export const apiUrls = {
+  applicantJobPostingsUrl: `${apiUrl}/applicant/job-postings`,
+  applicationUrl: `${apiUrl}/applicant/application`, 
   getJobPostingCriteriaUrl: jobPostingsUrl + "/:jobPostingId/criteria",
   editJobPostingCriteriaUrl:
     jobPostingsUrl + "/:jobPostingId/criteria/:criteriaId",
