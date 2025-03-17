@@ -12,4 +12,7 @@ export const apiUrls = {
   getJobPostingUrl: jobPostingsUrl + "/:jobPostingId",
   loginUrl: `${apiUrl}/login/`,
   getGlobalCriteriaUrl: criteriaUrl + "/",
+  jobPostings: {
+    jobPostingById: (jobPostingId: string) => `${jobPostingsUrl}/${jobPostingId}`,
+  }
 };

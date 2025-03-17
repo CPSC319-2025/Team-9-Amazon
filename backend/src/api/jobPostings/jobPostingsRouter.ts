@@ -1,12 +1,76 @@
 import Criteria from "@/database/models/criteria";
-import JobPosting from "@/database/models/jobPosting";
+import JobPosting, { JobPostingAttributes } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { Router } from "express";
+import JobTag, { JobTagAttributes } from "@/database/models/jobTag";
+import JobTagJobPostingRelation from "@/database/models/tagJobPostingRelation";
 
 const router = Router();
+
+type JobPostingWithTags = JobPostingAttributes & { jobTags: JobTagAttributes[] };
+
+// Get job posting of id
+router.get("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  try {
+    const { jobPostingId } = req.params;
+
+    // Find the job posting
+    const jobPosting = await JobPosting.findOne({
+      where: {
+        id: jobPostingId,
+      },
+    });
+
+    if (!jobPosting) {
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+
+    // get job tags for this job posting: the tag-jobposting relation table stores the job tags id and job posting id
+    // and the job tags table stores the job tags id and the job tags name
+    const jobTagIds = await JobTagJobPostingRelation.findAll({
+      where: {
+        jobPostingId: jobPostingId,
+      },
+    });
+
+    const jobTags = await Promise.all(
+      jobTagIds.map(async (jobTagId) => {
+        const tag
+        = await JobTag.findOne({
+          where: {
+            id: jobTagId.tagId,
+          },
+        });
+        return tag;
+      })
+    );
+
+    // validate if the job tags are found
+    if (!jobTags) {
+      return res.status(404).json({ error: "Job tags not found" });
+    }
+    // remove null values from the job tags array
+    const jobTagsFiltered = jobTags.filter((tag) => tag !== null);
+
+    const jobPostingWithTags: JobPostingWithTags = {
+      ...jobPosting.toJSON(),
+      jobTags: jobTagsFiltered.map((tag) => tag?.toJSON()),
+    };
+
+    res.json(jobPostingWithTags);
+
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to fetch job posting",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+
 
 // Get all local criteria for a specific job posting
 router.get(

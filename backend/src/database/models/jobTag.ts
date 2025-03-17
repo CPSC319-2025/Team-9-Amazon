@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
-interface JobTagAttributes {
+export interface JobTagAttributes {
   id: number | undefined;
   name: string;
 }

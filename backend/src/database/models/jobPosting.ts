@@ -7,7 +7,7 @@ export enum JobPostingStatus {
   CLOSED = "CLOSED",
 }
 
-interface JobPostingAttributes {
+export interface JobPostingAttributes {
   id: number | undefined;
   title: string;
   subtitle: string | undefined;

@@ -1,7 +1,7 @@
 export enum JobPostingStatus {
-  "Draft" = "Draft",
-  "Published" = "Published",
-  "Closed" = "Closed"
+  DRAFT = "DRAFT",
+  OPEN = "OPEN",
+  CLOSED = "CLOSED",
 }
 
 export interface JobPosting {
@@ -11,7 +11,7 @@ export interface JobPosting {
   description: string;
   location: string;
   status: string;
-  created_at: string;
+  created_at: Date;
   qualifications?: string;
   responsibilities?: string;
   tags: string[];
