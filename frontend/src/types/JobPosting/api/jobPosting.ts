@@ -32,3 +32,15 @@ export interface JobPostingCreationRequest {
   location: string;
   tags?: string[];
 }
+
+export interface JobPostingEditRequest {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  responsibilities?: string;
+  qualifications?: string;
+  staffId?: number;
+  location?: string;
+  status?: JobPostingStatus; 
+  tags?: string[]; // array of tag names
+}

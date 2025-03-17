@@ -10,7 +10,7 @@ export interface JobPosting {
   subtitle?: string;
   description: string;
   location: string;
-  status: string;
+  status: JobPostingStatus;
   createdAt: Date;
   qualifications?: string;
   responsibilities?: string;

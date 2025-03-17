@@ -1,6 +1,6 @@
 import { Box, Typography, Grid, Button, Stack } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { JobPosting } from "../../../types/JobPosting/jobPosting";
 import { EditMode } from "../../../types/JobPosting/JobPostingEditMode";
 import JobTitleSection from "./JobDetailsView/JobTitleSection";
@@ -37,6 +37,11 @@ const JobDetailsView = ({
 }: JobDetailsSectionProps) => {
   const [editedJob, setEditedJob] = useState<JobPosting>({ ...jobPosting });
   const [editMode, setEditMode] = useState<EditMode | null>(null);
+
+  // Synchronize local state when the context jobPosting changes. (for edit mode)
+  useEffect(() => {
+    setEditedJob({ ...jobPosting });
+  }, [jobPosting]);
 
   // Snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false);

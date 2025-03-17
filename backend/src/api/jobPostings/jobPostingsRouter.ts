@@ -1,13 +1,13 @@
+import Database, { JobPosting, JobTag } from "@/database/database";
 import Criteria from "@/database/models/criteria";
-import JobPosting, { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
+import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { Router } from "express";
-import JobTag, { JobTagAttributes } from "@/database/models/jobTag";
-import JobTagJobPostingRelation from "@/database/models/tagJobPostingRelation";
-import Database from "@/database/database";
+import { JobTagAttributes } from "@/database/models/jobTag";
+import { Transaction } from "sequelize";
 
 const router = Router();
 
@@ -111,7 +111,137 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
   }
 });
 
+export interface JobPostingEditRequest {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  responsibilities?: string;
+  qualifications?: string;
+  staffId?: number;
+  location?: string;
+  status?: JobPostingStatus;
+  tags?: string[]; // array of tag names
+}
 
+// PUT /job-postings/:jobPostingId – Edit an existing job posting
+router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  let t: Transaction | null = null; // Transaction reference
+  try {
+    const { jobPostingId } = req.params;
+
+    // Find the existing job posting
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+    });
+    // console.log("jobPosting instanceof JobPosting:", jobPosting instanceof JobPosting);
+    if (!jobPosting) {
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+
+    // console.log("JobPosting instance:", jobPosting);
+    // console.log("Prototype methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(jobPosting)));
+
+    // Start a transaction for atomic updates.
+    t = await Database.GetSequelize().transaction();
+
+    // Extract allowed fields from request body using JobPostingEditRequest
+    const {
+      title,
+      subtitle,
+      description,
+      responsibilities,
+      qualifications,
+      staffId,
+      location,
+      status,
+      tags, // array of tag names
+    } = req.body as JobPostingEditRequest;
+
+    console.log("title:", title);
+    console.log("jobPosting.title:", jobPosting.title);
+
+    const updates: JobPostingEditRequest = {};
+
+    // validations
+    if (title !== undefined) {
+      const trimmedTitle = typeof title === "string" ? title.trim() : title;
+      if (trimmedTitle) {
+        updates.title = trimmedTitle;
+      }
+    }
+    if (subtitle !== undefined) {
+      const trimmedSubtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
+      if (trimmedSubtitle) {
+        updates.subtitle = trimmedSubtitle;
+      }
+    }
+    if (description !== undefined) {
+      const trimmedDescription = typeof description === "string" ? description.trim() : description;
+      if (trimmedDescription) {
+        updates.description = trimmedDescription;
+      }
+    }
+    if (responsibilities !== undefined) {
+      const trimmedResp = typeof responsibilities === "string" ? responsibilities.trim() : responsibilities;
+      if (trimmedResp) {
+        updates.responsibilities = trimmedResp;
+      }
+    }
+    if (qualifications !== undefined) {
+      const trimmedQual = typeof qualifications === "string" ? qualifications.trim() : qualifications;
+      if (trimmedQual) {
+        updates.qualifications = trimmedQual;
+      }
+    }
+    if (staffId !== undefined && typeof staffId === "number" && staffId > 0) {
+      updates.staffId = staffId;
+    }
+    if (location !== undefined) {
+      const trimmedLocation = typeof location === "string" ? location.trim() : location;
+      if (trimmedLocation) {
+        updates.location = trimmedLocation;
+      }
+    }
+    if (status !== undefined) {
+      updates.status = status;
+    }
+
+    jobPosting.set(updates);
+    await jobPosting.save({ transaction: t });
+
+    // Process tags if provided.
+    if (tags && Array.isArray(tags)) {
+      const tagInstances = await Promise.all(
+        tags.map(async (tagName) => {
+          // Find or create a tag by name.
+          const [tag] = await JobTag.findOrCreate({
+            where: { name: tagName },
+            defaults: { name: tagName },
+            transaction: t,
+          });
+          return tag;
+        })
+      );
+      // Associate the found/created tags with the job posting.
+      console.log("Prototype setJobTags:", Object.getPrototypeOf(jobPosting).setJobTags);
+      await Object.getPrototypeOf(jobPosting).setJobTags.call(jobPosting, tagInstances, { transaction: t });
+    }
+
+    // Commit transaction.
+    await t.commit();
+
+    res.json(jobPosting.toJSON());
+
+    console.log("Job posting updated successfully:", jobPosting.toJSON());
+  } catch (error) {
+    if (t) await t.rollback();
+    console.error("Error updating job posting:", error);
+    res.status(500).json({
+      error: "Failed to edit job posting",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 // Get all local criteria for a specific job posting
 router.get(
