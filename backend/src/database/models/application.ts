@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import JobPosting, { JobPostingTableName } from "./jobPosting";
+import JobPosting from "./jobPosting";
 import Applicant, { ApplicantTableName } from "./applicant";
+import { JobPostingTableName } from "./jobPosting.constants";
 
 interface Experience {
   title: string;
