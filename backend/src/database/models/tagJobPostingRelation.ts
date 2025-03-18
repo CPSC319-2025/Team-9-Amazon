@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import { JobPostingTableName } from "./jobPosting";
+import { JobPostingTableName } from "./jobPosting.constants";
 
 interface JobTagJobPostingRelationAttributes {
   id: number | undefined;

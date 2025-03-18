@@ -1,28 +1,20 @@
 import { Outlet, useLocation, useNavigate, useParams } from "react-router";
 import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ROUTES } from "../routes/routePaths";
-import { mockJobPostings } from "../utils/mockData";
-import { JobPosting } from "../types/JobPosting/jobPosting";
+import { useGetJobPosting } from "../queries/jobPosting";
+import { Box, Typography } from "@mui/material";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [jobPosting, setJobPosting] = useState<JobPosting | null>(null);
 
-  // Fetch job posting data based on jobPostingId
-  useEffect(() => {
-    const jobPostings = mockJobPostings; // TODO: Change to actual API call when available
-    const jobData = jobPostings.find((job) => job.id === jobPostingId);
-    if (jobData) {
-      console.log(jobData);
-      setJobPosting(jobData);
-    } else {
-      // Redirect if jobPostingId is invalid
-      navigate(ROUTES.hiringManager.hiringManagerDashboard, { replace: true });
-    }
-  }, [jobPostingId, navigate]);
+  const {
+    data: jobPosting,
+    isLoading: isLoadingJobPosting,
+    error: jobPostingDataError,
+  } = useGetJobPosting(jobPostingId || "");
 
   useEffect(() => {
     if (jobPostingId && location.pathname === ROUTES.hiringManager.jobPosting(jobPostingId)) {
@@ -30,8 +22,38 @@ const HiringManagerLayout = () => {
     }
   }, [location.pathname, jobPostingId, navigate]);
 
-  if (!jobPosting) {
-    return null;
+  if (jobPostingDataError) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">
+          Error loading job posting. Please try again later.
+        </Typography>
+        {jobPostingDataError?.message}
+        {jobPostingDataError?.details}
+      </Box>
+    );
+  }
+
+  if (!jobPosting || isLoadingJobPosting) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="h5">Loading job posting...</Typography>
+      </Box>
+    );
   }
 
   return (

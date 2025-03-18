@@ -66,3 +66,5 @@ export default class Database {
     return this.sequelize;
   }
 }
+
+export { Applicant, Staff, JobPosting, Criteria, JobTag, JobTagJobPostingRelation };
