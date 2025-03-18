@@ -300,12 +300,12 @@ export default function JobApplication() {
                 placeholder="Washington, DC"
                 register={register} />
               <CustomFormTextField 
-              label="From *" 
+              label="Start Date *" 
               name={`work_experience.${index}.from`} 
               register={register} 
               placeholder="MM/YYYY" />
               <CustomFormTextField 
-                label="To (leave blank if role hasn't terminated)" 
+                label="End Date (leave blank if role hasn't terminated)" 
                 name={`work_experience.${index}.to`} 
                 register={register} 
                 placeholder="MM/YYYY" />
@@ -358,12 +358,12 @@ export default function JobApplication() {
             placeholder="Computer Science"
             register={register}  />
           <CustomFormTextField 
-            label="From *" 
+            label="Start Date *" 
             name={`education.${index}.from`} 
             register={register}
             placeholder="MM/YYYY" />
           <CustomFormTextField 
-          label="To" 
+          label="End Date" 
           name={`education.${index}.to`} 
           register={register} 
           placeholder="MM/YYYY" />
