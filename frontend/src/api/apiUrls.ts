@@ -2,10 +2,11 @@ const apiUrl = import.meta.env.VITE_BACKEND_URL;
 const jobPostingsUrl = `${apiUrl}/job-postings`;
 const criteriaUrl = `${apiUrl}/criteria`;
 const skillsUrl = `${apiUrl}/skills`;
+const applicationUrl = `${apiUrl}/applications`;
 
 export const apiUrls = {
   applicantJobPostingsUrl: `${apiUrl}/applicant/job-postings`,
-  applicationUrl: `${apiUrl}/applicant/application`, 
+  createApplicationUrl: applicationUrl + "/",
   getJobPostingCriteriaUrl: jobPostingsUrl + "/:jobPostingId/criteria",
   editJobPostingCriteriaUrl:
     jobPostingsUrl + "/:jobPostingId/criteria/:criteriaId",
@@ -21,7 +22,8 @@ export const apiUrls = {
   loginUrl: `${apiUrl}/login/`,
   getGlobalCriteriaUrl: criteriaUrl + "/",
   jobPostings: {
-    jobPostingById: (jobPostingId: string) => `${jobPostingsUrl}/${jobPostingId}`,
+    jobPostingById: (jobPostingId: string) =>
+      `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
-  }
+  },
 };

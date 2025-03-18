@@ -8,7 +8,6 @@ import {
   ListItemSecondaryAction,
   IconButton,
 } from "@mui/material";
-import { PlusCircle } from "lucide-react";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { colors } from "../../../styles/commonStyles";
 import { useNavigate, useParams } from "react-router";

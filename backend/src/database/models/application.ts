@@ -1,12 +1,13 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import JobPosting, { JobPostingTableName } from "./jobPosting";
 import Applicant, { ApplicantTableName } from "./applicant";
+import { JobPostingTableName } from "./jobPosting.constants";
+import JobPosting from "./jobPosting";
 
 interface Experience {
   title: string;
   company: string;
   startDate: string;
-  endDate: string;
+  endDate: string | null;
   skills: string[];
   description: string;
 }
@@ -76,9 +77,15 @@ export const ApplicationSchema = {
               "Each experience must have a valid startDate (MM/YYYY)"
             );
           }
-          if (!exp.endDate || !/^\d{2}\/\d{4}$/.test(exp.endDate)) {
+          // Allow endDate to be null or a valid date string
+          if (
+            exp.endDate !== null &&
+            exp.endDate !== "Present" &&
+            (typeof exp.endDate !== "string" ||
+              !/^\d{2}\/\d{4}$/.test(exp.endDate))
+          ) {
             throw new Error(
-              "Each experience must have a valid endDate (MM/YYYY)"
+              'endDate must be null, "Present", or a valid date (MM/YYYY)'
             );
           }
           if (!Array.isArray(exp.skills) || exp.skills.length === 0) {

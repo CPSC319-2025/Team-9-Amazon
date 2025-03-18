@@ -17,7 +17,7 @@ import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
 import criteriaRouter from "./api/criteria/criteriaRouter";
 import skillsRouter from "./api/skills/skillsRouter";
 import applicantJobPostingRouter from "./api/applicant/applicantJobPostingRouter";
-import applicationRouter from "./api/applicant/applicationRouter";
+import applicationsRouter from "./api/application/applicationsRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -82,7 +82,7 @@ app.use("/job-postings", jobPostingsRouter);
 app.use("/criteria", criteriaRouter);
 app.use("/skills", skillsRouter);
 app.use("/applicant/job-postings", applicantJobPostingRouter);
-app.use("/applicant/application", applicationRouter);
+app.use("/applications", applicationsRouter);
 
 // Swagger UI
 app.use(openAPIRouter);
