@@ -49,13 +49,8 @@ public static async InitDb() {
       // Initialize models
       initModels(this.sequelize);
 
-
       // Set up associations after all models are initialized
       this.InitAssociations();
-
-      console.log("JobPosting associations:", JobPosting.associations);
-      console.log("Tags associations:", JobTag.associations);
-
 
       // Development Tool:
       // Set "force: true" to drop and recreate tables

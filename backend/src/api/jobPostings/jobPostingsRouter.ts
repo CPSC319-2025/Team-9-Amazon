@@ -94,7 +94,8 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
         })
       );
       // Associate tags with the job posting using the defined belongsToMany relationship.
-      await newJobPosting.setJobTags(tagInstances, { transaction: t });
+
+      await Object.getPrototypeOf(newJobPosting).setJobTags.call(newJobPosting, tagInstances, { transaction: t });
     }
 
     // Commit the transaction
@@ -133,14 +134,10 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
     const jobPosting = await JobPosting.findOne({
       where: { id: jobPostingId },
     });
-    // console.log("jobPosting instanceof JobPosting:", jobPosting instanceof JobPosting);
+    
     if (!jobPosting) {
       return res.status(404).json({ error: "Job posting not found" });
     }
-
-    // console.log("JobPosting instance:", jobPosting);
-    // console.log("Prototype methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(jobPosting)));
-
     // Start a transaction for atomic updates.
     t = await Database.GetSequelize().transaction();
 
@@ -156,9 +153,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
       status,
       tags, // array of tag names
     } = req.body as JobPostingEditRequest;
-
-    console.log("title:", title);
-    console.log("jobPosting.title:", jobPosting.title);
 
     const updates: JobPostingEditRequest = {};
 
@@ -223,7 +217,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
         })
       );
       // Associate the found/created tags with the job posting.
-      console.log("Prototype setJobTags:", Object.getPrototypeOf(jobPosting).setJobTags);
       await Object.getPrototypeOf(jobPosting).setJobTags.call(jobPosting, tagInstances, { transaction: t });
     }
 
@@ -231,8 +224,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
     await t.commit();
 
     res.json(jobPosting.toJSON());
-
-    console.log("Job posting updated successfully:", jobPosting.toJSON());
   } catch (error) {
     if (t) await t.rollback();
     console.error("Error updating job posting:", error);
