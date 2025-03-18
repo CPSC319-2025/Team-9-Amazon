@@ -80,6 +80,7 @@ app.use("/login", loginRouter);
 app.use("/admin", adminRouter);
 app.use("/job-postings", jobPostingsRouter);
 app.use("/criteria", criteriaRouter);
+app.use("/skills", skillsRouter);
 app.use("/applicant/job-postings", applicantJobPostingRouter);
 app.use("/applicant/application", applicationRouter);
 
