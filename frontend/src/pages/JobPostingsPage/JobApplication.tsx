@@ -5,7 +5,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Job } from "../../components/Common/JobPost";
 import CustomFormTextField from "../../components/Common/FormInputs/CustomFormTextField";
-//import { jobPostingsData } from "./jobPostingsData";
 import CustomButton from "../../components/Common/Buttons/CustomButton";
 import { Box, Modal } from "@mui/material";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
@@ -208,7 +207,7 @@ export default function JobApplication() {
 
       if (response.ok) {
         setIsModalOpen(true);
-        setApplicationId(responseData.applicationId);
+        //setApplicationId(responseData.applicationId);
         setErrorMessage(null);
       } else {
         console.error("Error submitting application:", responseData.error);
@@ -488,16 +487,6 @@ export default function JobApplication() {
           gap: 2,
           maxHeight: '90vh',
         }}>
-          {/* <div className="flex flex-col gap-2 items-center">
-                  <h2 className="text-xl" id="job-modal-title">Application Submitted for</h2>
-                  <h2 className="text-xl" id="job-modal-title">{job?.title}</h2>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <p><span className="font-semibold">Name:</span> {applicationForm.getValues().first_name} {applicationForm.getValues().last_name}</p>
-                  <p><span className="font-semibold">Email:</span> {applicationForm.getValues().email}</p>
-                  <p><span className="font-semibold">Phone:</span> {formatPhoneNumber(applicationForm.getValues().phone)}</p>
-                  <p><span className="font-semibold">Application ID:</span> {applicationId}</p>
-                </div> */}
           {errorMessage ? (
             // Show error message
             <div className="flex flex-col gap-2 items-center">
@@ -506,9 +495,29 @@ export default function JobApplication() {
             </div>
           ) : (
             // Show success message
-            <div className="flex flex-col gap-2 items-center">
-              <h2 className="text-xl">Application Submitted for</h2>
-              <h2 className="text-xl">{job?.title}</h2>
+            <div>
+              <div className="flex flex-col gap-2 items-center">
+                <h2 className="text-xl" id="job-modal-title">Application Submitted for</h2>
+                <h2 className="text-xl" id="job-modal-title">{job?.title}</h2>
+              </div>
+              <div className="flex flex-col gap-2">
+                <p>
+                  <span className="font-semibold">Name:</span>{" "}
+                  {applicationForm.getValues().first_name}{" "}
+                  {applicationForm.getValues().last_name}
+                </p>
+                <p>
+                  <span className="font-semibold">Email:</span>{" "}
+                  {applicationForm.getValues().email}
+                </p>
+                <p>
+                  <span className="font-semibold">Phone:</span>{" "}
+                  {formatPhoneNumber(applicationForm.getValues().phone)}
+                </p>
+                {/* <p>
+                  <span className="font-semibold">Application ID:</span> {applicationId}
+                </p> */}
+              </div>
             </div>
           )}
           <div className="flex justify-end">

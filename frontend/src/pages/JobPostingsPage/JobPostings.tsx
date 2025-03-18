@@ -3,8 +3,6 @@ import { Modal, Box, IconButton, FormControlLabel, Checkbox } from "@mui/materia
 import CloseIcon from "@mui/icons-material/Close";
 import JobPost from "../../components/Common/JobPost";
 import { Job } from "../../components/Common/JobPost";
-//TODO: resolve databse jobPosting schema conflict before replace jobs with jobPostings
-//import { jobPostingsData as jobs } from "./jobPostingsData";
 import { useOutletContext, useNavigate } from "react-router";
 import { apiUrls } from "../../api/apiUrls";
 
