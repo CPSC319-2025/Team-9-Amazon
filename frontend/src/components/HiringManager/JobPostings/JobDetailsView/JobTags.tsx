@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, TextField, IconButton, Chip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
@@ -17,6 +17,10 @@ interface JobTagsProps {
 const JobTags: React.FC<JobTagsProps> = ({ jobPosting, editable, editMode, toggleEditMode, handleChange }) => {
     const [tags, setTags] = useState<string[]>(jobPosting.tags);
     const [newTag, setNewTag] = useState("");
+
+    useEffect(() => {
+        setTags(JSON.parse(JSON.stringify(jobPosting.tags)));
+    }, [jobPosting]);
 
     const handleDeleteTag = (tagToDelete: string) => {
         const updatedTags = tags.filter((tag) => tag !== tagToDelete);

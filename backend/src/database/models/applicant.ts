@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+import Application from "./application";
 
 interface ApplicantAttributes {
   id: number | undefined;
@@ -46,6 +47,9 @@ export default class Applicant
   }
 
   static associate() {
-    // No associations
+    Applicant.hasMany(Application, {
+      foreignKey: "applicantId",
+      as: "applications",
+    });
   }
 }

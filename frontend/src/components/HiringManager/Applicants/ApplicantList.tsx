@@ -7,40 +7,48 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
-} from '@mui/material';
-import { PlusCircle } from 'lucide-react';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import { colors } from '../../../styles/commonStyles';
-import { Applicant } from '../../../types/applicant';
-import { useNavigate, useParams } from 'react-router';
-import { ROUTES } from '../../../routes/routePaths';
+} from "@mui/material";
+import { PlusCircle } from "lucide-react";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import { colors } from "../../../styles/commonStyles";
+import { useNavigate, useParams } from "react-router";
+import { ROUTES } from "../../../routes/routePaths";
+import { ApplicationSummary } from "../../../types/application";
 
 interface ApplicantListProps {
-  applicants: Applicant[];
-  onViewApplicant: (email: string) => void;
-  onAddCandidate?: (email: string) => void;
-  showAddButton?: boolean;
+  applications: ApplicationSummary[];
 }
 
-export const ApplicantList = ({
-  applicants,
-  onViewApplicant,
-  onAddCandidate,
-  showAddButton,
-}: ApplicantListProps) => {
+export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
 
+  if (applications.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", py: 4 }}>
+        <Typography variant="body1" sx={{ color: colors.gray2 }}>
+          No applications found
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Paper elevation={0} sx={{ bgcolor: colors.gray1, borderRadius: 2, overflow: 'hidden' }}>
+    <Paper
+      elevation={0}
+      sx={{ bgcolor: colors.gray1, borderRadius: 2, overflow: "hidden" }}
+    >
       <List sx={{ py: 0 }}>
-        {applicants.map((applicant, index) => (
+        {applications.map((application, index) => (
           <ListItem
-            key={applicant.email}
+            key={[application.applicantId, application.jobPostingId].join("-")}
             sx={{
-              borderBottom: index < applicants.length - 1 ? `1px solid ${colors.white}` : 'none',
-              transition: 'background-color 0.2s ease',
-              '&:hover': {
+              borderBottom:
+                index < applications.length - 1
+                  ? `1px solid ${colors.white}`
+                  : "none",
+              transition: "background-color 0.2s ease",
+              "&:hover": {
                 bgcolor: `${colors.blue1}10`,
               },
               py: 2,
@@ -48,49 +56,45 @@ export const ApplicantList = ({
           >
             <ListItemText
               primary={
-                <Typography variant="body1" sx={{ fontWeight: 500, color: colors.black1 }}>
-                  {`${applicant.first_name} ${applicant.last_name}`}
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 500, color: colors.black1 }}
+                >
+                  {`${application.applicant.firstName} ${application.applicant.lastName}`}
                 </Typography>
               }
             />
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 gap: 3,
-                mr: showAddButton ? 8 : 4,
               }}
             >
-              {applicant.score !== undefined && applicant.total_score !== undefined && (
-                <Typography variant="body2" sx={{ color: colors.black1, whiteSpace: 'nowrap' }}>
-                  Score: {applicant.score}/{applicant.total_score}
+              {application.score !== undefined && (
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.black1, whiteSpace: "nowrap" }}
+                >
+                  Score: {application.score.toFixed(2)}
                 </Typography>
               )}
             </Box>
-            <ListItemSecondaryAction sx={{ display: 'flex', gap: 1 }}>
-              {showAddButton && onAddCandidate && (
-                <IconButton
-                  edge="end"
-                  onClick={() => onAddCandidate(applicant.email)}
-                  sx={{
-                    color: colors.blue1,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      color: colors.blue1,
-                      bgcolor: `${colors.blue1}15`,
-                    },
-                  }}
-                >
-                  <PlusCircle size={20} />
-                </IconButton>
-              )}
+            <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
               <IconButton
                 edge="end"
-                onClick={() => navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, applicant.email))}
+                onClick={() =>
+                  navigate(
+                    ROUTES.hiringManager.candidateReport(
+                      jobPostingId!,
+                      application.applicant.email
+                    )
+                  )
+                }
                 sx={{
                   color: colors.black1,
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
+                  transition: "all 0.2s ease",
+                  "&:hover": {
                     color: colors.blue1,
                     bgcolor: `${colors.blue1}15`,
                   },

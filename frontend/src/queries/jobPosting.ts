@@ -14,6 +14,12 @@ import { ApiError } from "../representations/error";
 import { apiUrls } from "../api/apiUrls";
 import { fetchWithAuth } from "../api/apiUtils";
 import { criteriaKeys } from "./criteria";
+import { JobPosting } from "../types/JobPosting/jobPosting";
+import { JobPostingAttributes, JobPostingCreationRequest, JobPostingEditRequest, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
+import {
+  ApplicationsSummaryResponse,
+  PotentialCandidatesResponse,
+} from "../types/application";
 
 // Query keys
 export const jobPostingKeys = {
@@ -21,6 +27,105 @@ export const jobPostingKeys = {
   detail: (jobPostingId: string) =>
     [...jobPostingKeys.all, jobPostingId] as const,
 };
+
+export const useGetJobPosting = (
+  jobPostingId: string
+): UseQueryResult<JobPosting, ApiError> => {
+  return useQuery({
+    queryKey: jobPostingKeys.detail(jobPostingId),
+    queryFn: async () => {
+      if (!jobPostingId) {
+        console.error("Job posting ID is required");
+        throw new Error("Job posting ID is required");
+      }
+
+      const url = apiUrls.jobPostings.jobPostingById(jobPostingId);
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+
+      const data: JobPostingAttributes & { jobTags: JobTagAttributes[] } = await response.json();
+
+      // convert the job posting data to the JobPosting type
+      const jobPosting: JobPosting = {
+        id: String(data.id),
+        title: data.title,
+        subtitle: data.subtitle,
+        description: data.description,
+        location: data.location,
+        status: data.status,
+        createdAt: data.createdAt,
+        qualifications: data.qualifications,
+        responsibilities: data.responsibilities,
+        tags: data.jobTags.map((tag) => tag.name),
+        num_applicants: data.num_applicants,
+        num_machine_evaluated: data.num_machine_evaluated,
+        num_processes: data.num_processes,
+      };
+      return jobPosting;
+    },
+    retry: 1,
+  });
+};
+
+export const useCreateJobPosting = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<JobPosting, ApiError, JobPostingCreationRequest>({
+    mutationFn: async (newJobPosting: JobPostingCreationRequest) => {
+      const url = apiUrls.jobPostings.createJobPosting;
+      const response = await fetchWithAuth(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newJobPosting),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate or refetch job postings list queries to reflect the new posting.
+      queryClient.invalidateQueries({ queryKey: jobPostingKeys.all });
+    },
+  });
+};
+
+export const useEditJobPosting = (jobPostingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<JobPosting, ApiError, JobPostingEditRequest>({
+    mutationFn: async (updatePayload: JobPostingEditRequest) => {
+      const url = apiUrls.jobPostings.jobPostingById(jobPostingId); // e.g. "/api/job-postings/{jobPostingId}"
+      const response = await fetchWithAuth(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate the job posting detail query to refresh data after edit.
+      queryClient.invalidateQueries({ queryKey: jobPostingKeys.detail(jobPostingId) });
+    },
+  });
+};
+
+
+
+// ============ Criteria ============
 
 // Get job posting criteria
 export const useGetJobPostingCriteria = (
@@ -55,6 +160,7 @@ export const useGetJobPostingCriteria = (
     refetchOnWindowFocus: false,
   });
 };
+
 
 // Create job posting criteria
 export const useCreateJobPostingCriteria = (jobPostingId: string) => {
@@ -166,6 +272,52 @@ export const useDeleteJobPostingCriteria = (jobPostingId: string) => {
         queryKey: criteriaKeys.jobPosting(jobPostingId),
       });
     },
+  });
+};
+
+export const useGetApplicationsSummary = (jobPostingId: string) => {
+  return useQuery({
+    queryKey: ["applications", "summary", jobPostingId],
+    queryFn: async () => {
+      const response = await fetchWithAuth(
+        apiUrls.getJobPostingApplicationsSummaryUrl.replace(
+          ":jobPostingId",
+          jobPostingId
+        )
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch applications summary");
+      }
+
+      return response.json() as Promise<ApplicationsSummaryResponse>;
+    },
+    enabled: !!jobPostingId,
+  });
+};
+
+export const useGetPotentialCandidates = (jobPostingId: string) => {
+  return useQuery({
+    queryKey: ["potentialCandidates", jobPostingId],
+    queryFn: async () => {
+      if (!jobPostingId) {
+        throw new Error("Job posting ID is required");
+      }
+
+      const url = apiUrls.getJobPostingPotentialCandidatesUrl.replace(
+        ":jobPostingId",
+        jobPostingId
+      );
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch potential candidates");
+      }
+
+      return response.json() as Promise<PotentialCandidatesResponse>;
+    },
+    enabled: !!jobPostingId, // Only fetch when jobPostingId is available
   });
 };
 

@@ -451,7 +451,6 @@ const EvaluationMetricsPage = () => {
       <EditRuleDialog
         open={!!editingRule}
         rule={editingRule?.rule || null}
-        groupId={editingRule?.groupId || ""}
         onClose={() => setEditingRule(null)}
         onSave={handleSaveRule}
       />

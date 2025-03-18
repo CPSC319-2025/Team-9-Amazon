@@ -7,7 +7,7 @@ export const emptyJobPosting: JobPosting = {
   description: "Your Description",
   location: "Your Location",
   status: "Open",
-  created_at: new Date().toDateString(),
+  createdAt: new Date(),
   qualifications: "Your Qualifications",
   responsibilities: "Your Responsibilities",
   tags: [],
