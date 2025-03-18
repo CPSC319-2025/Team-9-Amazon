@@ -1,4 +1,4 @@
-import { UseFormRegister } from "react-hook-form";
+import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { TextField } from "@mui/material";
 
 interface CustomFormTextFieldProps {
@@ -6,37 +6,34 @@ interface CustomFormTextFieldProps {
   name: string;
   placeholder?: string;
   register: UseFormRegister<any>;
-  errors?: Record<string, any | undefined>;
+  errors?: FieldErrors;
   required?: boolean;
 }
 
-const CustomFormTextField = ({
-  label,
-  name,
-  placeholder,
-  register,
-  errors,
-  required,
-}: CustomFormTextFieldProps) => {
-  const error = errors?.[name];
-
+export default function CustomFormTextField(props: CustomFormTextFieldProps) {
   return (
-    <div className="flex flex-col gap-1">
-      {label && (
-        <label className="text-sm font-medium">
-          {label} {required && "*"}
-        </label>
-      )}
-      <input
-        {...register(name)}
-        placeholder={placeholder}
-        className={`border rounded-md p-2 w-full bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150 ${
-          error ? "border-red-500" : "border-gray-300"
-        }`}
+    <div>
+      <TextField
+        {...props.register(props.name)}
+        label={props.label}
+        placeholder={props.placeholder}
+        required={props.required}
+        error={Boolean(props.errors && props.errors[props.name])}
+        helperText={
+          props.errors && (props.errors[props.name]?.message as string)
+        }
+        sx={{
+          width: "100%",
+          "& .MuiOutlinedInput-root": {
+            "&.Mui-focused fieldset": {
+              borderColor: "#FF9900",
+            },
+          },
+          "& .MuiInputLabel-root.Mui-focused": {
+            color: "#FF9900",
+          },
+        }}
       />
-      {error && <span className="text-red-500 text-sm">{error.message}</span>}
     </div>
   );
-};
-
-export default CustomFormTextField;
+}
