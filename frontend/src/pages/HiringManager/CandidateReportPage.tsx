@@ -1,6 +1,6 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { ROUTES } from '../../routes/routePaths';
+import React from "react";
+import { useParams, useNavigate } from "react-router";
+import { ROUTES } from "../../routes/routePaths";
 import {
   Box,
   Typography,
@@ -15,31 +15,36 @@ import {
   Chip,
   Stack,
   Link,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { colors, titleStyle, paperStyle, chipStyle } from '../../styles/commonStyles';
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import {
+  colors,
+  titleStyle,
+  paperStyle,
+  chipStyle,
+} from "../../styles/commonStyles";
 
 // Dummy data
 const candidateData = {
-  name: 'Robbie Laughlen',
-  role: 'SDE1 Intern',
+  name: "Robbie Laughlen",
+  role: "SDE1 Intern",
   matchScore: 92,
   details: {
-    email: 'robbie@laughlen.com',
-    phone: '333-333-3333',
-    location: 'Vancouver',
-    personalLinks: ['https://www.linkedin.com/in/robbielaughlen/']
+    email: "robbie@laughlen.com",
+    phone: "333-333-3333",
+    location: "Vancouver",
+    personalLinks: ["https://www.linkedin.com/in/robbielaughlen/"],
   },
-  keywords: {
-    matched: ['NodeJS', 'React', 'Docker'],
-    missing: ['MongoDB']
+  rules: {
+    matched: ["NodeJS", "React", "Docker"],
+    missing: ["MongoDB"],
   },
   criteria: [
-    { name: 'Technical Skills', score: 95 },
-    { name: 'Experience', score: 88 },
-    { name: 'Education', score: 90 },
-    { name: 'Cultural Fit', score: 85 }
-  ]
+    { name: "Technical Skills", score: 95 },
+    { name: "Experience", score: 88 },
+    { name: "Education", score: 90 },
+    { name: "Cultural Fit", score: 85 },
+  ],
 };
 
 export default function CandidateReportPage() {
@@ -53,15 +58,15 @@ export default function CandidateReportPage() {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <IconButton 
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        <IconButton
           onClick={handleBack}
-          sx={{ 
+          sx={{
             mr: 2,
             color: colors.orange1,
-            '&:hover': {
-              bgcolor: `${colors.orange1}10`
-            }
+            "&:hover": {
+              bgcolor: `${colors.orange1}10`,
+            },
           }}
         >
           <ArrowBackIcon />
@@ -84,10 +89,13 @@ export default function CandidateReportPage() {
                 {candidateData.role}
               </Typography>
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.gray2, mb: 0.5 }}
+                >
                   Match Score
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Box sx={{ flexGrow: 1, mr: 2 }}>
                     <LinearProgress
                       variant="determinate"
@@ -96,14 +104,17 @@ export default function CandidateReportPage() {
                         height: 8,
                         borderRadius: 4,
                         bgcolor: `${colors.orange1}20`,
-                        '& .MuiLinearProgress-bar': {
+                        "& .MuiLinearProgress-bar": {
                           bgcolor: colors.orange1,
                           borderRadius: 4,
                         },
                       }}
                     />
                   </Box>
-                  <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ color: colors.orange1, fontWeight: 500 }}
+                  >
                     {candidateData.matchScore}%
                   </Typography>
                 </Box>
@@ -120,13 +131,13 @@ export default function CandidateReportPage() {
                   <ListItemText
                     primary="Email"
                     secondary={candidateData.details.email}
-                    primaryTypographyProps={{ 
-                      variant: 'body2',
-                      sx: { color: colors.gray2 }
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      sx: { color: colors.gray2 },
                     }}
                     secondaryTypographyProps={{
-                      variant: 'body1',
-                      sx: { color: colors.black1 }
+                      variant: "body1",
+                      sx: { color: colors.black1 },
                     }}
                   />
                 </ListItem>
@@ -134,13 +145,13 @@ export default function CandidateReportPage() {
                   <ListItemText
                     primary="Phone"
                     secondary={candidateData.details.phone}
-                    primaryTypographyProps={{ 
-                      variant: 'body2',
-                      sx: { color: colors.gray2 }
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      sx: { color: colors.gray2 },
                     }}
                     secondaryTypographyProps={{
-                      variant: 'body1',
-                      sx: { color: colors.black1 }
+                      variant: "body1",
+                      sx: { color: colors.black1 },
                     }}
                   />
                 </ListItem>
@@ -148,13 +159,13 @@ export default function CandidateReportPage() {
                   <ListItemText
                     primary="Location"
                     secondary={candidateData.details.location}
-                    primaryTypographyProps={{ 
-                      variant: 'body2',
-                      sx: { color: colors.gray2 }
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      sx: { color: colors.gray2 },
                     }}
                     secondaryTypographyProps={{
-                      variant: 'body1',
-                      sx: { color: colors.black1 }
+                      variant: "body1",
+                      sx: { color: colors.black1 },
                     }}
                   />
                 </ListItem>
@@ -162,7 +173,10 @@ export default function CandidateReportPage() {
               {candidateData.details.personalLinks.length > 0 && (
                 <>
                   <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: colors.gray2, mb: 1 }}
+                  >
                     Personal Links
                   </Typography>
                   {candidateData.details.personalLinks.map((link, index) => (
@@ -173,9 +187,9 @@ export default function CandidateReportPage() {
                       rel="noopener noreferrer"
                       sx={{
                         color: colors.blue1,
-                        display: 'block',
+                        display: "block",
                         mb: 0.5,
-                        '&:hover': {
+                        "&:hover": {
                           color: colors.orange1,
                         },
                       }}
@@ -201,11 +215,23 @@ export default function CandidateReportPage() {
                 {candidateData.criteria.map((criterion, index) => (
                   <Grid item xs={12} key={index}>
                     <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body1" sx={{ color: colors.black1 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 1,
+                        }}
+                      >
+                        <Typography
+                          variant="body1"
+                          sx={{ color: colors.black1 }}
+                        >
                           {criterion.name}
                         </Typography>
-                        <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: colors.orange1, fontWeight: 500 }}
+                        >
                           {criterion.score}%
                         </Typography>
                       </Box>
@@ -216,7 +242,7 @@ export default function CandidateReportPage() {
                           height: 8,
                           borderRadius: 4,
                           bgcolor: `${colors.orange1}20`,
-                          '& .MuiLinearProgress-bar': {
+                          "& .MuiLinearProgress-bar": {
                             bgcolor: colors.orange1,
                             borderRadius: 4,
                           },
@@ -228,20 +254,20 @@ export default function CandidateReportPage() {
               </Grid>
             </Paper>
 
-            {/* Keywords Analysis */}
+            {/* Rules Analysis */}
             <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
               <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
-                Keywords Analysis
+                Rules Analysis
               </Typography>
               <Box>
                 <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                  Matched Keywords
+                  Matched Rules
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                  {candidateData.keywords.matched.map((keyword, index) => (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+                  {candidateData.rules.matched.map((rule, index) => (
                     <Chip
                       key={index}
-                      label={keyword}
+                      label={rule}
                       sx={{
                         bgcolor: `${colors.orange1}20`,
                         color: colors.orange1,
@@ -251,15 +277,11 @@ export default function CandidateReportPage() {
                   ))}
                 </Box>
                 <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                  Missing Keywords
+                  Missing Rules
                 </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {candidateData.keywords.missing.map((keyword, index) => (
-                    <Chip
-                      key={index}
-                      label={keyword}
-                      sx={{ ...chipStyle }}
-                    />
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {candidateData.rules.missing.map((rule, index) => (
+                    <Chip key={index} label={rule} sx={{ ...chipStyle }} />
                   ))}
                 </Box>
               </Box>

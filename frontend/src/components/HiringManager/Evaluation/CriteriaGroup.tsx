@@ -16,43 +16,38 @@ import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import {
   CriteriaGroup as CriteriaGroupType,
-  Keyword,
+  Rule,
 } from "../../../types/criteria";
-import {
-  colors,
-  filledButtonStyle,
-  paperStyle,
-  textButtonStyle,
-} from "../../../styles/commonStyles";
+import { colors, textButtonStyle } from "../../../styles/commonStyles";
 import { useState } from "react";
 import { EditCriteriaNameDialog } from "./EditCriteriaNameDialog";
 
 interface CriteriaGroupProps {
   group: CriteriaGroupType;
   onDeleteGroup: (groupId: string) => void;
-  onEditKeyword: (groupId: string, keyword: Keyword) => void;
-  onDeleteKeyword: (groupId: string, keyword: Keyword) => void;
-  onAddKeyword: (groupId: string) => void;
+  onEditRule: (groupId: string, rule: Rule) => void;
+  onDeleteRule: (groupId: string, rule: Rule) => void;
+  onAddRule: (groupId: string) => void;
   onEditName: (groupId: string, newName: string) => void;
 }
 
-interface KeywordRowProps {
-  keyword: Keyword;
-  onEdit: (keyword: Keyword) => void;
-  onDelete: (keyword: Keyword) => void;
+interface RuleRowProps {
+  rule: Rule;
+  onEdit: (rule: Rule) => void;
+  onDelete: (rule: Rule) => void;
 }
 
-const KeywordRow = ({ keyword, onEdit, onDelete }: KeywordRowProps) => (
+const RuleRow = ({ rule, onEdit, onDelete }: RuleRowProps) => (
   <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-    <TableCell>{keyword.name}</TableCell>
-    <TableCell align="center">{keyword.pointsPerYearOfExperience}</TableCell>
-    <TableCell align="center">{keyword.maxPoints}</TableCell>
+    <TableCell>{rule.skill}</TableCell>
+    <TableCell align="center">{rule.pointsPerYearOfExperience}</TableCell>
+    <TableCell align="center">{rule.maxPoints}</TableCell>
     <TableCell align="right">
-      <IconButton onClick={() => onEdit(keyword)} size="small" sx={{ mr: 1 }}>
+      <IconButton onClick={() => onEdit(rule)} size="small" sx={{ mr: 1 }}>
         <EditIcon />
       </IconButton>
       <IconButton
-        onClick={() => onDelete(keyword)}
+        onClick={() => onDelete(rule)}
         size="small"
         sx={{ color: colors.black1 }}
       >
@@ -65,9 +60,9 @@ const KeywordRow = ({ keyword, onEdit, onDelete }: KeywordRowProps) => (
 export const CriteriaGroup = ({
   group,
   onDeleteGroup,
-  onEditKeyword,
-  onDeleteKeyword,
-  onAddKeyword,
+  onEditRule,
+  onDeleteRule,
+  onAddRule,
   onEditName,
 }: CriteriaGroupProps) => {
   const [isEditingName, setIsEditingName] = useState(false);
@@ -120,7 +115,7 @@ export const CriteriaGroup = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Keyword</TableCell>
+              <TableCell>Skill</TableCell>
               <TableCell align="center">
                 Points per Year of Experience
               </TableCell>
@@ -129,12 +124,12 @@ export const CriteriaGroup = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {group.keywords.map((keyword) => (
-              <KeywordRow
-                key={keyword.name}
-                keyword={keyword}
-                onEdit={(k) => onEditKeyword(group.id, k)}
-                onDelete={(k) => onDeleteKeyword(group.id, k)}
+            {group.rules.map((rule) => (
+              <RuleRow
+                key={rule.skill}
+                rule={rule}
+                onEdit={(k) => onEditRule(group.id, k)}
+                onDelete={(k) => onDeleteRule(group.id, k)}
               />
             ))}
           </TableBody>
@@ -143,10 +138,10 @@ export const CriteriaGroup = ({
       <Box sx={{ p: 2, borderTop: `1px solid ${colors.gray1}` }}></Box>
       <Button
         startIcon={<AddIcon />}
-        onClick={() => onAddKeyword(group.id)}
+        onClick={() => onAddRule(group.id)}
         sx={{ ...textButtonStyle }}
       >
-        Add Keyword
+        Add Rule
       </Button>
 
       <EditCriteriaNameDialog

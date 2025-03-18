@@ -11,10 +11,10 @@ export interface CriteriaRepresentation {
   hours: string;
   createdAt: string;
   criteriaJson: {
-    tokens: Array<{
-      word: string;
-      points_per_year_of_experience: number;
-      max_points: number;
+    rules: Array<{
+      skill: string;
+      pointsPerYearOfExperience: number;
+      maxPoints: number;
     }>;
   };
   criteriaType: "global" | "local";
@@ -30,8 +30,8 @@ export interface CriteriaGroupRepresentation {
   rating: number;
   address: string;
   hours: string;
-  keywords: Array<{
-    name: string;
+  rules: Array<{
+    skill: string;
     pointsPerYearOfExperience: number;
     maxPoints: number;
   }>;
@@ -48,10 +48,10 @@ export const transformToGroupRepresentation = (
   rating: criteria.rating,
   address: criteria.address,
   hours: criteria.hours,
-  keywords: criteria.criteriaJson.tokens.map((token) => ({
-    name: token.word,
-    pointsPerYearOfExperience: token.points_per_year_of_experience,
-    maxPoints: token.max_points,
+  rules: criteria.criteriaJson.rules.map((rule) => ({
+    skill: rule.skill,
+    pointsPerYearOfExperience: rule.pointsPerYearOfExperience,
+    maxPoints: rule.maxPoints,
   })),
 });
 
@@ -67,10 +67,10 @@ export const transformToApiRepresentation = (
   hours: group.hours,
   createdAt: DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss"),
   criteriaJson: {
-    tokens: group.keywords.map((keyword) => ({
-      word: keyword.name,
-      points_per_year_of_experience: keyword.pointsPerYearOfExperience,
-      max_points: keyword.maxPoints,
+    rules: group.rules.map((rule) => ({
+      skill: rule.skill,
+      pointsPerYearOfExperience: rule.pointsPerYearOfExperience,
+      maxPoints: rule.maxPoints,
     })),
   },
 });
@@ -80,10 +80,10 @@ export const transformToRequestData = (
 ) => ({
   name: criteria.name,
   criteriaJson: {
-    tokens: criteria.keywords.map((keyword) => ({
-      word: keyword.name,
-      points_per_year_of_experience: keyword.pointsPerYearOfExperience,
-      max_points: keyword.maxPoints,
+    rules: criteria.rules.map((rule) => ({
+      skill: rule.skill,
+      pointsPerYearOfExperience: rule.pointsPerYearOfExperience,
+      maxPoints: rule.maxPoints,
     })),
   },
 });

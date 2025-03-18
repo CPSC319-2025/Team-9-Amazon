@@ -1,7 +1,8 @@
 import * as React from 'react'
 import {Modal, Box, Typography, Button, Stack, TextField, formControlClasses} from '@mui/material';
 import { textButtonStyle, colors, filledButtonStyle } from "../../../styles/commonStyles";
-import { Label } from '@mui/icons-material';
+import MultiSelectChipField from '../FormInputs/MultiSelectChipField';
+import AccountData from '../../../components/Admin/AccountData';
 
 const style = {
     position: 'absolute',
@@ -23,7 +24,7 @@ const style = {
 };
 
 interface FormModalProps {
-    formData?: object;
+    formData?: AccountData;
     isOpen: boolean;
     handleClose(): void;
     titleText: string;
@@ -37,6 +38,19 @@ export const FormModal = ({
     titleText,
     actionButton,
 }: FormModalProps) => {
+    const [selectedRoles, setSelectedRoles] = React.useState<string[]>(formData?.role || []);
+
+    React.useEffect(() => {
+        if (formData?.role && Array.isArray(formData.role)) {
+          setSelectedRoles(formData.role);
+        } else {
+          setSelectedRoles([]);
+        }
+      }, [formData]);
+    
+    const handleRoleChange = (roles: string[]) => {
+        setSelectedRoles(roles);
+    };
 
     return (
         <Modal
@@ -48,17 +62,18 @@ export const FormModal = ({
                 {titleText}
             </Typography>
             {
-            formData != undefined ?
+            formData ?
                 Object.entries(formData).map(([key, value]) => {
                     console.log(key)
                     console.log(value)
                     
-                    if (key == 'role' || key == 'id') return
-
+                    if (key == 'id' || key == 'role') return
+                    
                     const formattedKey = key.split("_").join(' ')
 
                     return (
                     <TextField 
+                    key={key}
                     label={formattedKey} 
                     variant="standard" 
                     placeholder={value === "" ? `Enter ${formattedKey} here` : undefined}
@@ -67,6 +82,10 @@ export const FormModal = ({
                     )
             }) : <></>
             }
+            <MultiSelectChipField 
+                selectedRoles={selectedRoles} 
+                onChange={handleRoleChange} 
+            />
             <Stack direction='row' justifyContent='flex-end' spacing={2}>
                 <Button onClick={handleClose} sx={{...textButtonStyle, ...filledButtonStyle, backgroundColor: colors.gray2}}>
                     CANCEL

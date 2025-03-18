@@ -133,71 +133,71 @@ export const mockCriteriaGroups: CriteriaGroup[] = [
   {
     id: "1234",
     name: "Developer Criteria",
-    keywords: [
-      { name: "Java", pointsPerYearOfExperience: 1, maxPoints: 4 },
-      { name: "C#", pointsPerYearOfExperience: 3, maxPoints: 5 },
-      { name: "API", pointsPerYearOfExperience: 2, maxPoints: 4 },
+    rules: [
+      { skill: "Java", pointsPerYearOfExperience: 1, maxPoints: 4 },
+      { skill: "C#", pointsPerYearOfExperience: 3, maxPoints: 5 },
+      { skill: "API", pointsPerYearOfExperience: 2, maxPoints: 4 },
     ],
   },
   {
     id: "5678",
     name: "Frontend Criteria",
-    keywords: [
-      { name: "Node.js", pointsPerYearOfExperience: 2, maxPoints: 3 },
-      { name: "React", pointsPerYearOfExperience: 3, maxPoints: 10 },
-      { name: "TypeScript", pointsPerYearOfExperience: 2, maxPoints: 6 },
+    rules: [
+      { skill: "Node.js", pointsPerYearOfExperience: 2, maxPoints: 3 },
+      { skill: "React", pointsPerYearOfExperience: 3, maxPoints: 10 },
+      { skill: "TypeScript", pointsPerYearOfExperience: 2, maxPoints: 6 },
     ],
   },
   {
     id: "9012",
     name: "DevOps Criteria",
-    keywords: [
-      { name: "Docker", pointsPerYearOfExperience: 3, maxPoints: 9 },
-      { name: "Kubernetes", pointsPerYearOfExperience: 4, maxPoints: 8 },
-      { name: "CI/CD", pointsPerYearOfExperience: 2, maxPoints: 6 },
-      { name: "AWS", pointsPerYearOfExperience: 3, maxPoints: 9 },
+    rules: [
+      { skill: "Docker", pointsPerYearOfExperience: 3, maxPoints: 9 },
+      { skill: "Kubernetes", pointsPerYearOfExperience: 4, maxPoints: 8 },
+      { skill: "CI/CD", pointsPerYearOfExperience: 2, maxPoints: 6 },
+      { skill: "AWS", pointsPerYearOfExperience: 3, maxPoints: 9 },
     ],
   },
   {
     id: "3456",
     name: "Communication Skills",
-    keywords: [
-      { name: "Presentation", pointsPerYearOfExperience: 2, maxPoints: 6 },
-      { name: "Documentation", pointsPerYearOfExperience: 2, maxPoints: 4 },
+    rules: [
+      { skill: "Presentation", pointsPerYearOfExperience: 2, maxPoints: 6 },
+      { skill: "Documentation", pointsPerYearOfExperience: 2, maxPoints: 4 },
       {
-        name: "Team Leadership",
+        skill: "Team Leadership",
         pointsPerYearOfExperience: 3,
         maxPoints: 6,
       },
-      { name: "Collaboration", pointsPerYearOfExperience: 2, maxPoints: 4 },
+      { skill: "Collaboration", pointsPerYearOfExperience: 2, maxPoints: 4 },
     ],
   },
   {
     id: "7890",
     name: "Soft Skills",
-    keywords: [
+    rules: [
       {
-        name: "Problem Solving",
+        skill: "Problem Solving",
         pointsPerYearOfExperience: 3,
         maxPoints: 9,
       },
       {
-        name: "Time Management",
+        skill: "Time Management",
         pointsPerYearOfExperience: 2,
         maxPoints: 6,
       },
-      { name: "Adaptability", pointsPerYearOfExperience: 2, maxPoints: 6 },
-      { name: "Initiative", pointsPerYearOfExperience: 2, maxPoints: 4 },
+      { skill: "Adaptability", pointsPerYearOfExperience: 2, maxPoints: 6 },
+      { skill: "Initiative", pointsPerYearOfExperience: 2, maxPoints: 4 },
     ],
   },
   {
     id: "2345",
     name: "Backend Criteria",
-    keywords: [
-      { name: "Python", pointsPerYearOfExperience: 3, maxPoints: 6 },
-      { name: "SQL", pointsPerYearOfExperience: 3, maxPoints: 9 },
-      { name: "MongoDB", pointsPerYearOfExperience: 2, maxPoints: 6 },
-      { name: "REST", pointsPerYearOfExperience: 2, maxPoints: 4 },
+    rules: [
+      { skill: "Python", pointsPerYearOfExperience: 3, maxPoints: 6 },
+      { skill: "SQL", pointsPerYearOfExperience: 3, maxPoints: 9 },
+      { skill: "MongoDB", pointsPerYearOfExperience: 2, maxPoints: 6 },
+      { skill: "REST", pointsPerYearOfExperience: 2, maxPoints: 4 },
     ],
   },
 ];

@@ -1,5 +1,5 @@
-export interface Keyword {
-  name: string;
+export interface Rule {
+  skill: string;
   pointsPerYearOfExperience: number;
   maxPoints: number;
 }
@@ -7,5 +7,5 @@ export interface Keyword {
 export interface CriteriaGroup {
   id: string;
   name: string;
-  keywords: Keyword[];
+  rules: Rule[];
 }

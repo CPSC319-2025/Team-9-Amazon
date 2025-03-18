@@ -1,26 +1,35 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import JobPosting, { JobPostingTableName } from "./jobPosting";
+import JobPosting from "./jobPosting";
+import { ApplicationScoring } from "@/services/applicationScoring";
+export enum CriteriaType {
+  global = "global",
+  local = "local",
+}
 
-interface Token {
-  points_per_year_of_experience: number;
-  max_points: number;
-  word: string;
+export interface Rule {
+  pointsPerYearOfExperience: number;
+  maxPoints: number;
+  skill: string;
 }
 
 interface CriteriaJSON {
-  tokens: Token[];
+  rules: Rule[];
 }
 
 interface CriteriaAttributes {
   id?: number;
   name: string;
   criteriaJson: CriteriaJSON;
-  criteriaType: "global" | "local";
+  criteriaType: CriteriaType;
   jobPostingId?: number | null;
+  criteriaMaxScore: number;
 }
 
 interface CriteriaCreationAttributes
-  extends Omit<CriteriaAttributes, "id" | "createdAt" | "updatedAt"> {}
+  extends Omit<
+    CriteriaAttributes,
+    "id" | "createdAt" | "updatedAt" | "criteriaMaxScore"
+  > {}
 
 export const CriteriaSchema = {
   id: {
@@ -45,21 +54,21 @@ export const CriteriaSchema = {
     validate: {
       isValidJSON(value: any) {
         if (
-          !value.tokens ||
-          !Array.isArray(value.tokens) ||
-          value.tokens.length === 0
+          !value.rules ||
+          !Array.isArray(value.rules) ||
+          value.rules.length === 0
         ) {
-          throw new Error("criteriaJson must contain at least one token");
+          throw new Error("criteriaJson must contain at least one rule");
         }
 
-        value.tokens.forEach((token: any) => {
+        value.rules.forEach((rule: any) => {
           if (
-            typeof token.points_per_year_of_experience !== "number" ||
-            typeof token.max_points !== "number" ||
-            typeof token.word !== "string"
+            typeof rule.pointsPerYearOfExperience !== "number" ||
+            typeof rule.maxPoints !== "number" ||
+            typeof rule.skill !== "string"
           ) {
             throw new Error(
-              "Each token must have points_per_year_of_experience (number), max_points (number), and word (string)"
+              "Each rule must have pointsPerYearOfExperience (number), maxPoints (number), and skill (string)"
             );
           }
         });
@@ -67,17 +76,22 @@ export const CriteriaSchema = {
     },
   },
   criteriaType: {
-    type: DataTypes.ENUM("global", "local"),
+    type: DataTypes.ENUM(...Object.values(CriteriaType)),
     allowNull: false,
-    defaultValue: "local",
+    defaultValue: CriteriaType.local,
   },
   jobPostingId: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: JobPostingTableName,
+      model: "job_postings",
       key: "id",
     },
+  },
+  criteriaMaxScore: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+    defaultValue: 0,
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -93,18 +107,25 @@ export const CriteriaSchema = {
 
 export const CriteriaTableName = "criteria";
 
-export default class Criteria extends Model<
-  CriteriaAttributes,
-  CriteriaCreationAttributes
-> {
+export default class Criteria
+  extends Model<CriteriaAttributes, CriteriaCreationAttributes>
+  implements CriteriaAttributes
+{
   declare id: number;
   declare name: string;
   declare criteriaJson: CriteriaJSON;
-  declare criteriaType: "global" | "local";
+  declare criteriaType: CriteriaType;
   declare jobPostingId?: number | null;
+  declare criteriaMaxScore: number;
   declare createdAt: Date;
   declare updatedAt: Date;
-  declare jobPosting?: JobPosting;
+
+  private calculateCriteriaMaxScore(): number {
+    return this.criteriaJson.rules.reduce(
+      (total, rule) => total + rule.maxPoints,
+      0
+    );
+  }
 
   static initialize(sequelize: Sequelize) {
     const criteria = Criteria.init(CriteriaSchema, {
@@ -112,12 +133,43 @@ export default class Criteria extends Model<
       tableName: CriteriaTableName,
       validate: {
         criteriaTypeValidation() {
-          if (this.criteriaType === "local" && !this.jobPostingId) {
+          if (this.criteriaType === CriteriaType.local && !this.jobPostingId) {
             throw new Error("Local criteria must have a job posting reference");
           }
-          if (this.criteriaType === "global" && this.jobPostingId) {
+          if (this.criteriaType === CriteriaType.global && this.jobPostingId) {
             throw new Error(
               "Global criteria cannot have a job posting reference"
+            );
+          }
+        },
+      },
+      hooks: {
+        beforeCreate: async (criteria: Criteria) => {
+          criteria.criteriaMaxScore = criteria.calculateCriteriaMaxScore();
+        },
+        beforeUpdate: async (criteria: Criteria) => {
+          if (criteria.changed("criteriaJson")) {
+            criteria.criteriaMaxScore = criteria.calculateCriteriaMaxScore();
+          }
+        },
+        afterCreate: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
+            );
+          }
+        },
+        afterUpdate: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
+            );
+          }
+        },
+        afterDestroy: async (criteria: Criteria) => {
+          if (criteria.jobPostingId) {
+            await ApplicationScoring.updateApplicationScores(
+              criteria.jobPostingId
             );
           }
         },

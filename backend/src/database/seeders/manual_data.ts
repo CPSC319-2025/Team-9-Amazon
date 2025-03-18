@@ -19,13 +19,23 @@ const listOfStaff: StaffCreationAttributes[] = [
     isAdmin: true,
     isHiringManager: true,
   },
+  {
+    email: "lloyd@forger.com",
+    password: "anya123",
+    firstName: "Lloyd",
+    lastName: "Forger",
+    isAdmin: true,
+    isHiringManager: true,
+  },
 ];
 
 export default {
   up: async (queryInterface: QueryInterface): Promise<void> => {
     initModels(queryInterface.sequelize);
 
-    await Staff.bulkCreate(listOfStaff, {ignoreDuplicates: true});
+    for (const staff of listOfStaff) {
+      await Staff.findOrCreate({where: {email: staff.email}, defaults: staff});
+    }
   },
 
   down: async (queryInterface: QueryInterface, Sequelize: Sequelize): Promise<void> => {

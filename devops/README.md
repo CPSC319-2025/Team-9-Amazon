@@ -25,4 +25,25 @@ It will show you the list of available commands.
 - `-c`, `--config`: Specify the path to the configuration file.
 - `-v`, `--verbose`: Enable verbose mode.
 
+# Setup
+Much of the infrastructure for deployment has been done by me. For the purposes of this course, I will outline what resources we used for deployment.
+
+### Docker
+
+### AWS Route 53
+
+### AWS Application Load Balancers
+
+### AWS Elastic Container Registry (ECR)
+
+### AWS Elastic Container Service ECS
+
+### AWS Relational Database Service (RDS)
+
+### AWS Secure Storage Solution (s3)
+
+### AWS Identity and Access Management (IAM)
+
+# License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

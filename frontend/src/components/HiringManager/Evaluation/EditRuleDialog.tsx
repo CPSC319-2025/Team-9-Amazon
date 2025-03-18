@@ -5,64 +5,66 @@ import {
   DialogActions,
   Button,
   TextField,
+  CircularProgress,
+  Typography,
 } from "@mui/material";
 import { useState, useEffect } from "react";
-import { Keyword } from "../../../types/criteria";
+import { Rule } from "../../../types/criteria";
 import { colors } from "../../../styles/commonStyles";
+import { useGetSkills } from "../../../queries/skill";
+import Autocomplete from "@mui/material/Autocomplete";
 
-interface EditKeywordDialogProps {
+interface EditRuleDialogProps {
   open: boolean;
-  keyword: Keyword | null;
-  groupId: string;
+  rule: Rule | null;
   onClose: () => void;
-  onSave: (keyword: Keyword, isNew: boolean) => void;
+  onSave: (rule: Rule, isNew: boolean) => void;
 }
 
-export const EditKeywordDialog = ({
+export const EditRuleDialog = ({
   open,
-  keyword,
+  rule,
   onClose,
   onSave,
-}: EditKeywordDialogProps) => {
-  const [name, setName] = useState(keyword?.name || "");
+}: EditRuleDialogProps) => {
+  const { data: skills, isLoading, error } = useGetSkills(); // Fetch skills
+  const [skill, setSkill] = useState(rule?.skill || "");
   const [pointsPerYearOfExperience, setPointsPerYearOfExperience] = useState(
-    keyword?.pointsPerYearOfExperience.toString() || "1"
+    rule?.pointsPerYearOfExperience.toString() || "1"
   );
-  const [maxPoints, setMaxPoints] = useState(
-    keyword?.maxPoints.toString() || "5"
-  );
+  const [maxPoints, setMaxPoints] = useState(rule?.maxPoints.toString() || "5");
   const [errors, setErrors] = useState({
-    name: "",
+    skill: "",
     pointsPerYearOfExperience: "",
     maxPoints: "",
   });
 
   useEffect(() => {
     if (open) {
-      setName(keyword?.name || "");
+      setSkill(rule?.skill || "");
       setPointsPerYearOfExperience(
-        keyword?.pointsPerYearOfExperience.toString() || "1"
+        rule?.pointsPerYearOfExperience.toString() || "1"
       );
-      setMaxPoints(keyword?.maxPoints.toString() || "5");
-      setErrors({ name: "", pointsPerYearOfExperience: "", maxPoints: "" });
+      setMaxPoints(rule?.maxPoints.toString() || "5");
+      setErrors({ skill: "", pointsPerYearOfExperience: "", maxPoints: "" });
     }
-  }, [open, keyword]);
+  }, [open, rule]);
 
   const validateFields = () => {
     const newErrors = {
-      name: "",
+      skill: "",
       pointsPerYearOfExperience: "",
       maxPoints: "",
     };
     let isValid = true;
 
-    if (!name.trim()) {
-      newErrors.name = "Keyword name is required";
+    if (!skill.trim()) {
+      newErrors.skill = "Skill is required";
       isValid = false;
     }
 
-    const ppm = parseInt(pointsPerYearOfExperience);
-    const mp = parseInt(maxPoints);
+    const ppm = parseFloat(pointsPerYearOfExperience);
+    const mp = parseFloat(maxPoints);
 
     if (isNaN(ppm) || ppm < 0) {
       newErrors.pointsPerYearOfExperience = "Must be a positive number";
@@ -87,11 +89,11 @@ export const EditKeywordDialog = ({
     if (validateFields()) {
       onSave(
         {
-          name,
-          pointsPerYearOfExperience: parseInt(pointsPerYearOfExperience),
-          maxPoints: parseInt(maxPoints),
+          skill,
+          pointsPerYearOfExperience: parseFloat(pointsPerYearOfExperience),
+          maxPoints: parseFloat(maxPoints),
         },
-        !keyword // isNew flag
+        !rule // isNew flag
       );
     }
   };
@@ -99,32 +101,53 @@ export const EditKeywordDialog = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ color: colors.black1 }}>
-        {keyword ? `Edit Keyword: ${keyword.name}` : "Add New Keyword"}
+        {rule ? `Edit Rule` : "Add New Rule"}
       </DialogTitle>
       <DialogContent>
-        <TextField
-          fullWidth
-          label="Keyword Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          error={!!errors.name}
-          helperText={errors.name}
-          sx={{ mt: 2 }}
-        />
+        {/* Skill Searchable Dropdown */}
+        {isLoading ? (
+          <CircularProgress size={24} sx={{ mt: 2 }} />
+        ) : error ? (
+          <Typography color="error" sx={{ mt: 2 }}>
+            Failed to load skills
+          </Typography>
+        ) : (
+          <Autocomplete
+            options={skills?.map((s) => s.name) || []}
+            value={skill}
+            onChange={(_, newValue) => setSkill(newValue || "")}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Skill"
+                error={!!errors.skill}
+                helperText={errors.skill}
+                sx={{ mt: 2 }}
+              />
+            )}
+            freeSolo={false} // Prevents users from entering custom values
+          />
+        )}
+
+        {/* Points per Year */}
         <TextField
           fullWidth
           label="Points per Year of Experience"
           type="number"
+          inputProps={{ step: "any" }}
           value={pointsPerYearOfExperience}
           onChange={(e) => setPointsPerYearOfExperience(e.target.value)}
           error={!!errors.pointsPerYearOfExperience}
           helperText={errors.pointsPerYearOfExperience}
           sx={{ mt: 2 }}
         />
+
+        {/* Max Points */}
         <TextField
           fullWidth
           label="Max Points"
           type="number"
+          inputProps={{ step: "any" }}
           value={maxPoints}
           onChange={(e) => setMaxPoints(e.target.value)}
           error={!!errors.maxPoints}
@@ -132,6 +155,7 @@ export const EditKeywordDialog = ({
           sx={{ mt: 2 }}
         />
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose} sx={{ color: colors.black1 }}>
           Cancel
@@ -144,7 +168,7 @@ export const EditKeywordDialog = ({
             "&:hover": { bgcolor: `${colors.blue1}dd` },
           }}
         >
-          {keyword ? "Save Changes" : "Add Keyword"}
+          {rule ? "Save Changes" : "Add Rule"}
         </Button>
       </DialogActions>
     </Dialog>

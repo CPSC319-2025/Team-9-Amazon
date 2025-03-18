@@ -21,8 +21,7 @@ import {
   paperStyle,
 } from "../../styles/commonStyles";
 import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup";
-import { EditKeywordDialog } from "../../components/HiringManager/Evaluation/EditKeywordDialog";
-import { Keyword } from "../../types/criteria";
+import { Rule } from "../../types/criteria";
 import SaveIcon from "@mui/icons-material/Save";
 import {
   CriteriaGroupRepresentation,
@@ -37,12 +36,13 @@ import {
 } from "../../queries/jobPosting";
 import { useGetGlobalCriteria } from "../../queries/criteria";
 import { useParams } from "react-router";
+import { EditRuleDialog } from "../../components/HiringManager/Evaluation/EditRuleDialog";
 
 const EvaluationMetricsPage = () => {
   const { jobPostingId } = useParams();
-  const [editingKeyword, setEditingKeyword] = useState<{
+  const [editingRule, setEditingRule] = useState<{
     groupId: string;
-    keyword: Keyword | null;
+    rule: Rule | null;
   } | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -108,12 +108,12 @@ const EvaluationMetricsPage = () => {
     setSnackbarOpen(true);
   };
 
-  const handleEditKeyword = (groupId: string, keyword: Keyword) => {
-    setEditingKeyword({ groupId, keyword });
+  const handleEditRule = (groupId: string, rule: Rule) => {
+    setEditingRule({ groupId, rule });
   };
 
-  const handleAddKeyword = (groupId: string) => {
-    setEditingKeyword({ groupId, keyword: null });
+  const handleAddRule = (groupId: string) => {
+    setEditingRule({ groupId, rule: null });
   };
 
   const handleEditName = (groupId: string, newName: string) => {
@@ -135,51 +135,49 @@ const EvaluationMetricsPage = () => {
     setSnackbarOpen(true);
   };
 
-  const handleSaveKeyword = (updatedKeyword: Keyword, isNew: boolean) => {
-    if (editingKeyword) {
-      const groupId = editingKeyword.groupId;
+  const handleSaveRule = (updatedRule: Rule, isNew: boolean) => {
+    if (editingRule) {
+      const groupId = editingRule.groupId;
       setLocalActiveCriteria((prev) =>
         prev.map((group) =>
           group.id === groupId
             ? {
                 ...group,
-                keywords: isNew
-                  ? [...group.keywords, updatedKeyword]
-                  : group.keywords.map((k) =>
-                      k.name === editingKeyword.keyword?.name
-                        ? updatedKeyword
-                        : k
+                rules: isNew
+                  ? [...group.rules, updatedRule]
+                  : group.rules.map((k) =>
+                      k.skill === editingRule.rule?.skill ? updatedRule : k
                     ),
               }
             : group
         )
       );
 
-      setEditingKeyword(null);
+      setEditingRule(null);
       setHasUnsavedChanges(true);
       setSnackbarMessage(
         isNew
-          ? "Keyword added. Don't forget to save your changes!"
-          : "Keyword updated. Don't forget to save your changes!"
+          ? "Rule added. Don't forget to save your changes!"
+          : "Rule updated. Don't forget to save your changes!"
       );
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
     }
   };
 
-  const handleDeleteKeyword = (groupId: string, keyword: Keyword) => {
+  const handleDeleteRule = (groupId: string, rule: Rule) => {
     setLocalActiveCriteria((prev) =>
       prev.map((group) =>
         group.id === groupId
           ? {
               ...group,
-              keywords: group.keywords.filter((k) => k.name !== keyword.name),
+              rules: group.rules.filter((k) => k.skill !== rule.skill),
             }
           : group
       )
     );
     setHasUnsavedChanges(true);
-    setSnackbarMessage("Keyword deleted. Don't forget to save your changes!");
+    setSnackbarMessage("Rule deleted. Don't forget to save your changes!");
     setSnackbarSeverity("success");
     setSnackbarOpen(true);
   };
@@ -229,10 +227,10 @@ const EvaluationMetricsPage = () => {
         );
         if (!initialCriterion) return false;
 
-        // Check for both keyword and name changes
+        // Check for both rule and name changes
         return (
-          JSON.stringify(currentCriteria.keywords) !==
-            JSON.stringify(initialCriterion.keywords) ||
+          JSON.stringify(currentCriteria.rules) !==
+            JSON.stringify(initialCriterion.rules) ||
           currentCriteria.name !== initialCriterion.name
         );
       });
@@ -364,9 +362,9 @@ const EvaluationMetricsPage = () => {
                 key={group.id}
                 group={group}
                 onDeleteGroup={handleDeleteGroup}
-                onEditKeyword={handleEditKeyword}
-                onDeleteKeyword={handleDeleteKeyword}
-                onAddKeyword={handleAddKeyword}
+                onEditRule={handleEditRule}
+                onDeleteRule={handleDeleteRule}
+                onAddRule={handleAddRule}
                 onEditName={handleEditName}
               />
             ))}
@@ -423,7 +421,7 @@ const EvaluationMetricsPage = () => {
                         "existing-",
                         ""
                       )}`}
-                      secondary={`${criteria.keywords.length} keywords`}
+                      secondary={`${criteria.rules.length} rules`}
                     />
                   </ListItem>
                 ))}
@@ -450,12 +448,11 @@ const EvaluationMetricsPage = () => {
         </Grid>
       </Container>
 
-      <EditKeywordDialog
-        open={!!editingKeyword}
-        keyword={editingKeyword?.keyword || null}
-        groupId={editingKeyword?.groupId || ""}
-        onClose={() => setEditingKeyword(null)}
-        onSave={handleSaveKeyword}
+      <EditRuleDialog
+        open={!!editingRule}
+        rule={editingRule?.rule || null}
+        onClose={() => setEditingRule(null)}
+        onSave={handleSaveRule}
       />
 
       <Snackbar

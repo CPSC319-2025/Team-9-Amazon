@@ -15,30 +15,30 @@ import {
 // import { Header } from "../../components/Common/Header";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
-import { Keyword } from "../../types/criteria";
+import { Rule } from "../../types/criteria";
 
 const dummyCriterias = [
   {
     id: 1,
     name: "frontend",
-    keywords: [
+    rules: [
       {
-        name: "Node.js",
+        skill: "Node.js",
         pointsPerYearOfExperience: 1,
         maxPoints: 6,
       },
       {
-        name: "React",
+        skill: "React",
         pointsPerYearOfExperience: 5,
         maxPoints: 10,
       },
       {
-        name: "CSS",
+        skill: "CSS",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        name: "Typescript",
+        skill: "Typescript",
         pointsPerYearOfExperience: 2,
         maxPoints: 8,
       },
@@ -47,19 +47,19 @@ const dummyCriterias = [
   {
     id: 2,
     name: "devops",
-    keywords: [
+    rules: [
       {
-        name: "CI/CD",
+        skill: "CI/CD",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
       {
-        name: "Docker",
+        skill: "Docker",
         pointsPerYearOfExperience: 4,
         maxPoints: 12,
       },
       {
-        name: "Git",
+        skill: "Git",
         pointsPerYearOfExperience: 2,
         maxPoints: 6,
       },
@@ -68,14 +68,14 @@ const dummyCriterias = [
   {
     id: 3,
     name: "soft_skills",
-    keywords: [
+    rules: [
       {
-        name: "Team",
+        skill: "Team",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        name: "Communication",
+        skill: "Communication",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
@@ -84,24 +84,24 @@ const dummyCriterias = [
   {
     id: 4,
     name: "frontend",
-    keywords: [
+    rules: [
       {
-        name: "Node.js",
+        skill: "Node.js",
         pointsPerYearOfExperience: 1,
         maxPoints: 6,
       },
       {
-        name: "React",
+        skill: "React",
         pointsPerYearOfExperience: 5,
         maxPoints: 10,
       },
       {
-        name: "CSS",
+        skill: "CSS",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        name: "Typescript",
+        skill: "Typescript",
         pointsPerYearOfExperience: 2,
         maxPoints: 8,
       },
@@ -110,19 +110,19 @@ const dummyCriterias = [
   {
     id: 5,
     name: "devops",
-    keywords: [
+    rules: [
       {
-        name: "CI/CD",
+        skill: "CI/CD",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
       {
-        name: "Docker",
+        skill: "Docker",
         pointsPerYearOfExperience: 4,
         maxPoints: 12,
       },
       {
-        name: "Git",
+        skill: "Git",
         pointsPerYearOfExperience: 2,
         maxPoints: 6,
       },
@@ -131,14 +131,14 @@ const dummyCriterias = [
   {
     id: 6,
     name: "soft_skills",
-    keywords: [
+    rules: [
       {
-        name: "Team",
+        skill: "Team",
         pointsPerYearOfExperience: 1,
         maxPoints: 3,
       },
       {
-        name: "Communication",
+        skill: "Communication",
         pointsPerYearOfExperience: 1,
         maxPoints: 2,
       },
@@ -168,10 +168,10 @@ const CriteriaManagerPage = () => {
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
     {
-      field: "keywords",
-      headerName: "Keywords",
-      valueGetter: (value: Keyword[]) => {
-        const targetTexts = value.map((element: Keyword) => element.name);
+      field: "rules",
+      headerName: "Rules",
+      valueGetter: (value: Rule[]) => {
+        const targetTexts = value.map((element: Rule) => element.skill);
         return targetTexts.join(", ");
       },
       minWidth: 200,

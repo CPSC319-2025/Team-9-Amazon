@@ -15,7 +15,7 @@ interface AddCriteriaDialogProps {
   onClose: () => void;
   onAdd: (
     name: string,
-    keywords: {
+    rules: {
       name: string;
       pointsPerYearOfExperience: number;
       maxPoints: number;
@@ -29,13 +29,13 @@ export const AddCriteriaDialog = ({
   onAdd,
 }: AddCriteriaDialogProps) => {
   const [name, setName] = useState("");
-  const [keywords, setKeywords] = useState([
+  const [rules, setRules] = useState([
     { name: "", pointsPerYearOfExperience: 1, maxPoints: 5 },
   ]);
-  const [errors, setErrors] = useState({ name: "", keywords: [] as string[] });
+  const [errors, setErrors] = useState({ name: "", rules: [] as string[] });
 
   const validateFields = () => {
-    const newErrors = { name: "", keywords: [] as string[] };
+    const newErrors = { name: "", rules: [] as string[] };
     let isValid = true;
 
     if (!name.trim()) {
@@ -43,9 +43,9 @@ export const AddCriteriaDialog = ({
       isValid = false;
     }
 
-    keywords.forEach((keyword, index) => {
-      if (!keyword.name.trim()) {
-        newErrors.keywords[index] = "Keyword name is required";
+    rules.forEach((rule, index) => {
+      if (!rule.name.trim()) {
+        newErrors.rules[index] = "Rule name is required";
         isValid = false;
       }
     });
@@ -54,32 +54,32 @@ export const AddCriteriaDialog = ({
     return isValid;
   };
 
-  const handleAddKeyword = () => {
-    setKeywords([
-      ...keywords,
+  const handleAddRule = () => {
+    setRules([
+      ...rules,
       { name: "", pointsPerYearOfExperience: 1, maxPoints: 5 },
     ]);
   };
 
-  const handleRemoveKeyword = (index: number) => {
-    setKeywords(keywords.filter((_, i) => i !== index));
+  const handleRemoveRule = (index: number) => {
+    setRules(rules.filter((_, i) => i !== index));
   };
 
-  const handleKeywordChange = (
+  const handleRuleChange = (
     index: number,
     field: string,
     value: string | number
   ) => {
-    const newKeywords = [...keywords];
-    newKeywords[index] = { ...newKeywords[index], [field]: value };
-    setKeywords(newKeywords);
+    const newRules = [...rules];
+    newRules[index] = { ...newRules[index], [field]: value };
+    setRules(newRules);
   };
 
   const handleSave = () => {
     if (validateFields()) {
-      onAdd(name, keywords);
+      onAdd(name, rules);
       setName("");
-      setKeywords([{ name: "", pointsPerYearOfExperience: 1, maxPoints: 5 }]);
+      setRules([{ name: "", pointsPerYearOfExperience: 1, maxPoints: 5 }]);
     }
   };
 
@@ -97,25 +97,25 @@ export const AddCriteriaDialog = ({
           sx={{ mt: 2, mb: 3 }}
         />
 
-        {keywords.map((keyword, index) => (
+        {rules.map((rule, index) => (
           <Box key={index} sx={{ mb: 2 }}>
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
               <TextField
                 fullWidth
-                label="Keyword"
-                value={keyword.name}
+                label="Rule"
+                value={rule.name}
                 onChange={(e) =>
-                  handleKeywordChange(index, "name", e.target.value)
+                  handleRuleChange(index, "name", e.target.value)
                 }
-                error={!!errors.keywords[index]}
-                helperText={errors.keywords[index]}
+                error={!!errors.rules[index]}
+                helperText={errors.rules[index]}
               />
               <TextField
                 type="number"
                 label="Points/Match"
-                value={keyword.pointsPerYearOfExperience}
+                value={rule.pointsPerYearOfExperience}
                 onChange={(e) =>
-                  handleKeywordChange(
+                  handleRuleChange(
                     index,
                     "pointsPerYearOfExperience",
                     parseInt(e.target.value) || 0
@@ -126,9 +126,9 @@ export const AddCriteriaDialog = ({
               <TextField
                 type="number"
                 label="Max Points"
-                value={keyword.maxPoints}
+                value={rule.maxPoints}
                 onChange={(e) =>
-                  handleKeywordChange(
+                  handleRuleChange(
                     index,
                     "maxPoints",
                     parseInt(e.target.value) || 0
@@ -137,19 +137,19 @@ export const AddCriteriaDialog = ({
                 sx={{ width: "150px" }}
               />
             </Box>
-            {keywords.length > 1 && (
+            {rules.length > 1 && (
               <Button
-                onClick={() => handleRemoveKeyword(index)}
+                onClick={() => handleRemoveRule(index)}
                 sx={{ color: colors.black1 }}
               >
-                Remove Keyword
+                Remove Rule
               </Button>
             )}
           </Box>
         ))}
 
-        <Button onClick={handleAddKeyword} sx={{ color: colors.blue1, mt: 2 }}>
-          Add Keyword
+        <Button onClick={handleAddRule} sx={{ color: colors.blue1, mt: 2 }}>
+          Add Rule
         </Button>
       </DialogContent>
       <DialogActions>

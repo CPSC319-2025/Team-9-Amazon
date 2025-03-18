@@ -6,79 +6,105 @@ import {
   Snackbar,
   Alert,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { colors, paperStyle } from "../../styles/commonStyles";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { ApplicantList } from "../../components/HiringManager/Applicants/ApplicantList";
 import { useState, useMemo } from "react";
-import { Applicant } from "../../types/applicant";
-import { mockApplicants, mockDatabaseCandidates } from "../../utils/mockData";
+import { useParams } from "react-router";
+import {
+  useGetApplicationsSummary,
+  useGetPotentialCandidates,
+} from "../../queries/jobPosting";
+import { ApplicationSummary } from "../../types/application";
 
 const JobPostingApplicationsPage = () => {
-  const [applicants, setApplicants] = useState<Applicant[]>(mockApplicants);
-  const [databaseCandidates, setDatabaseCandidates] = useState<Applicant[]>([]);
-  const [scanned, setScanned] = useState(false);
+  const { jobPostingId } = useParams<{ jobPostingId: string }>();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAscending, setSortAscending] = useState(false);
+  const [scanned, setScanned] = useState(false);
 
-  // Check if applicants have been evaluated
-  const hasEvaluatedApplicants = useMemo(() => {
-    return applicants.some((applicant) => applicant.score !== undefined);
-  }, [applicants]);
+  const {
+    data: summaryData,
+    isLoading,
+    error,
+  } = useGetApplicationsSummary(jobPostingId || "");
 
-  // Filter applicants based on search term
-  const filteredApplicants = useMemo(() => {
-    return applicants.filter((applicant) => {
+  // Fetch potential candidates on demand
+  const {
+    data: potentialCandidatesData,
+    isLoading: isScanning,
+    error: scanError,
+    refetch: fetchPotentialCandidates,
+  } = useGetPotentialCandidates(jobPostingId || "");
+
+  // Store potential candidates separately
+  const [potentialCandidates, setPotentialCandidates] = useState<
+    ApplicationSummary[]
+  >([]);
+
+  // Filter and sort applications based on search term and sort direction
+  const filteredApplications = useMemo(() => {
+    if (!summaryData?.applications) return [];
+
+    let filtered = summaryData.applications.filter((application) => {
       const fullName =
-        `${applicant.first_name} ${applicant.last_name}`.toLowerCase();
+        `${application.applicant.firstName} ${application.applicant.lastName}`.toLowerCase();
       return (
         fullName.includes(searchTerm.toLowerCase()) ||
-        applicant.email.toLowerCase().includes(searchTerm.toLowerCase())
+        application.applicant.email
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
       );
     });
-  }, [applicants, searchTerm]);
 
-  // Filter database candidates based on search term and existing applicants
-  const filteredDatabaseCandidates = useMemo(() => {
-    return databaseCandidates.filter((candidate) => {
-      // First filter out candidates that are already in applicants list
-      const isNotInApplicants = !applicants.some(
-        (a) => a.email === candidate.email
-      );
-      if (!isNotInApplicants) return false;
-
-      // Then apply search term filter
-      const fullName =
-        `${candidate.first_name} ${candidate.last_name}`.toLowerCase();
-      return (
-        fullName.includes(searchTerm.toLowerCase()) ||
-        candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    return filtered.sort((a: ApplicationSummary, b: ApplicationSummary) => {
+      return sortAscending ? a.score - b.score : b.score - a.score;
     });
-  }, [databaseCandidates, applicants, searchTerm]);
+  }, [summaryData?.applications, searchTerm, sortAscending]);
 
-  const handleEvaluateAll = () => {
-    const evaluatedApplicants = applicants.map((applicant) => ({
-      ...applicant,
-      score: Math.floor(Math.random() * 31) + 150,
-      total_score: 180,
-    }));
-    setApplicants(evaluatedApplicants);
-    setSnackbarMessage("All applicants have been evaluated");
-    setSnackbarOpen(true);
-  };
+  // Filter and sort potential candidates
+  const filteredPotentialCandidates = useMemo(() => {
+    if (!potentialCandidates) return [];
 
-  const handleScanDatabase = () => {
-    // When scanning, only add candidates that aren't already in the applicants list
-    const newCandidates = mockDatabaseCandidates.filter(
-      (candidate) => !applicants.some((a) => a.email === candidate.email)
-    );
-    setDatabaseCandidates(newCandidates);
+    return potentialCandidates
+      .filter((candidate) => {
+        const fullName =
+          `${candidate.applicant.firstName} ${candidate.applicant.lastName}`.toLowerCase();
+        return (
+          fullName.includes(searchTerm.toLowerCase()) ||
+          candidate.applicant.email
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+        );
+      })
+      .sort((a, b) => (sortAscending ? a.score - b.score : b.score - a.score));
+  }, [potentialCandidates, searchTerm, sortAscending]);
+
+  // Handle scanning database for candidates
+  const handleScanDatabase = async () => {
     setScanned(true);
-    setSnackbarMessage("Database scan complete");
+    setSnackbarMessage("Scanning database for potential candidates...");
+    setSnackbarOpen(true);
+
+    try {
+      const result = await fetchPotentialCandidates();
+      if (result?.data?.applications) {
+        setPotentialCandidates(result.data.applications);
+        setSnackbarMessage(
+          "Database scan complete. Potential candidates found."
+        );
+      } else {
+        setSnackbarMessage("No potential candidates found.");
+      }
+    } catch (error) {
+      setSnackbarMessage("Error scanning database.");
+    }
+
     setSnackbarOpen(true);
   };
 
@@ -87,20 +113,6 @@ const JobPostingApplicationsPage = () => {
   };
 
   const handleSort = () => {
-    const sortFn = (a: Applicant, b: Applicant) => {
-      // Handle cases where score might be undefined
-      const scoreA = a.score ?? -1;
-      const scoreB = b.score ?? -1;
-
-      if (sortAscending) {
-        return scoreA - scoreB;
-      } else {
-        return scoreB - scoreA;
-      }
-    };
-
-    setApplicants([...applicants].sort(sortFn));
-    setDatabaseCandidates([...databaseCandidates].sort(sortFn));
     setSortAscending(!sortAscending);
     setSnackbarMessage(
       `Sorted by score ${sortAscending ? "ascending" : "descending"}`
@@ -108,34 +120,51 @@ const JobPostingApplicationsPage = () => {
     setSnackbarOpen(true);
   };
 
-  const handleViewApplicant = (email: string) => {
-    console.log("Viewing applicant:", email);
-  };
-
-  const handleAddCandidate = (email: string) => {
-    const candidate = databaseCandidates.find((c) => c.email === email);
-    if (candidate && !applicants.some((a) => a.email === email)) {
-      setApplicants((prev) => [...prev, candidate]);
-      setDatabaseCandidates((prev) => prev.filter((c) => c.email !== email));
-      setSnackbarMessage(
-        "Candidate was successfully added to the applicants pool"
-      );
-      setSnackbarOpen(true);
-    }
-  };
-
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">
+          Error loading applications. Please try again later.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const hasEvaluatedApplicants = summaryData?.applications.some(
+    (app) => app.score !== undefined
+  );
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
-          <ActionButtons
-            onEvaluateAll={handleEvaluateAll}
-            onScanDatabase={handleScanDatabase}
-          />
+          <ActionButtons onScanDatabase={handleScanDatabase} />
           <SearchBar
             placeholder="Search applicants..."
             onSearch={handleSearch}
@@ -147,21 +176,33 @@ const JobPostingApplicationsPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={scanned ? 6 : 12}>
             <Paper elevation={0} sx={paperStyle}>
-              <Typography
-                variant="h5"
-                component="h1"
-                sx={{ mb: 3, color: colors.black1 }}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3,
+                }}
               >
-                Applications
-              </Typography>
-              <ApplicantList
-                applicants={filteredApplicants}
-                onViewApplicant={handleViewApplicant}
-              />
+                <Typography
+                  variant="h5"
+                  component="h1"
+                  sx={{ mb: 3, color: colors.black1 }}
+                >
+                  Applications ({summaryData?.totalApplications || 0})
+                </Typography>
+                {summaryData?.totalPossibleScore && (
+                  <Typography variant="subtitle1" sx={{ color: colors.gray2 }}>
+                    Maximum Possible Score: {summaryData.totalPossibleScore}
+                  </Typography>
+                )}
+              </Box>
+              <ApplicantList applications={filteredApplications} />
             </Paper>
           </Grid>
 
-          {scanned && filteredDatabaseCandidates.length > 0 && (
+          {/* Potential Candidates Section */}
+          {scanned && filteredPotentialCandidates.length > 0 && (
             <Grid item xs={12} md={6}>
               <Paper
                 elevation={0}
@@ -175,14 +216,17 @@ const JobPostingApplicationsPage = () => {
                   component="h1"
                   sx={{ mb: 3, color: colors.black1 }}
                 >
-                  Potential Candidates{" "}
+                  Top 10 Potential Candidates
                 </Typography>
-                <ApplicantList
-                  applicants={filteredDatabaseCandidates}
-                  onViewApplicant={handleViewApplicant}
-                  onAddCandidate={handleAddCandidate}
-                  showAddButton
-                />
+                {isScanning ? (
+                  <CircularProgress />
+                ) : scanError ? (
+                  <Typography color="error">
+                    Error fetching candidates.
+                  </Typography>
+                ) : (
+                  <ApplicantList applications={filteredPotentialCandidates} />
+                )}
               </Paper>
             </Grid>
           )}
@@ -203,9 +247,7 @@ const JobPostingApplicationsPage = () => {
             width: "100%",
             bgcolor: colors.blue1,
             color: "white",
-            "& .MuiAlert-icon": {
-              color: "white",
-            },
+            "& .MuiAlert-icon": { color: "white" },
           }}
         >
           {snackbarMessage}

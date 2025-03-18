@@ -16,6 +16,10 @@ import { fetchWithAuth } from "../api/apiUtils";
 import { criteriaKeys } from "./criteria";
 import { JobPosting } from "../types/JobPosting/jobPosting";
 import { JobPostingAttributes, JobPostingCreationRequest, JobPostingEditRequest, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
+import {
+  ApplicationsSummaryResponse,
+  PotentialCandidatesResponse,
+} from "../types/application";
 
 // Query keys
 export const jobPostingKeys = {
@@ -268,6 +272,52 @@ export const useDeleteJobPostingCriteria = (jobPostingId: string) => {
         queryKey: criteriaKeys.jobPosting(jobPostingId),
       });
     },
+  });
+};
+
+export const useGetApplicationsSummary = (jobPostingId: string) => {
+  return useQuery({
+    queryKey: ["applications", "summary", jobPostingId],
+    queryFn: async () => {
+      const response = await fetchWithAuth(
+        apiUrls.getJobPostingApplicationsSummaryUrl.replace(
+          ":jobPostingId",
+          jobPostingId
+        )
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch applications summary");
+      }
+
+      return response.json() as Promise<ApplicationsSummaryResponse>;
+    },
+    enabled: !!jobPostingId,
+  });
+};
+
+export const useGetPotentialCandidates = (jobPostingId: string) => {
+  return useQuery({
+    queryKey: ["potentialCandidates", jobPostingId],
+    queryFn: async () => {
+      if (!jobPostingId) {
+        throw new Error("Job posting ID is required");
+      }
+
+      const url = apiUrls.getJobPostingPotentialCandidatesUrl.replace(
+        ":jobPostingId",
+        jobPostingId
+      );
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch potential candidates");
+      }
+
+      return response.json() as Promise<PotentialCandidatesResponse>;
+    },
+    enabled: !!jobPostingId, // Only fetch when jobPostingId is available
   });
 };
 
