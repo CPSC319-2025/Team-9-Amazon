@@ -166,7 +166,7 @@ export default function JobApplication() {
             from: exp.startDate,
             to: exp.endDate,
             role_description: exp.description,
-            skills: exp.skills.join(", "),
+            skills: "",
           }));
 
           setWorkExperience(formattedExperiences);

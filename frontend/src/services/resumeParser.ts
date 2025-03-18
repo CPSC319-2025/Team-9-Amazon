@@ -46,7 +46,6 @@ export async function parseResume(file: File): Promise<ParsedResume> {
                     "company": "Company Name",
                     "startDate": "MM/YYYY",
                     "endDate": "MM/YYYY or leave blank if the job is ongoing",
-                    "skills": ["Skill1", "Skill2"],
                     "description": "Job description"
                     }
                 ]
