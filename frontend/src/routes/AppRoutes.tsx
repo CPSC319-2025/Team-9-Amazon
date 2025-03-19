@@ -68,13 +68,16 @@ const AppRoutes = () => {
             path={ROUTES.hiringManager.reports(":jobPostingId")}
             element={<JobReportsPage />}
           />
-          <Route path="candidate-report/:candidateEmail" element={<CandidateReportPage />} />
+          <Route
+            path="candidate-report/:candidateEmail"
+            element={<CandidateReportPage />}
+          />
         </Route>
 
         {/* Applicant Module */}
         <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
-          <Route path="apply/:id" element={<JobApplication />} />{" "}
+          <Route path="apply/:jobPostingId" element={<JobApplication />} />{" "}
           {/* Move inside */}
         </Route>
 

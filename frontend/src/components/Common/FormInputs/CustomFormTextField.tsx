@@ -2,10 +2,9 @@ import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { TextField } from "@mui/material";
 
 interface CustomFormTextFieldProps {
-  label: string;
+  label?: string;
   name: string;
-  placeholder: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  placeholder?: string;
   register: UseFormRegister<any>;
   errors?: FieldErrors;
   required?: boolean;
@@ -20,16 +19,18 @@ export default function CustomFormTextField(props: CustomFormTextFieldProps) {
         placeholder={props.placeholder}
         required={props.required}
         error={Boolean(props.errors && props.errors[props.name])}
-        helperText={props.errors && props.errors[props.name]?.message as string}
-        sx={{ 
-          width: '100%',
-          '& .MuiOutlinedInput-root': {
-            '&.Mui-focused fieldset': {
-              borderColor: '#FF9900',
+        helperText={
+          props.errors && (props.errors[props.name]?.message as string)
+        }
+        sx={{
+          width: "100%",
+          "& .MuiOutlinedInput-root": {
+            "&.Mui-focused fieldset": {
+              borderColor: "#FF9900",
             },
           },
-          '& .MuiInputLabel-root.Mui-focused': {
-            color: '#FF9900',
+          "& .MuiInputLabel-root.Mui-focused": {
+            color: "#FF9900",
           },
         }}
       />
