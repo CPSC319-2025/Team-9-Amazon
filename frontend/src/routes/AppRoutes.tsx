@@ -83,6 +83,7 @@ const AppRoutes = () => {
         <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />
+          <Route path="details/:jobPostingId" element={<JobDetails />} />
         </Route>
 
         {/* Admin Routes */}

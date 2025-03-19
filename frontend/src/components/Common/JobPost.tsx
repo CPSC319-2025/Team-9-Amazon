@@ -1,4 +1,5 @@
 import CustomButton from './Buttons/CustomButton';
+//import { useNavigate } from 'react-router';
 
 export interface Job {
   id: string;
@@ -20,6 +21,7 @@ interface JobPostProps {
 }
 
 export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
+  //const navigate = useNavigate();
   return (
     <div 
       className="flex flex-col gap-4 w-[450px] rounded-xl p-4 
@@ -40,6 +42,7 @@ export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
         <CustomButton
           variant='outlined'
           onClick={onLearnMore}
+          //onClick={() => navigate(`/job-details/${job.id}`)}
         >
           Learn More
         </CustomButton>

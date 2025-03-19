@@ -1,4 +1,4 @@
-import { useOutletContext, useParams, useSearchParams } from "react-router";
+import { useOutletContext, useParams, useSearchParams, useNavigate} from "react-router";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,17 +34,17 @@ const applicationSchema = z.object({
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
-    .array(
-      z.object({
-        job_title: z.string().min(1, "Job Title is required"),
-        company: z.string().min(1, "Company is required"),
-        from: z.string().min(1, "Start date is required"),
-        to: z.string().optional().nullable(),
-        role_description: z.string().optional(),
-        skills: z.string().min(1, "Skills are required"),
-      })
-    )
-    .optional(),
+  .array(
+    z.object({
+      job_title: z.string().min(1, "Job Title is required"),
+      company: z.string().min(1, "Company is required"),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional().nullable(),  
+      role_description: z.string().optional(),
+      skills: z.array(z.string()).min(1, "At least one skill is required"),
+    })
+  )
+  .min(1, "At least one work experience is required"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -80,6 +80,7 @@ export default function JobApplication() {
   const { data: skills, isLoading: skillsLoading, error: skillsError } = useGetSkills();
   const [selectedSkills, setSelectedSkills] = useState<{ [key: number]: string[] }>({});
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   type WorkExperienceEntry = {
     job_title: string;
@@ -87,8 +88,17 @@ export default function JobApplication() {
     from: string;
     to?: string;
     role_description?: string;
-    skills: string;
+    skills: string[];
   };
+
+  interface ExperienceEntry {
+    title: string;
+    company: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+    skills?: string | string[];
+  }
 
   const [workExperience, setWorkExperience] = useState<WorkExperienceEntry[]>(
     []
@@ -96,6 +106,9 @@ export default function JobApplication() {
 
   const applicationForm = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      work_experience: [], 
+    },
   });
 
   const {
@@ -114,13 +127,23 @@ export default function JobApplication() {
         job_title: "",
         company: "",
         from: "",
-        skills: "",
+        skills: [],
       },
     ]);
   };
 
   const removeWorkExperience = (index: number) => {
-    setWorkExperience((prev) => prev.filter((_, i) => i !== index));
+    // Update local state
+  setWorkExperience((prev) => prev.filter((_, i) => i !== index));
+
+  // Get current form values
+  const currentWorkExperience = applicationForm.getValues("work_experience") || [];
+
+  // Remove the selected work experience entry
+  const updatedWorkExperience = currentWorkExperience.filter((_, i) => i !== index);
+
+  // Update form state
+  setValue("work_experience", updatedWorkExperience);
   };
 
   const convertFileToBase64 = (file: File): Promise<string> => {
@@ -143,13 +166,13 @@ export default function JobApplication() {
     if (file) {
       if (
         !file.type.match(
-          "application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|application/pdf"
+          "application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
       ) {
         applicationForm.setError("resume", {
           type: "manual",
           message:
-            "Please upload only PDF or Word documents (.pdf, .doc, .docx)",
+            "Please upload only Word documents (.doc, .docx)",
         });
         return;
       }
@@ -163,15 +186,19 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
-          const parsedData = await parseResume(file);
+          //const parsedData = await parseResume(file);
+          const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
-          const formattedExperiences = parsedData.experiences.map((exp) => ({
+          const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
+            //const formattedExperiences = parsedData.experiences.map((exp) =>
             job_title: exp.title,
             company: exp.company,
             from: exp.startDate,
             to: exp.endDate,
             role_description: exp.description,
-            skills: "",
+            skills: Array.isArray(exp.skills) 
+            ? exp.skills.flat()  
+            : exp.skills ? [exp.skills] : [],
           }));
 
           setWorkExperience(formattedExperiences);
@@ -189,7 +216,8 @@ export default function JobApplication() {
               `work_experience.${index}.role_description`,
               exp.role_description || ""
             );
-            setValue(`work_experience.${index}.skills`, exp.skills);
+            setValue(`work_experience.${index}.skills`, Array.isArray(exp.skills) ? exp.skills.flat() : exp.skills ? [exp.skills] : []);
+
           });
         }
       } catch (error) {
@@ -207,6 +235,10 @@ export default function JobApplication() {
       const applicationPayload = {
         ...data,
         jobPostingId: jobPostingId || "",
+        work_experience: data.work_experience?.map((exp) => ({
+          ...exp,
+          skills: exp.skills?.join(", ") || "",
+        })),
       };
 
       const result = await createApplication.mutateAsync(applicationPayload);
@@ -380,18 +412,21 @@ export default function JobApplication() {
                   name={`work_experience.${index}.job_title`}
                   placeholder="Software Engineer"
                   register={register}
+                  errors={errors}
                 />
                 <CustomFormTextField
                   label="Company"
                   name={`work_experience.${index}.company`}
                   placeholder="AWS"
                   register={register}
+                  errors={errors}
                 />
                 <CustomFormTextField
                   label="Start Date"
                   name={`work_experience.${index}.from`}
                   register={register}
                   placeholder="MM/YYYY"
+                  errors={errors}
                 />
                 <CustomFormTextField
                   label="End Date"
@@ -431,12 +466,12 @@ export default function JobApplication() {
                                   checked={selectedSkills[index]?.includes(skill.name) || false}
                                   onChange={(e) => {
                                     const updatedSkills: string[] = e.target.checked
-                                      ? [...(selectedSkills[index] || []), skill.name] // ✅ Add skill
-                                      : (selectedSkills[index] || []).filter((s) => s !== skill.name); // ✅ Remove skill
+                                      ? [...(selectedSkills[index] || []), skill.name] 
+                                      : (selectedSkills[index] || []).filter((s) => s !== skill.name); 
 
                                     setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
                                     
-                                    setValue(`work_experience.${index}.skills`, updatedSkills as unknown as string);
+                                    setValue(`work_experience.${index}.skills`, updatedSkills as string[]);
                                   }}
                                   className="rounded text-blue-500 focus:ring-2 focus:ring-blue-400"
                                 />
@@ -462,7 +497,7 @@ export default function JobApplication() {
                               const updatedSkills: string[] = selectedSkills[index].filter((s) => s !== skill);
 
                               setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
-                              setValue(`work_experience.${index}.skills`, updatedSkills as unknown as string);
+                              setValue(`work_experience.${index}.skills`, updatedSkills as string[]);
                             }}
                           >
                             ✕
@@ -544,6 +579,7 @@ export default function JobApplication() {
               className="min-w-[50px]"
               onClick={() => {
                 setIsModalOpen(false);
+                navigate("/applicant/job-postings");
               }}
             >
               OK
