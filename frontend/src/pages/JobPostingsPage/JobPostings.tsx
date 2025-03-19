@@ -146,7 +146,6 @@ export default function JobPostings() {
               key={job.id}
               job={job}
               onLearnMore={() => handleJobClick(job)}
-              //onApply={() => navigate(`/applicant/job-postings/apply/${job.id}`)}
               onApply={() =>
                 navigate(
                   `apply/${job.id}?title=${encodeURIComponent(job.title)}`
