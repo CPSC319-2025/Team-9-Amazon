@@ -9,6 +9,7 @@ import CustomButton from "../../components/Common/Buttons/CustomButton";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 import { parseResume } from "../../services/resumeParser";
 import { useCreateApplication } from "../../queries/application";
+import { useGetSkills } from "../../queries/skill";
 
 type ContextType = {
   setHeaderTitle: (title: string) => void;
@@ -75,6 +76,10 @@ export default function JobApplication() {
   const [showWorkExperience, setShowWorkExperience] = useState(false);
 
   const createApplication = useCreateApplication();
+
+  const { data: skills, isLoading: skillsLoading, error: skillsError } = useGetSkills();
+  const [selectedSkills, setSelectedSkills] = useState<{ [key: number]: string[] }>({});
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   type WorkExperienceEntry = {
     job_title: string;
@@ -280,7 +285,7 @@ export default function JobApplication() {
           required
         />
         <CustomFormTextField
-          label="Personal Links (LinkedIn, GitHub, etc.)"
+          label="LinkedIn"
           name="personal_links"
           placeholder="https://linkedin.com/in/your-profile"
           register={register}
@@ -371,19 +376,19 @@ export default function JobApplication() {
                 </button>
 
                 <CustomFormTextField
-                  label="Title *"
+                  label="Title"
                   name={`work_experience.${index}.job_title`}
                   placeholder="Software Engineer"
                   register={register}
                 />
                 <CustomFormTextField
-                  label="Company *"
+                  label="Company"
                   name={`work_experience.${index}.company`}
                   placeholder="AWS"
                   register={register}
                 />
                 <CustomFormTextField
-                  label="Start Date *"
+                  label="Start Date"
                   name={`work_experience.${index}.from`}
                   register={register}
                   placeholder="MM/YYYY"
@@ -394,12 +399,80 @@ export default function JobApplication() {
                   register={register}
                   placeholder="MM/YYYY (leave blank if role hasn't terminated)"
                 />
-                <CustomFormTextField
-                  label="Skills *"
-                  name={`work_experience.${index}.skills`}
-                  placeholder="JavaScript, React, Node.js"
-                  register={register}
-                />
+                
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Skills *</label>
+
+                  {/* Dropdown Button */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 flex justify-between items-center"
+                    >
+                      {selectedSkills[index]?.length > 0 ? selectedSkills[index].join(", ") : "Select Skills"}
+                      <span className="ml-2">▼</span>
+                    </button>
+
+                    {/* Dropdown Menu (Scrollable Checkboxes) */}
+                    {dropdownOpen && (
+                      <div className="absolute w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-y-auto z-10">
+                        {skillsLoading ? (
+                          <p className="p-2">Loading skills...</p>
+                        ) : skillsError ? (
+                          <p className="p-2 text-red-500">Error fetching skills</p>
+                        ) : (
+                          <div className="p-2">
+                            {skills?.map((skill) => (
+                              <label key={skill.skillId} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  value={skill.name}
+                                  checked={selectedSkills[index]?.includes(skill.name) || false}
+                                  onChange={(e) => {
+                                    const updatedSkills: string[] = e.target.checked
+                                      ? [...(selectedSkills[index] || []), skill.name] // ✅ Add skill
+                                      : (selectedSkills[index] || []).filter((s) => s !== skill.name); // ✅ Remove skill
+
+                                    setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
+                                    
+                                    setValue(`work_experience.${index}.skills`, updatedSkills as unknown as string);
+                                  }}
+                                  className="rounded text-blue-500 focus:ring-2 focus:ring-blue-400"
+                                />
+                                {skill.name}
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Display Selected Skills */}
+                  {selectedSkills[index]?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedSkills[index].map((skill, i) => (
+                        <div key={i} className="bg-gray-200 px-3 py-1 rounded-md flex items-center gap-2">
+                          <span>{skill}</span>
+                          <button
+                            type="button"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => {
+                              const updatedSkills: string[] = selectedSkills[index].filter((s) => s !== skill);
+
+                              setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
+                              setValue(`work_experience.${index}.skills`, updatedSkills as unknown as string);
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
                 <textarea
                   {...register(`work_experience.${index}.role_description`)}
                   placeholder="Describe your responsibilities and achievements *"
