@@ -13,7 +13,10 @@ export interface LoginResponse {
   };
 }
 
-export const login = async (email: string, password: string): Promise<LoginResponse> => {
+export const login = async (
+  email: string,
+  password: string
+): Promise<LoginResponse> => {
   const response = await fetch(apiUrls.loginUrl, {
     method: "POST",
     headers: {

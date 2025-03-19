@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import HomePage from "../pages/HomePageApplicant";
-import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
@@ -20,36 +19,42 @@ import CreateJobPostingPage from "../pages/HiringManager/CreateJobPostingPage";
 import AccountManagerPage from "../pages/Admin/AccountManagerPage";
 import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
+import RoleProtectedRoute from "./RoleProtectedRoute";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <TopNavbar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/applicant" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Hiring Manager Routes */}
         <Route
           path={ROUTES.hiringManager.hiringManagerDashboard}
           element={
-            <ProtectedRoute>
+            <RoleProtectedRoute requiredRole="hiringManager">
               <HiringManagerDashboardPage />
-            </ProtectedRoute>
+            </RoleProtectedRoute>
           }
         />
 
         <Route
           path={ROUTES.hiringManager.hiringManagerCreateJob}
           element={
-            <ProtectedRoute>
+            <RoleProtectedRoute requiredRole="hiringManager">
               <CreateJobPostingPage />
-            </ProtectedRoute>
+            </RoleProtectedRoute>
           }
         />
 
         <Route
           path={ROUTES.hiringManager.jobPosting(":jobPostingId")}
-          element={<HiringManagerLayout />}
+          element={
+            <RoleProtectedRoute requiredRole="hiringManager">
+              <HiringManagerLayout />
+            </RoleProtectedRoute>
+          }
         >
           <Route index element={<JobDetails />} />
           <Route
@@ -75,15 +80,36 @@ const AppRoutes = () => {
         </Route>
 
         {/* Applicant Module */}
-        <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
+        <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
-          <Route path="apply/:jobPostingId" element={<JobApplication />} />{" "}
-          {/* Move inside */}
+          <Route path="apply/:jobPostingId" element={<JobApplication />} />
         </Route>
 
-        <Route path="/user-management" element={<AccountManagerPage />} />
-        <Route path="/criteria-management" element={<CriteriaManagerPage />} />
-        <Route path="/criteria-details" element={<CriteriaDetailsPage />} />
+        {/* Admin Routes */}
+        <Route
+          path="/admin/user-management"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <AccountManagerPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/criteria-management"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <CriteriaManagerPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/criteria-details"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <CriteriaDetailsPage />
+            </RoleProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
