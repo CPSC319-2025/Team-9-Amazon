@@ -186,10 +186,16 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
+<<<<<<< HEAD
 
           //const parsedData = await parseResume(file);
           const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
+=======
+          //const parsedData = await parseResume(file);
+          const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
+
+>>>>>>> 36da5de (resume upload and inc req body payload limit)
           const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
             //const formattedExperiences = parsedData.experiences.map((exp) =>
             job_title: exp.title,
@@ -568,11 +574,27 @@ export default function JobApplication() {
               <h2 className="text-xl text-red-600">Application Failed</h2>
               <p>{errorMessage}</p>
             </div>
-          ) : (
+          ) : (<div>
             <div className="flex flex-col gap-2 items-center">
               <h2 className="text-xl">Application Submitted for</h2>
               <h2 className="text-xl">{job?.title}</h2>
             </div>
+            <div className="flex flex-col gap-2">
+              <p>
+                <span className="font-semibold">Name:</span>{" "}
+                {applicationForm.getValues().first_name}{" "}
+                {applicationForm.getValues().last_name}
+              </p>
+              <p>
+                <span className="font-semibold">Email:</span>{" "}
+                {applicationForm.getValues().email}
+              </p>
+              <p>
+                <span className="font-semibold">Phone:</span>{" "}
+                {formatPhoneNumber(applicationForm.getValues().phone)}
+              </p>
+            </div>
+          </div>
           )}
           <div className="flex justify-end">
             <CustomButton
