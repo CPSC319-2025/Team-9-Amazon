@@ -26,7 +26,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <TopNavbar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/applicant" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route
@@ -75,7 +75,7 @@ const AppRoutes = () => {
         </Route>
 
         {/* Applicant Module */}
-        <Route path="/applicant/job-postings" element={<JobPostingsPage />}>
+        <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />{" "}
           {/* Move inside */}
