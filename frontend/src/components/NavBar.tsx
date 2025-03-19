@@ -18,7 +18,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import WorkIcon from "@mui/icons-material/Work";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ FIXED
+import { Link, useLocation, useNavigate } from "react-router";
 import { ROUTES } from "../routes/routePaths";
 import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
