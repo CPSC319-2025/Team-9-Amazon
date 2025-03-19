@@ -35,7 +35,12 @@ const TopNavbar = () => {
   const shouldShowLoginButton =
     !isLoggedIn &&
     location.pathname !== "/login" &&
-    !location.pathname.startsWith("/applicant/");
+    !location.pathname.startsWith("/applicant");
+
+  const shouldShowAccountButton =
+    isLoggedIn &&
+    location.pathname !== "/login" &&
+    !location.pathname.startsWith("/applicant");
 
   useEffect(() => {
     const checkAuth = () => {
@@ -104,7 +109,7 @@ const TopNavbar = () => {
         </Box>
 
         {/* Show either Login button or Profile Avatar based on login status */}
-        {isLoggedIn ? (
+        {shouldShowAccountButton ? (
           <>
             <IconButton onClick={handleMenuOpen}>
               <Avatar />
