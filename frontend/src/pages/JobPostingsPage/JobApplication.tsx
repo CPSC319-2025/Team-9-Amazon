@@ -186,6 +186,7 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
+
           //const parsedData = await parseResume(file);
           const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
