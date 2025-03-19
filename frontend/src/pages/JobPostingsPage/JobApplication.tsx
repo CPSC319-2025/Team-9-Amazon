@@ -186,16 +186,9 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
-<<<<<<< HEAD
-
           //const parsedData = await parseResume(file);
           const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
-=======
-          //const parsedData = await parseResume(file);
-          const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
-
->>>>>>> 36da5de (resume upload and inc req body payload limit)
           const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
             //const formattedExperiences = parsedData.experiences.map((exp) =>
             job_title: exp.title,
