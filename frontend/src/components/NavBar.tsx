@@ -22,13 +22,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ FIXED
 import { ROUTES } from "../routes/routePaths";
 import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
-
-interface DecodedToken {
-  id: number;
-  email: string;
-  isAdmin: boolean;
-  isHiringManager: boolean;
-}
+import { DecodedToken } from "../types/utils";
 
 const TopNavbar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -101,7 +95,7 @@ const TopNavbar = () => {
             isHiringManager
               ? ROUTES.hiringManager.hiringManagerDashboard
               : isAdmin
-              ? "/user-management"
+              ? "admin/user-management"
               : "/applicant/job-postings"
           }
           sx={{ display: "flex", alignItems: "center" }}
@@ -141,7 +135,7 @@ const TopNavbar = () => {
                   <>
                     <ListItemButton
                       component={Link}
-                      to="/user-management"
+                      to="admin/user-management"
                       onClick={handleMenuClose}
                     >
                       <ListItemIcon>
@@ -152,7 +146,7 @@ const TopNavbar = () => {
 
                     <ListItemButton
                       component={Link}
-                      to="/criteria-management"
+                      to="admin/criteria-management"
                       onClick={handleMenuClose}
                     >
                       <ListItemIcon>

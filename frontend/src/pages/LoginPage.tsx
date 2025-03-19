@@ -40,7 +40,7 @@ export default function LoginPage() {
       if (response.staff.isHiringManager) {
         navigate(ROUTES.hiringManager.hiringManagerDashboard);
       } else if (response.staff.isAdmin) {
-        navigate("/user-management");
+        navigate("/admin/user-management");
       } else {
         setError(
           "Access denied. Only hiring managers or Admins can access this system."
