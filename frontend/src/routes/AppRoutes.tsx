@@ -26,7 +26,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <TopNavbar />
       <Routes>
-        <Route path="/applicant" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Hiring Manager Routes */}
