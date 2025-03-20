@@ -152,7 +152,11 @@ export default function JobApplication() {
       reader.readAsDataURL(file);
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          resolve(reader.result);
+          // Remove metadata prefix before sending
+          const base64Data = reader.result.split(",")[1];
+          resolve(base64Data);
+          // use this line in order to incl matedata
+          // resolve(reader.result);
         }
       };
       reader.onerror = (error) => reject(error);
