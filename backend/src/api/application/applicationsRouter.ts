@@ -4,6 +4,8 @@ import Application from "@/database/models/application";
 import { z } from "zod";
 import Database from "@/database/database";
 import { format } from "date-fns";
+import { s3UploadBase64 } from "@/common/utils/awsTools";
+
 
 const router = Router();
 
@@ -30,8 +32,11 @@ const applicationSchema = z.object({
     )
     .optional(),
 });
+
+
 router.post("/", async (req, res) => {
   try {
+    console.log("Received application submission:", req.body);
     // Validate request body
     const data = applicationSchema.parse(req.body);
 
@@ -102,11 +107,14 @@ router.post("/", async (req, res) => {
             throw new Error("You have already applied for this position");
           }
 
+          const resumeFileName = `${data.jobPostingId}_${freshApplicant.get("id")}`;
+          await s3UploadBase64(resumeFileName, data.resume);
+
           // Create the application
           await Application.create({
             jobPostingId: parseInt(data.jobPostingId),
             applicantId: freshApplicant.get("id"),
-            resumePath: data.resume,
+            resumePath: resumeFileName,
             experienceJson: {
               experiences:
                 data.work_experience?.map((exp) => ({

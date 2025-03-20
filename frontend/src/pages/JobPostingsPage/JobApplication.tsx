@@ -152,7 +152,11 @@ export default function JobApplication() {
       reader.readAsDataURL(file);
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          resolve(reader.result);
+          // Remove metadata prefix before sending
+          const base64Data = reader.result.split(",")[1];
+          resolve(base64Data);
+          // use this line in order to incl matedata
+          // resolve(reader.result);
         }
       };
       reader.onerror = (error) => reject(error);
@@ -567,11 +571,27 @@ export default function JobApplication() {
               <h2 className="text-xl text-red-600">Application Failed</h2>
               <p>{errorMessage}</p>
             </div>
-          ) : (
+          ) : (<div>
             <div className="flex flex-col gap-2 items-center">
               <h2 className="text-xl">Application Submitted for</h2>
               <h2 className="text-xl">{job?.title}</h2>
             </div>
+            <div className="flex flex-col gap-2">
+              <p>
+                <span className="font-semibold">Name:</span>{" "}
+                {applicationForm.getValues().first_name}{" "}
+                {applicationForm.getValues().last_name}
+              </p>
+              <p>
+                <span className="font-semibold">Email:</span>{" "}
+                {applicationForm.getValues().email}
+              </p>
+              <p>
+                <span className="font-semibold">Phone:</span>{" "}
+                {formatPhoneNumber(applicationForm.getValues().phone)}
+              </p>
+            </div>
+          </div>
           )}
           <div className="flex justify-end">
             <CustomButton
