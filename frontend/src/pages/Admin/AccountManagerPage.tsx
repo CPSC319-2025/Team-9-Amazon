@@ -7,8 +7,9 @@ import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
 import { FormModal } from "../../components/Common/Modals/FormModal";
-import { useCreateAccount, getAccounts, useEditAccount } from "../../queries/accounts";
+import { useCreateAccount, getAccounts, useEditAccount, useDeleteAccount } from "../../queries/accounts";
 import { AccountRequest } from "../../representations/accounts";
+import { UseMutationResult } from "@tanstack/react-query";
 
 const initialAccountFormData: AccountRequest = {
   email: "",
@@ -34,7 +35,6 @@ const staffDataToAccountsRequest = (staffData: any): AccountRequest => {
 
 const AccountManagerPage = () => {
   const { data: accounts } = getAccounts();
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const [openAddModal, setOpenAddModal] = useState(false);
   const [createAccountFormData, setCreateAccountFormData] =
@@ -44,6 +44,9 @@ const AccountManagerPage = () => {
   const [editAccountId, setEditAccountId] = useState<string>("");
   const [editFormData, setEditFormData] =
     useState<AccountRequest>(initialAccountFormData);
+
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleteAccountId, setDeleteAccountId] = useState<string>("");
   
 
   const handleCloseModal = () => {
@@ -53,7 +56,7 @@ const AccountManagerPage = () => {
   };
 
   const handleDeleteClick = (id: GridRowId) => () => {
-    // setRows(rows.filter((row) => row.id !== id));
+    setDeleteAccountId(id.toString());
     setOpenDeleteModal(true);
   };
 
@@ -164,8 +167,9 @@ const AccountManagerPage = () => {
       <ConfirmationModal
         isOpen={openDeleteModal}
         handleClose={handleCloseModal}
-        titleText="Are you sure your want to delete this account?"
-      />
+        titleText="Are you sure your want to delete this account?" 
+        mutationHook={useDeleteAccount(deleteAccountId)}
+        />
       <FormModal
         dataState={createAccountFormData}
         initialDataState={initialAccountFormData}

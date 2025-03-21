@@ -1,9 +1,9 @@
-import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { CriteriaRepresentation } from "../representations/criteria";
 import { ApiError } from "../representations/error";
 import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
-import { AccountRepresentation, AccountRequest, CreateAccountResponse, EditAccountResponse } from "../representations/accounts";
+import { AccountRepresentation, AccountRequest, CreateAccountResponse, DeleteAccountResponse, EditAccountResponse } from "../representations/accounts";
 
 // Query keys (used for caching)
 export const accountKeys = {
@@ -27,7 +27,7 @@ export const getAccounts = (): UseQueryResult<AccountRepresentation, ApiError> =
   });
 };
 
-export const useCreateAccount = () => {
+export const useCreateAccount = (): UseMutationResult<CreateAccountResponse, Error, AccountRequest, unknown> => {
   const queryClient = useQueryClient();
   return useMutation<CreateAccountResponse, Error, AccountRequest>({
     mutationFn: async (data) => {
@@ -53,7 +53,7 @@ export const useCreateAccount = () => {
   });
 };
 
-export const useEditAccount = (accountId: string) => () => {
+export const useEditAccount = (accountId: string) => (): UseMutationResult<EditAccountResponse, Error, AccountRequest, unknown> => {
   const queryClient = useQueryClient();
   const url = apiUrls.accounts.edit.replace(":accountId", accountId);
   return useMutation<EditAccountResponse, Error, AccountRequest>({
@@ -69,6 +69,29 @@ export const useEditAccount = (accountId: string) => () => {
       if (!response.ok) {
         const errorData = await response.json();
         const message = errorData.details ?? errorData.error ?? "Failed to edit account";
+        throw new Error(message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: accountKeys.all});
+    }
+  });
+};
+
+export const useDeleteAccount = (accountId: string) => (): UseMutationResult<DeleteAccountResponse, Error, unknown, unknown> => {
+  const queryClient = useQueryClient();
+  const url = apiUrls.accounts.delete.replace(":accountId", accountId);
+  return useMutation<DeleteAccountResponse, Error, unknown>({
+    mutationFn: async () => {
+      const response = await fetchWithAuth(url, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData.details ?? errorData.error ?? "Failed to delete account";
         throw new Error(message);
       }
 

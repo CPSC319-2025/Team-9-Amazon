@@ -29,3 +29,6 @@ export interface CreateAccountResponse {
 
 export interface EditAccountResponse {
 }
+
+export interface DeleteAccountResponse {
+}

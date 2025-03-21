@@ -30,5 +30,6 @@ export const apiUrls = {
   accounts: {
     base: `${adminUrl}/accounts`,
     edit: `${adminUrl}/accounts/:accountId`,
+    delete: `${adminUrl}/accounts/:accountId`,
   }
 };
