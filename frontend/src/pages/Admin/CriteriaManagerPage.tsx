@@ -1,153 +1,23 @@
-import * as React from "react";
-import { Box, IconButton, Container, Stack } from "@mui/material";
+import {
+  AddCircleOutlined,
+  ArrowForward,
+  DeleteOutlined,
+} from "@mui/icons-material";
+import { Box, IconButton, Stack } from "@mui/material";
 import {
   DataGrid,
-  GridColDef,
   GridActionsCellItem,
+  GridColDef,
   GridRowId,
   GridToolbar,
 } from "@mui/x-data-grid";
-import {
-  DeleteOutlined,
-  AddCircleOutlined,
-  ArrowForward,
-} from "@mui/icons-material";
-// import { Header } from "../../components/Common/Header";
-import { titleStyle, colors } from "../../styles/commonStyles";
-import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
+import * as React from "react";
+import { useGetGlobalCriteria } from "../../queries/criteria";
+import { colors, titleStyle } from "../../styles/commonStyles";
 import { Rule } from "../../types/criteria";
 
-const dummyCriterias = [
-  {
-    id: 1,
-    name: "frontend",
-    rules: [
-      {
-        skill: "Node.js",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 6,
-      },
-      {
-        skill: "React",
-        pointsPerYearOfExperience: 5,
-        maxPoints: 10,
-      },
-      {
-        skill: "CSS",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 3,
-      },
-      {
-        skill: "Typescript",
-        pointsPerYearOfExperience: 2,
-        maxPoints: 8,
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "devops",
-    rules: [
-      {
-        skill: "CI/CD",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 2,
-      },
-      {
-        skill: "Docker",
-        pointsPerYearOfExperience: 4,
-        maxPoints: 12,
-      },
-      {
-        skill: "Git",
-        pointsPerYearOfExperience: 2,
-        maxPoints: 6,
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "soft_skills",
-    rules: [
-      {
-        skill: "Team",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 3,
-      },
-      {
-        skill: "Communication",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 2,
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: "frontend",
-    rules: [
-      {
-        skill: "Node.js",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 6,
-      },
-      {
-        skill: "React",
-        pointsPerYearOfExperience: 5,
-        maxPoints: 10,
-      },
-      {
-        skill: "CSS",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 3,
-      },
-      {
-        skill: "Typescript",
-        pointsPerYearOfExperience: 2,
-        maxPoints: 8,
-      },
-    ],
-  },
-  {
-    id: 5,
-    name: "devops",
-    rules: [
-      {
-        skill: "CI/CD",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 2,
-      },
-      {
-        skill: "Docker",
-        pointsPerYearOfExperience: 4,
-        maxPoints: 12,
-      },
-      {
-        skill: "Git",
-        pointsPerYearOfExperience: 2,
-        maxPoints: 6,
-      },
-    ],
-  },
-  {
-    id: 6,
-    name: "soft_skills",
-    rules: [
-      {
-        skill: "Team",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 3,
-      },
-      {
-        skill: "Communication",
-        pointsPerYearOfExperience: 1,
-        maxPoints: 2,
-      },
-    ],
-  },
-];
-
 const CriteriaManagerPage = () => {
-  const [rows, setRows] = React.useState(dummyCriterias);
+  const { data: criteria, isLoading, isError, error: criteriaFetchError } = useGetGlobalCriteria();
   const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
   // const [openFormModal, setOpenFormModal] = React.useState(false);
 
@@ -168,10 +38,10 @@ const CriteriaManagerPage = () => {
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
     {
-      field: "rules",
+      field: "criteriaJson",
       headerName: "Rules",
-      valueGetter: (value: Rule[]) => {
-        const targetTexts = value.map((element: Rule) => element.skill);
+      valueGetter: (json: any) => {
+        const targetTexts = json.rules.map((element: Rule) => element.skill);
         return targetTexts.join(", ");
       },
       minWidth: 200,
@@ -217,7 +87,8 @@ const CriteriaManagerPage = () => {
       </Stack>
       <Box sx={{ height: 400, width: "100%" }}>
         <DataGrid
-          rows={dummyCriterias}
+          rows={criteria}
+          loading={isLoading}
           columns={columns}
           // initialState={{ pagination: paginationModel }}
           // pageSizeOptions={[5, 10]}
@@ -235,11 +106,11 @@ const CriteriaManagerPage = () => {
           }}
         />
       </Box>
-      <ConfirmationModal
+      {/* <ConfirmationModal
         isOpen={openDeleteModal}
         handleClose={handleCloseModal}
         titleText="Are you sure your want to delete this criteria?"
-      />
+      /> */}
       {/* <DynamicFormModal isOpen={openFormModal}/> */}
     </Box>
   );
