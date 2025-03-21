@@ -3,6 +3,7 @@ import { ApiError } from "../representations/error";
 //import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
 import { queryClient } from "../main";
+import { fetchWithAuth } from "../api/apiUtils";
 
 // Query keys
 export const skillKeys = {
