@@ -3,6 +3,7 @@ const jobPostingsUrl = `${apiUrl}/job-postings`;
 const criteriaUrl = `${apiUrl}/criteria`;
 const skillsUrl = `${apiUrl}/skills`;
 const applicationUrl = `${apiUrl}/applications`;
+const adminUrl = `${apiUrl}/admin`;
 
 export const apiUrls = {
   applicantJobPostingsUrl: `${apiUrl}/applicant/job-postings`,
@@ -26,6 +27,16 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
+  accounts: {
+    base: `${adminUrl}/accounts`,
+    edit: `${adminUrl}/accounts/:accountId`,
+    delete: `${adminUrl}/accounts/:accountId`,
+  },
+  criteria: {
+    base: criteriaUrl,
+    delete: `${criteriaUrl}/:criteria_id`,
+  },
   getJobReportsUrl: jobPostingsUrl + "/:jobPostingId/reports",
   getCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
+
 };
