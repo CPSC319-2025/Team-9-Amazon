@@ -1,25 +1,30 @@
-import {
-  AddCircleOutlined,
-  ArrowForward,
-  DeleteOutlined,
-} from "@mui/icons-material";
+import { AddCircleOutlined, ArrowForward, DeleteOutlined } from "@mui/icons-material";
 import { Box, IconButton, Stack } from "@mui/material";
-import {
-  DataGrid,
-  GridActionsCellItem,
-  GridColDef,
-  GridRowId,
-  GridToolbar,
-} from "@mui/x-data-grid";
-import * as React from "react";
+import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
+import CustomSnackbar from "../../components/Common/SnackBar";
 import { useGetGlobalCriteria } from "../../queries/criteria";
 import { colors, titleStyle } from "../../styles/commonStyles";
 import { Rule } from "../../types/criteria";
 
 const CriteriaManagerPage = () => {
   const { data: criteria, isLoading, isError, error: criteriaFetchError } = useGetGlobalCriteria();
-  const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
   // const [openFormModal, setOpenFormModal] = React.useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "info" | "error" | "warning" | undefined>(
+    "success"
+  );
+
+  useEffect(() => {
+    if (isError) {
+      setSnackbarOpen(true);
+      setSnackbarMessage(criteriaFetchError?.message ?? "Failed to fetch Criteria");
+      setSnackbarSeverity("error");
+    }
+  }, [isError]);
 
   const handleCloseModal = () => {
     setOpenDeleteModal(false);
@@ -75,44 +80,52 @@ const CriteriaManagerPage = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-      {/* <Header title="" actions={headerActions} /> */}
-      <Stack direction="row" justifyContent="space-between">
-        <Box padding="10px" sx={{ ...titleStyle, fontVariant: "h4" }}>
-          Criteria
+    <>
+      <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
+        {/* <Header title="" actions={headerActions} /> */}
+        <Stack direction="row" justifyContent="space-between">
+          <Box padding="10px" sx={{ ...titleStyle, fontVariant: "h4" }}>
+            Criteria
+          </Box>
+          <IconButton aria-label="Add a Criteria">
+            <AddCircleOutlined />
+          </IconButton>
+        </Stack>
+        <Box sx={{ height: 400, width: "100%" }}>
+          <DataGrid
+            rows={criteria}
+            loading={isLoading}
+            columns={columns}
+            // initialState={{ pagination: paginationModel }}
+            // pageSizeOptions={[5, 10]}
+            // checkboxSelection
+            disableColumnFilter
+            disableColumnSelector
+            disableDensitySelector
+            disableColumnResize
+            sx={{ border: 0, justifyContent: "space-between" }}
+            slots={{ toolbar: GridToolbar }}
+            slotProps={{
+              toolbar: {
+                showQuickFilter: true,
+              },
+            }}
+          />
         </Box>
-        <IconButton aria-label="Add a Criteria">
-          <AddCircleOutlined />
-        </IconButton>
-      </Stack>
-      <Box sx={{ height: 400, width: "100%" }}>
-        <DataGrid
-          rows={criteria}
-          loading={isLoading}
-          columns={columns}
-          // initialState={{ pagination: paginationModel }}
-          // pageSizeOptions={[5, 10]}
-          // checkboxSelection
-          disableColumnFilter
-          disableColumnSelector
-          disableDensitySelector
-          disableColumnResize
-          sx={{ border: 0, justifyContent: "space-between" }}
-          slots={{ toolbar: GridToolbar }}
-          slotProps={{
-            toolbar: {
-              showQuickFilter: true,
-            },
-          }}
-        />
-      </Box>
-      {/* <ConfirmationModal
+        {/* <ConfirmationModal
         isOpen={openDeleteModal}
         handleClose={handleCloseModal}
         titleText="Are you sure your want to delete this criteria?"
       /> */}
-      {/* <DynamicFormModal isOpen={openFormModal}/> */}
-    </Box>
+        {/* <DynamicFormModal isOpen={openFormModal}/> */}
+      </Box>
+      <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)}
+      />
+    </>
   );
 };
 
