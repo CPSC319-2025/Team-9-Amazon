@@ -1,15 +1,15 @@
 // import { PlusCircle, Trash2,  } from "lucide-react";
-import React, { useState } from "react";
-import { Box, IconButton, Stack, Chip } from "@mui/material";
-import { DataGrid, GridColDef, GridActionsCellItem, GridRowId, GridToolbar } from "@mui/x-data-grid";
-import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material";
+import { AddCircleOutlined, DeleteOutlined, Edit } from "@mui/icons-material";
+import { Box, Chip, IconButton, Stack } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
+import React, { useEffect, useState } from "react";
 // import { Header } from "../../components/Common/Header";
-import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
 import { FormModal } from "../../components/Common/Modals/FormModal";
-import { useCreateAccount, getAccounts, useEditAccount, useDeleteAccount } from "../../queries/accounts";
+import CustomSnackbar from "../../components/Common/SnackBar";
+import { getAccounts, useCreateAccount, useDeleteAccount, useEditAccount } from "../../queries/accounts";
 import { AccountRequest } from "../../representations/accounts";
-import { UseMutationResult } from "@tanstack/react-query";
+import { colors, titleStyle } from "../../styles/commonStyles";
 
 const initialAccountFormData: AccountRequest = {
   email: "",
@@ -34,7 +34,7 @@ const staffDataToAccountsRequest = (staffData: any): AccountRequest => {
 }
 
 const AccountManagerPage = () => {
-  const { data: accounts } = getAccounts();
+  const { data: accounts, isLoading, isError, error: accountFetchError } = getAccounts();
 
   const [openAddModal, setOpenAddModal] = useState(false);
   const [createAccountFormData, setCreateAccountFormData] =
@@ -47,6 +47,11 @@ const AccountManagerPage = () => {
 
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteAccountId, setDeleteAccountId] = useState<string>("");
+
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = React.useState<"success" | "info" | "error" | "warning" | undefined>("success");
+  
   
 
   const handleCloseModal = () => {
@@ -134,6 +139,14 @@ const AccountManagerPage = () => {
     },
   ];
 
+  useEffect(() => {
+    if (isError) {
+      setSnackbarOpen(true);
+      setSnackbarMessage(accountFetchError?.message ?? "Failed to fetch accounts");
+      setSnackbarSeverity("error");
+    }
+  }, [isError]);
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Stack direction="row" justifyContent="space-between">
@@ -151,6 +164,7 @@ const AccountManagerPage = () => {
           // initialState={{ pagination: paginationModel }}
           // pageSizeOptions={[5, 10]}
           // checkboxSelection
+          loading={isLoading}
           disableColumnFilter
           disableColumnSelector
           disableDensitySelector
@@ -188,7 +202,7 @@ const AccountManagerPage = () => {
         titleText="Edit an Account"
         mutationHook={useEditAccount(editAccountId)}
       />
-      {/* <FormModal isOpen={openEditModal} handleClose={handleCloseModal} titleText='Edit an Account' formData={editFormData} /> */}
+      <CustomSnackbar open={snackbarOpen} message={snackbarMessage} severity={snackbarSeverity} onClose={() => setSnackbarOpen(false)} />
     </Box>
   );
 };
