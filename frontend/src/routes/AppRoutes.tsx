@@ -19,6 +19,7 @@ import CreateJobPostingPage from "../pages/HiringManager/CreateJobPostingPage";
 import AccountManagerPage from "../pages/Admin/AccountManagerPage";
 import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
+import SkillsManagerPage from "../pages/Admin/SkillsManagerPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
 
 const AppRoutes = () => {
@@ -108,6 +109,14 @@ const AppRoutes = () => {
           element={
             <RoleProtectedRoute requiredRole="admin">
               <CriteriaDetailsPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/skills-management"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <SkillsManagerPage />
             </RoleProtectedRoute>
           }
         />

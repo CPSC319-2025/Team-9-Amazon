@@ -159,6 +159,17 @@ const TopNavbar = () => {
                       </ListItemIcon>
                       <ListItemText primary="Criteria management" />
                     </ListItemButton>
+
+                    <ListItemButton
+                      component={Link}
+                      to="admin/skills-management"
+                      onClick={handleMenuClose}
+                    >
+                      <ListItemIcon>
+                        <WorkIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Skills management" />
+                    </ListItemButton>
                   </>
                 )}
 
