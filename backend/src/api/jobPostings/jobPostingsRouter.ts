@@ -1,14 +1,13 @@
 import Criteria, { CriteriaType } from "@/database/models/criteria";
 import Database, { JobPosting, JobTag } from "@/database/database";
 import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
-import Application from "@/database/models/application";
-import Applicant from "@/database/models/applicant";
-import JobTagJobPostingRelation from "@/database/models/tagJobPostingRelation";
 import {
   authenticateJWT,
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { Router } from "express";
+import Application from "@/database/models/application";
+import Applicant from "@/database/models/applicant";
 import { Op } from "sequelize";
 import { ApplicationScoring } from "@/services/applicationScoring";
 import { JobTagAttributes } from "@/database/models/jobTag";
@@ -436,123 +435,9 @@ router.delete(
   }
 );
 
-// // Get applications summary for a job posting
-// router.get(
-//   "/:jobPostingId/applications/summary",
-
-
-  
+// Get applications summary for a job posting
 router.get(
-  "/:jobPostingId/statistics",
-  authenticateJWT,
-  requireHiringManager,
-  async (req, res) => {
-    try {
-      const { jobPostingId } = req.params;
-      console.log('jobPostingId:', jobPostingId);
-
-      const jobPosting = await JobPosting.findOne({
-        where: {
-          id: Number(jobPostingId),
-          staffId: req.auth?.id,
-        },
-      });
-
-
-      if (!jobPosting) {
-        return res.status(404).json({
-          error:
-            "Job posting not found or you don't have permission to view its statistics",
-        });
-      }
-
-      //COMMENTED OUT FOR TIME BEING UNTIL APPLICATIONS IMPLEMENTATION IS DONE
-      // const applications = await Application.findAll({
-      //   where: { 
-      //     jobPostingId: jobPostingId
-      //   },
-      //   include: [{ model: Applicant, as: "applicant" }],
-      // });
-
-
-      // if (!applications || applications.length === 0) {
-      //   return res.json({
-      //     applicantsPerMonth: [],
-      //     totalApplicants: 0
-      //   });
-      // }
-
-      // const applicantsByMonth: Record<string, number> = {};
-      // applications.forEach(application => {
-      //   const month = new Date(application.createdAt).toLocaleString('default', { month: 'short' });
-      //   const year = new Date(application.createdAt).getFullYear();
-      //   const key = `${month} ${year}`;
-        
-      //   if (!applicantsByMonth[key]) {
-      //     applicantsByMonth[key] = 0;
-      //   }
-      //   applicantsByMonth[key]++;
-      // });
-
-      // const applicantsPerMonth = Object.entries(applicantsByMonth).map(([month, count]) => ({
-      //   month,
-      //   applications: count,
-      //   percentage: Math.round((count as number) * 100 / applications.length)
-      // }));
-
-      // res.json({
-      //   applicantsPerMonth,
-      //   totalApplicants: applications.length
-      // });
-
-      const mockData = {
-        applicantsPerMonth: [
-          { month: "Jan 2023", applications: 12, percentage: 20 },
-          { month: "Feb 2023", applications: 18, percentage: 30 },
-          { month: "Mar 2023", applications: 30, percentage: 50 }
-        ],
-        totalApplicants: 60
-      };
-
-      res.json(mockData);
-
-    } catch (error) {
-      console.error("Error in job posting statistics:", error);
-      res.status(500).json({
-        error: "Failed to fetch job posting statistics",
-        details: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-);
-
-//Get all job postings associated with a hiring manager
-router.get(
-  "/",
-  authenticateJWT,
-  requireHiringManager,
-  async (req, res) => {
-    try {
-      const jobPostings = await JobPosting.findAll({
-        where: {
-          staffId: req.auth?.id,
-        },
-        order: [['createdAt', 'DESC']]
-      });
-
-      res.json(jobPostings);
-    } catch (error) {
-      res.status(500).json({
-        error: "Failed to fetch job postings",
-        details: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
-);
-
-// Get detailed related to a jobPostingId
-router.get(
-  "/:jobPostingId",
+  "/:jobPostingId/applications/summary",
   authenticateJWT,
   requireHiringManager,
   async (req, res) => {
@@ -737,6 +622,126 @@ router.get(
       console.error("Error scanning database:", error);
       res.status(500).json({
         error: "Failed to scan database",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
+// Add this endpoint to get job statistics
+router.get(
+  "/:jobPostingId/statistics",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to view it",
+        });
+      }
+
+      const applications = await Application.findAll({
+        where: { jobPostingId: Number(jobPostingId) },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email"],
+          },
+        ],
+      });
+
+      const applicationsByMonth = new Map();
+      
+      applications.forEach(application => {
+        const createdAt = new Date(application.createdAt);
+        const monthYear = `${createdAt.toLocaleString('default', { month: 'long' })} ${createdAt.getFullYear()}`;
+        
+        if (!applicationsByMonth.has(monthYear)) {
+          applicationsByMonth.set(monthYear, 0);
+        }
+        
+        applicationsByMonth.set(monthYear, applicationsByMonth.get(monthYear) + 1);
+      });
+
+      // Convert to array and calculate percentages
+      const maxApplications = Math.max(...applicationsByMonth.values(), 1);
+      const applicantsPerMonth = Array.from(applicationsByMonth.entries()).map(([month, count]) => ({
+        month,
+        applications: count,
+        percentage: Math.round((count as number / maxApplications) * 100)
+      }));
+
+      // Sort by date (assuming month names)
+      const months = ["January", "February", "March", "April", "May", "June", 
+                      "July", "August", "September", "October", "November", "December"];
+      
+      applicantsPerMonth.sort((a, b) => {
+        const [aMonth, aYear] = a.month.split(' ');
+        const [bMonth, bYear] = b.month.split(' ');
+        
+        if (aYear !== bYear) return Number(aYear) - Number(bYear);
+        return months.indexOf(aMonth) - months.indexOf(bMonth);
+      });
+
+      // Extract skills from all applications
+      const skillsCount = new Map();
+      applications.forEach(application => {
+        const experiences = application.experienceJson?.experiences || [];
+        experiences.forEach(exp => {
+          if (Array.isArray(exp.skills)) {
+            exp.skills.forEach(skill => {
+              if (!skillsCount.has(skill)) {
+                skillsCount.set(skill, 0);
+              }
+              skillsCount.set(skill, skillsCount.get(skill) + 1);
+            });
+          }
+        });
+      });
+
+      // Get top skills
+      const topSkills = Array.from(skillsCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([name, count]) => ({
+          name,
+          score: Math.round((count / applications.length) * 100)
+        }));
+
+      // Get application sources (mocked for now)
+      const applicationSources = [
+        { name: 'LinkedIn', value: 45 },
+        { name: 'Indeed', value: 25 },
+        { name: 'Company Site', value: 30 },
+      ];
+
+      res.json({
+        totalApplicants: applications.length,
+        applicantsPerMonth,
+        applicationSources,
+        skillMatchData: topSkills.length ? topSkills : [
+          { name: 'Python', score: 85 },
+          { name: 'Java', score: 75 },
+          { name: 'React', score: 90 },
+          { name: 'SQL', score: 70 },
+        ]
+      });
+    } catch (error) {
+      console.error("Error fetching job statistics:", error);
+      res.status(500).json({
+        error: "Failed to fetch job statistics",
         details: error instanceof Error ? error.message : "Unknown error",
       });
     }
