@@ -3,6 +3,7 @@ const jobPostingsUrl = `${apiUrl}/job-postings`;
 const criteriaUrl = `${apiUrl}/criteria`;
 const skillsUrl = `${apiUrl}/skills`;
 const applicationUrl = `${apiUrl}/applications`;
+const adminUrl = `${apiUrl}/admin`;
 
 export const apiUrls = {
   applicantJobPostingsUrl: `${apiUrl}/applicant/job-postings`,
@@ -26,4 +27,5 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
+  accounts: `${adminUrl}/accounts`,
 };
