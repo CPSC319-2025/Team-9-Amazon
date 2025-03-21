@@ -34,5 +34,6 @@ export const apiUrls = {
   },
   criteria: {
     base: criteriaUrl,
+    delete: `${criteriaUrl}/:criteria_id`,
   }
 };

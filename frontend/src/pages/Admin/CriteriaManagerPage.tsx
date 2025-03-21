@@ -1,9 +1,9 @@
-import { AddCircleOutlined, ArrowForward, DeleteOutlined } from "@mui/icons-material";
+import { AddCircleOutlined, ArrowForward, DeleteOutlined, Edit } from "@mui/icons-material";
 import { Box, IconButton, Stack } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
 import { SetStateAction, useEffect, useState } from "react";
 import CustomSnackbar from "../../components/Common/SnackBar";
-import { useCreateCriteria, useGetGlobalCriteria } from "../../queries/criteria";
+import { useCreateCriteria, useDeleteCriteria, useGetGlobalCriteria } from "../../queries/criteria";
 import { colors, titleStyle } from "../../styles/commonStyles";
 import { Rule } from "../../types/criteria";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
@@ -26,11 +26,14 @@ const initialCreateCriteriaRequest: CreateCriteriaRequest = {
 
 const CriteriaManagerPage = () => {
   const { data: criteria, isLoading, isError, error: criteriaFetchError } = useGetGlobalCriteria();
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  
   // const [openFormModal, setOpenFormModal] = React.useState(false);
 
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [createCriteriaData, setCreateCriteriaData] = useState<CreateCriteriaRequest>(initialCreateCriteriaRequest);
+
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleteCriteriaId, setDeleteCriteriaId] = useState<string>("");
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -56,7 +59,7 @@ const CriteriaManagerPage = () => {
   }
 
   const handleDeleteClick = (id: GridRowId) => () => {
-    // setRows(rows.filter((row) => row.id !== id));
+    setDeleteCriteriaId(id.toString());
     setOpenDeleteModal(true);
   };
 
@@ -87,16 +90,16 @@ const CriteriaManagerPage = () => {
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<DeleteOutlined />}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
-          <GridActionsCellItem
-            icon={<ArrowForward />}
+            icon={<Edit />}
             label="Criteria Details"
             //   className=""
             onClick={handleCriteriaDetailsClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem
+            icon={<DeleteOutlined />}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
             color="inherit"
           />,
         ];
@@ -138,11 +141,12 @@ const CriteriaManagerPage = () => {
           />
         </Box>
         <FormModal isOpen={openCreateModal} handleClose={handleCloseModal} titleText={"Create New Criteria"} mutationHook={useCreateCriteria} dataState={createCriteriaData} setDataState={setCreateCriteriaData} />
-        {/* <ConfirmationModal
-        isOpen={openDeleteModal}
-        handleClose={handleCloseModal}
-        titleText="Are you sure your want to delete this criteria?"
-      /> */}
+        <ConfirmationModal
+          isOpen={openDeleteModal}
+          handleClose={handleCloseModal}
+          titleText="Are you sure your want to delete this criteria?"
+          mutationHook={useDeleteCriteria(deleteCriteriaId)}
+          />
         {/* <DynamicFormModal isOpen={openFormModal}/> */}
       </Box>
       <CustomSnackbar

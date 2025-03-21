@@ -1,5 +1,5 @@
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { CreateCriteriaRequest, CreateCriteriaResponse, CriteriaRepresentation } from "../representations/criteria";
+import { CreateCriteriaRequest, CreateCriteriaResponse, CriteriaRepresentation, DeleteCriteriaRequest, DeleteCriteriaResponse } from "../representations/criteria";
 import { ApiError } from "../representations/error";
 import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
@@ -50,6 +50,29 @@ export const useCreateCriteria = (): UseMutationResult<CreateCriteriaResponse, E
       if (!response.ok) {
         const errorData = await response.json();
         const message = errorData.details ?? errorData.error ?? "Failed to create criteria";
+        throw new Error(message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: criteriaKeys.global});
+    }
+  });
+};
+
+export const useDeleteCriteria = (criteriaId: string) => (): UseMutationResult<DeleteCriteriaResponse, Error, DeleteCriteriaRequest, unknown> => {
+  const queryClient = useQueryClient();
+  const url = apiUrls.criteria.delete.replace(":criteria_id", criteriaId);
+  return useMutation<DeleteCriteriaResponse, Error, DeleteCriteriaRequest>({
+    mutationFn: async () => {
+      const response = await fetchWithAuth(url, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData.details ?? errorData.error ?? "Failed to delete criteria";
         throw new Error(message);
       }
 

@@ -9,7 +9,15 @@ export interface CreateCriteriaRequest {
   };
 }
 
+export interface DeleteCriteriaRequest {
+  criteriaId: string;
+}
+
 export interface CreateCriteriaResponse {
+
+}
+
+export interface DeleteCriteriaResponse {
 
 }
 
