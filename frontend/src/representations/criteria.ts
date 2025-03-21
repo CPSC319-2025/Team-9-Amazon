@@ -1,6 +1,18 @@
 import { DateTime } from "luxon";
 import { Rule } from "../types/criteria";
 
+export interface CreateCriteriaRequest {
+  name: string;
+  criteriaType: "global" | "local";
+  criteriaJson?: {
+    rules: Array<Rule>;
+  };
+}
+
+export interface CreateCriteriaResponse {
+
+}
+
 export interface CriteriaRepresentation {
   id: number;
   createdAt: string;

@@ -1,27 +1,8 @@
 import { Box, Button, Checkbox, FormControlLabel, Modal, Stack, TextField, Typography } from "@mui/material";
 import { UseMutationResult } from "@tanstack/react-query";
 import * as React from "react";
-import { colors, filledButtonStyle, textButtonStyle } from "../../../styles/commonStyles";
+import { colors, filledButtonStyle, modalStyle, textButtonStyle } from "../../../styles/commonStyles";
 import CustomSnackbar from "../SnackBar";
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  bgcolor: colors.white,
-  borderRadius: "0.5rem",
-  boxShadow: 24,
-  p: 4,
-  maxWidth: "42rem",
-  minWidth: "30rem",
-  width: "auto ",
-  m: 2,
-  display: "flex",
-  flexDirection: "column",
-  gap: 2,
-  maxHeight: "90vh",
-};
 
 const formatCamelCase = (str: string): string => {
   return str
@@ -44,6 +25,7 @@ interface FormModalProps<T extends Record<string, any>> {
 export const FormModal = <T extends Record<string, any>>({ 
   dataState, initialDataState, setDataState, isOpen, handleClose, titleText, mutationHook
  }: FormModalProps<T>) => {
+  const excludedKeys = ["id", "role", "criteriaType", "criteriaJson"];
   const { mutate, isError, isPending, isSuccess, error } = mutationHook();
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
@@ -84,12 +66,12 @@ export const FormModal = <T extends Record<string, any>>({
   return (
     <>
     <Modal open={isOpen} onClose={handleClose} aria-labelledby="modal-modal-title">
-      <Box sx={style}>
+      <Box sx={modalStyle}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
           {titleText}
         </Typography>
         {dataState && Object.entries(dataState).map(([key, value]) => {
-            if (key == "id" || key == "role") return;
+            if (excludedKeys.includes(key)) return;
             const formattedKey = formatCamelCase(key);
 
             switch (typeof value) {

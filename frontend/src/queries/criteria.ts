@@ -1,5 +1,5 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { CriteriaRepresentation } from "../representations/criteria";
+import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import { CreateCriteriaRequest, CreateCriteriaResponse, CriteriaRepresentation } from "../representations/criteria";
 import { ApiError } from "../representations/error";
 import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
@@ -32,5 +32,31 @@ export const useGetGlobalCriteria = (): UseQueryResult<
       return response.json();
     },
     retry: 1,
+  });
+};
+
+export const useCreateCriteria = (): UseMutationResult<CreateCriteriaResponse, Error, CreateCriteriaRequest, unknown> => {
+  const queryClient = useQueryClient();
+  return useMutation<CreateCriteriaResponse, Error, CreateCriteriaRequest>({
+    mutationFn: async (data) => {
+      const response = await fetchWithAuth(apiUrls.criteria.base, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData.details ?? errorData.error ?? "Failed to create criteria";
+        throw new Error(message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: criteriaKeys.global});
+    }
   });
 };

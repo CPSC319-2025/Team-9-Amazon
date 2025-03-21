@@ -10,7 +10,7 @@ export const accountKeys = {
   all: ["accounts"] as const,
 };
 
-export const getAccounts = (): UseQueryResult<AccountRepresentation, ApiError> => {
+export const useGetAccounts = (): UseQueryResult<AccountRepresentation, ApiError> => {
   return useQuery({
     queryKey: accountKeys.all,
     queryFn: async () => {

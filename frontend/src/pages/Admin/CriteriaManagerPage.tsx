@@ -1,16 +1,36 @@
 import { AddCircleOutlined, ArrowForward, DeleteOutlined } from "@mui/icons-material";
 import { Box, IconButton, Stack } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import CustomSnackbar from "../../components/Common/SnackBar";
-import { useGetGlobalCriteria } from "../../queries/criteria";
+import { useCreateCriteria, useGetGlobalCriteria } from "../../queries/criteria";
 import { colors, titleStyle } from "../../styles/commonStyles";
 import { Rule } from "../../types/criteria";
+import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
+import { UseMutationResult } from "@tanstack/react-query";
+import { set } from "zod";
+import { FormModal } from "../../components/Common/Modals/FormModal";
+import { CreateCriteriaRequest } from "../../representations/criteria";
+
+const initialCreateCriteriaRequest: CreateCriteriaRequest = {
+  name: "",
+  criteriaType: "global",
+  criteriaJson: {
+    rules: [{
+      skill: "Placeholder rule",
+      pointsPerYearOfExperience: 10,
+      maxPoints: 100
+    }],
+  },
+};
 
 const CriteriaManagerPage = () => {
   const { data: criteria, isLoading, isError, error: criteriaFetchError } = useGetGlobalCriteria();
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   // const [openFormModal, setOpenFormModal] = React.useState(false);
+
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [createCriteriaData, setCreateCriteriaData] = useState<CreateCriteriaRequest>(initialCreateCriteriaRequest);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -27,8 +47,13 @@ const CriteriaManagerPage = () => {
   }, [isError]);
 
   const handleCloseModal = () => {
+    setOpenCreateModal(false);
     setOpenDeleteModal(false);
   };
+
+  const handleCreateClick = () => {
+    setOpenCreateModal(true);
+  }
 
   const handleDeleteClick = (id: GridRowId) => () => {
     // setRows(rows.filter((row) => row.id !== id));
@@ -87,7 +112,7 @@ const CriteriaManagerPage = () => {
           <Box padding="10px" sx={{ ...titleStyle, fontVariant: "h4" }}>
             Criteria
           </Box>
-          <IconButton aria-label="Add a Criteria">
+          <IconButton aria-label="Add a Criteria" onClick={handleCreateClick}>
             <AddCircleOutlined />
           </IconButton>
         </Stack>
@@ -112,6 +137,7 @@ const CriteriaManagerPage = () => {
             }}
           />
         </Box>
+        <FormModal isOpen={openCreateModal} handleClose={handleCloseModal} titleText={"Create New Criteria"} mutationHook={useCreateCriteria} dataState={createCriteriaData} setDataState={setCreateCriteriaData} />
         {/* <ConfirmationModal
         isOpen={openDeleteModal}
         handleClose={handleCloseModal}

@@ -1,27 +1,8 @@
 import * as React from 'react'
 import {Modal, Box, Typography, Stack, Button} from '@mui/material';
-import { textButtonStyle, colors, filledButtonStyle } from "../../../styles/commonStyles";
+import { textButtonStyle, colors, filledButtonStyle, modalStyle } from "../../../styles/commonStyles";
 import { UseMutationResult } from '@tanstack/react-query';
 import CustomSnackbar from '../SnackBar';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    bgcolor: colors.white,
-    borderRadius:'0.5rem',
-    boxShadow: 24,
-    p: 4,
-    maxWidth: '42rem',
-    minWidth: '30rem',
-    width: 'auto ',
-    m: 2,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    maxHeight: '90vh',
-};
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -65,7 +46,7 @@ export const ConfirmationModal = ({
         open={isOpen}
         onClose={handleClose}
         aria-labelledby='modal-modal-title'>
-            <Box sx={style}>
+            <Box sx={modalStyle}>
             <Typography id='modal-modal-title' variant='h6' component='h2'>
                 {titleText}
             </Typography>

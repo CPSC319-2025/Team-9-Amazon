@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
 import { FormModal } from "../../components/Common/Modals/FormModal";
 import CustomSnackbar from "../../components/Common/SnackBar";
-import { getAccounts, useCreateAccount, useDeleteAccount, useEditAccount } from "../../queries/accounts";
+import { useGetAccounts, useCreateAccount, useDeleteAccount, useEditAccount } from "../../queries/accounts";
 import { AccountRequest } from "../../representations/accounts";
 import { colors, titleStyle } from "../../styles/commonStyles";
 
@@ -34,7 +34,7 @@ const staffDataToAccountsRequest = (staffData: any): AccountRequest => {
 }
 
 const AccountManagerPage = () => {
-  const { data: accounts, isLoading, isError, error: accountFetchError } = getAccounts();
+  const { data: accounts, isLoading, isError, error: accountFetchError } = useGetAccounts();
 
   const [openAddModal, setOpenAddModal] = useState(false);
   const [createAccountFormData, setCreateAccountFormData] =

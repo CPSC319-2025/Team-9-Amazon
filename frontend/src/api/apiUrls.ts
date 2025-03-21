@@ -31,5 +31,8 @@ export const apiUrls = {
     base: `${adminUrl}/accounts`,
     edit: `${adminUrl}/accounts/:accountId`,
     delete: `${adminUrl}/accounts/:accountId`,
+  },
+  criteria: {
+    base: criteriaUrl,
   }
 };
