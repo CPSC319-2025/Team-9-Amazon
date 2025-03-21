@@ -7,10 +7,10 @@ import { Edit, DeleteOutlined, AddCircleOutlined } from "@mui/icons-material";
 import { titleStyle, colors } from "../../styles/commonStyles";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
 import { FormModal } from "../../components/Common/Modals/FormModal";
-import { useCreateAccount, getAccounts } from "../../queries/accounts";
-import { CreateAccountRequest } from "../../representations/accounts";
+import { useCreateAccount, getAccounts, useEditAccount } from "../../queries/accounts";
+import { AccountRequest } from "../../representations/accounts";
 
-const initialCreateAccountFormData: CreateAccountRequest = {
+const initialAccountFormData: AccountRequest = {
   email: "",
   password: "",
   firstName: "",
@@ -20,15 +20,30 @@ const initialCreateAccountFormData: CreateAccountRequest = {
   isAdmin: false,
 };
 
+const staffDataToAccountsRequest = (staffData: any): AccountRequest => {
+  return {
+    email: staffData.email ?? "",
+    password: staffData.password ?? "",
+    firstName: staffData.firstName ?? "",
+    lastName: staffData.lastName ?? "",
+    phone: staffData.phone ?? "",
+    isHiringManager: Boolean(staffData.isHiringManager),
+    isAdmin: Boolean(staffData.isAdmin),
+  };
+}
+
 const AccountManagerPage = () => {
   const { data: accounts } = getAccounts();
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [openAddModal, setOpenAddModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-  // const [editFormData, setEditFormData] = useState<AccountData | undefined>(undefined);
 
+  const [openAddModal, setOpenAddModal] = useState(false);
   const [createAccountFormData, setCreateAccountFormData] =
-    useState<CreateAccountRequest>(initialCreateAccountFormData);
+    useState<AccountRequest>(initialAccountFormData);
+    
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [editAccountId, setEditAccountId] = useState<string>("");
+  const [editFormData, setEditFormData] =
+    useState<AccountRequest>(initialAccountFormData);
   
 
   const handleCloseModal = () => {
@@ -44,20 +59,17 @@ const AccountManagerPage = () => {
 
   const handleEditClick = (id: GridRowId) => () => {
     const selectedData = accounts?.staff.find((account) => account.id === id);
-    // setEditFormData(selectedData);
+    const data = staffDataToAccountsRequest(selectedData);
+    delete data.password;
+    delete data.email;
+    setEditAccountId(id.toString());
+    setEditFormData(data);
     setOpenEditModal(true);
-    // return id
   };
 
   const handleAddClick = () => {
     setOpenAddModal(true);
     // return id
-  };
-
-  const onClickCreateAccount = (data: any) => {
-    setCreateAccountFormData(initialCreateAccountFormData);
-    // createAccount(data);
-    setOpenAddModal(false);
   };
 
   const columns: GridColDef[] = [
@@ -98,7 +110,8 @@ const AccountManagerPage = () => {
       flex: 1,
       align: "right",
       cellClassName: "actions",
-      getActions: ({ id }) => {
+      getActions: (temp) => {
+        const id = temp.id
         return [
           <GridActionsCellItem
             icon={<Edit />}
@@ -155,12 +168,21 @@ const AccountManagerPage = () => {
       />
       <FormModal
         dataState={createAccountFormData}
-        initialDataState={initialCreateAccountFormData}
+        initialDataState={initialAccountFormData}
         setDataState={setCreateAccountFormData}
         isOpen={openAddModal}
         handleClose={handleCloseModal}
         titleText="Add an Account"
         mutationHook={useCreateAccount}
+      />
+      <FormModal
+        dataState={editFormData}
+        initialDataState={initialAccountFormData}
+        setDataState={setEditFormData}
+        isOpen={openEditModal}
+        handleClose={handleCloseModal}
+        titleText="Edit an Account"
+        mutationHook={useEditAccount(editAccountId)}
       />
       {/* <FormModal isOpen={openEditModal} handleClose={handleCloseModal} titleText='Edit an Account' formData={editFormData} /> */}
     </Box>

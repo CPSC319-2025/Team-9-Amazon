@@ -14,10 +14,9 @@ export interface StaffRepresentation {
     updatedAt: string;
 }
 
-
-export interface CreateAccountRequest {
+export interface AccountRequest {
   email: any;
-  password: any;
+  password?: any;
   firstName: any;
   lastName: any;
   phone: any;
@@ -26,4 +25,7 @@ export interface CreateAccountRequest {
 }
 
 export interface CreateAccountResponse {
+}
+
+export interface EditAccountResponse {
 }

@@ -27,5 +27,8 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
-  accounts: `${adminUrl}/accounts`,
+  accounts: {
+    base: `${adminUrl}/accounts`,
+    edit: `${adminUrl}/accounts/:accountId`,
+  }
 };

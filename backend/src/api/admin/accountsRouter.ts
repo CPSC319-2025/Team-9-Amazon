@@ -95,7 +95,6 @@ accountsRouter.post("/", authenticateJWT, requireAdmin, async (req, res) => {
 
 // Edit account
 const editAccountReq = z.object({
-  email: z.string().email().optional(),
   password: z.string().min(8).optional(),
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
@@ -106,12 +105,12 @@ const editAccountReq = z.object({
 accountsRouter.put("/:account_id", authenticateJWT, requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.account_id);
-    const { email, password, firstName, lastName, phone, isHiringManager, isAdmin } = editAccountReq.parse(req.body);
+    const { password, firstName, lastName, phone, isHiringManager, isAdmin } = editAccountReq.parse(req.body);
     const staff = await Staff.findByPk(id);
     if (!staff) {
       return res.status(404).json({ error: "Staff member not found" });
     }
-    await staff.update({ email, password, firstName, lastName, phone, isHiringManager, isAdmin });
+    await staff.update({ password, firstName, lastName, phone, isHiringManager, isAdmin });
     const updatedStaff = await Staff.findByPk(id, {
       attributes: { exclude: ["password"] },
     });
