@@ -1,4 +1,4 @@
-import { JobPosting } from "../types/JobPosting/jobPosting";
+import { JobPosting, JobPostingStatus } from "../types/JobPosting/jobPosting";
 
 export const emptyJobPosting: JobPosting = {
   id: "", // Will be assigned after creation
@@ -6,7 +6,7 @@ export const emptyJobPosting: JobPosting = {
   subtitle: "Your Subtitle",
   description: "Your Description",
   location: "Your Location",
-  status: "Open",
+  status: JobPostingStatus.OPEN,
   createdAt: new Date(),
   qualifications: "Your Qualifications",
   responsibilities: "Your Responsibilities",
