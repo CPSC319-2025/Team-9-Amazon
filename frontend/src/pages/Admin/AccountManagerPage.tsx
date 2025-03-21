@@ -153,14 +153,15 @@ const AccountManagerPage = () => {
         handleClose={handleCloseModal}
         titleText="Are you sure your want to delete this account?"
       />
-      {/* <FormModal
+      <FormModal
+        dataState={createAccountFormData}
+        initialDataState={initialCreateAccountFormData}
+        setDataState={setCreateAccountFormData}
         isOpen={openAddModal}
         handleClose={handleCloseModal}
         titleText="Add an Account"
-        formData={createAccountFormData}
-        setFormData={setCreateAccountFormData}
-        handleSubmit={onClickCreateAccount}
-      /> */}
+        mutationHook={useCreateAccount}
+      />
       {/* <FormModal isOpen={openEditModal} handleClose={handleCloseModal} titleText='Edit an Account' formData={editFormData} /> */}
     </Box>
   );

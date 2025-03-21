@@ -1,4 +1,4 @@
-import { useMutation, useQuery, UseQueryResult } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { CriteriaRepresentation } from "../representations/criteria";
 import { ApiError } from "../representations/error";
 import { fetchWithAuth } from "../api/apiUtils";
@@ -6,13 +6,13 @@ import { apiUrls } from "../api/apiUrls";
 import { AccountRepresentation, CreateAccountRequest, CreateAccountResponse } from "../representations/accounts";
 
 // Query keys (used for caching)
-export const adminKeys = {
+export const accountKeys = {
   all: ["accounts"] as const,
 };
 
 export const getAccounts = (): UseQueryResult<AccountRepresentation, ApiError> => {
   return useQuery({
-    queryKey: adminKeys.all,
+    queryKey: accountKeys.all,
     queryFn: async () => {
       const response = await fetchWithAuth(apiUrls.accounts);
 
@@ -27,7 +27,8 @@ export const getAccounts = (): UseQueryResult<AccountRepresentation, ApiError> =
   });
 };
 
-export const useCreateAccount = (formData: any) => {
+export const useCreateAccount = () => {
+  const queryClient = useQueryClient();
   return useMutation<CreateAccountResponse, Error, CreateAccountRequest>({
     mutationFn: async (data) => {
       const response = await fetchWithAuth(apiUrls.accounts, {
@@ -46,5 +47,8 @@ export const useCreateAccount = (formData: any) => {
 
       return response.json();
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: accountKeys.all});
+    }
   });
 };
