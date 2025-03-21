@@ -15,6 +15,9 @@ import {
   Chip,
   Stack,
   Link,
+  CircularProgress,
+  Alert,
+  Tooltip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
@@ -23,37 +26,61 @@ import {
   paperStyle,
   chipStyle,
 } from "../../styles/commonStyles";
-
-// Dummy data
-const candidateData = {
-  name: "Robbie Laughlen",
-  role: "SDE1 Intern",
-  matchScore: 92,
-  details: {
-    email: "robbie@laughlen.com",
-    phone: "333-333-3333",
-    location: "Vancouver",
-    personalLinks: ["https://www.linkedin.com/in/robbielaughlen/"],
-  },
-  rules: {
-    matched: ["NodeJS", "React", "Docker"],
-    missing: ["MongoDB"],
-  },
-  criteria: [
-    { name: "Technical Skills", score: 95 },
-    { name: "Experience", score: 88 },
-    { name: "Education", score: 90 },
-    { name: "Cultural Fit", score: 85 },
-  ],
-};
+import { useGetCandidateReport } from "../../queries/jobPosting";
+import { FullscreenIcon } from "lucide-react";
 
 export default function CandidateReportPage() {
-  const { jobPostingId } = useParams();
+  const { jobPostingId, candidateEmail } = useParams();
   const navigate = useNavigate();
+
+  const {
+    data: candidateData,
+    isLoading,
+    error,
+  } = useGetCandidateReport(jobPostingId!, candidateEmail!);
 
   const handleBack = () => {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          p: 3,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "50vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !candidateData) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <IconButton
+          onClick={handleBack}
+          sx={{
+            mr: 2,
+            color: colors.orange1,
+            "&:hover": {
+              bgcolor: `${colors.orange1}10`,
+            },
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Alert severity="error" sx={{ mt: 2 }}>
+          Error loading candidate report:{" "}
+          {error instanceof Error ? error.message : "Unknown error"}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -76,9 +103,9 @@ export default function CandidateReportPage() {
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
-        {/* Left Column */}
-        <Grid item xs={12} md={4}>
+      <Grid container xs={12} spacing={3}>
+        {/* Left Column - Candidate Info */}
+        <Grid item xs={12} md={3}>
           <Stack spacing={3}>
             {/* Basic Info Card */}
             <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
@@ -155,20 +182,6 @@ export default function CandidateReportPage() {
                     }}
                   />
                 </ListItem>
-                <ListItem disablePadding>
-                  <ListItemText
-                    primary="Location"
-                    secondary={candidateData.details.location}
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      sx: { color: colors.gray2 },
-                    }}
-                    secondaryTypographyProps={{
-                      variant: "body1",
-                      sx: { color: colors.black1 },
-                    }}
-                  />
-                </ListItem>
               </List>
               {candidateData.details.personalLinks.length > 0 && (
                 <>
@@ -203,8 +216,8 @@ export default function CandidateReportPage() {
           </Stack>
         </Grid>
 
-        {/* Right Column */}
-        <Grid item xs={12} md={8}>
+        {/* Middle Column - Evaluation */}
+        <Grid item xs={12} md={4}>
           <Stack spacing={3}>
             {/* Evaluation Criteria */}
             <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
@@ -287,6 +300,119 @@ export default function CandidateReportPage() {
               </Box>
             </Paper>
           </Stack>
+        </Grid>
+
+        {/* Right Column - Resume */}
+        <Grid item xs={12} md={5}>
+          <Paper
+            elevation={0}
+            sx={{
+              ...paperStyle,
+              bgcolor: colors.gray1,
+              height: "100%",
+              minHeight: "600px",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 3,
+                // Add a fixed height to ensure consistent alignment
+                height: "40px",
+                // Ensure there's no internal padding affecting alignment
+                padding: 0,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  ...titleStyle,
+                  // Remove any margins that might affect alignment
+                  m: 0,
+                  // Ensure the text is vertically centered
+                  lineHeight: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                Resume Preview
+              </Typography>
+
+              <Tooltip title="View in fullscreen">
+                <IconButton
+                  onClick={() => {
+                    const iframe = document.getElementById(
+                      "resume-preview-iframe"
+                    );
+                    if (iframe && iframe.requestFullscreen) {
+                      iframe.requestFullscreen();
+                    }
+                  }}
+                  sx={{
+                    color: colors.blue1,
+                    "&:hover": {
+                      bgcolor: `${colors.blue1}10`,
+                    },
+                    // Ensure the button doesn't have margins affecting alignment
+                    m: 0,
+                    // Set a consistent size
+                    padding: "8px",
+                    height: "40px",
+                    width: "40px",
+                  }}
+                  aria-label="Fullscreen"
+                >
+                  <FullscreenIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            {candidateData.resume ? (
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  bgcolor: colors.white,
+                  borderRadius: 1,
+                  p: 2,
+                  overflowY: "auto",
+                }}
+              >
+                <iframe
+                  id="resume-preview-iframe"
+                  src={candidateData.resume}
+                  title="Resume Preview"
+                  width="100%"
+                  height="100%"
+                  style={{
+                    border: "none",
+                    flexGrow: 1,
+                    minHeight: "550px",
+                    borderRadius: "4px",
+                  }}
+                  allowFullScreen
+                />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  bgcolor: colors.white,
+                  borderRadius: 1,
+                  p: 2,
+                }}
+              >
+                <Typography variant="body1" sx={{ color: colors.gray2 }}>
+                  No resume available for preview
+                </Typography>
+              </Box>
+            )}
+          </Paper>
         </Grid>
       </Grid>
     </Box>
