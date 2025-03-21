@@ -26,4 +26,6 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
+  getJobReportsUrl: jobPostingsUrl + "/:jobPostingId/reports",
+  getCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
 };

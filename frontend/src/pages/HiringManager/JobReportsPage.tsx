@@ -5,40 +5,42 @@ import {
   Paper,
   LinearProgress,
   Grid,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import { colors, titleStyle, paperStyle } from '../../styles/commonStyles';
-import { Outlet, useNavigate, useParams } from "react-router";
-import { ROUTES } from '../../routes/routePaths';
-
-// Dummy data (metrics)
-const applicationData = [
-  { month: 'Jan', applications: 40, percentage: 40 },
-  { month: 'Feb', applications: 30, percentage: 30 },
-  { month: 'Mar', applications: 45, percentage: 45 },
-  { month: 'Apr', applications: 55, percentage: 55 },
-];
-
-const sourceData = [
-  { name: 'LinkedIn', value: 45, color: colors.orange1 },
-  { name: 'Indeed', value: 25, color: colors.blue1 },
-  { name: 'Company Site', value: 30, color: colors.gray2 },
-];
-
-const skillMatchData = [
-  { name: 'Python', score: 85 },
-  { name: 'Java', score: 75 },
-  { name: 'React', score: 90 },
-  { name: 'SQL', score: 70 },
-];
+import { Outlet, useParams } from "react-router";
+import { useGetJobReports } from '../../queries/jobPosting';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function JobReportsPage() {
-  const navigate = useNavigate();
   const params = useParams();
   const jobPostingId = params.jobPostingId;
 
-  const handleBack = () => {
-    navigate(ROUTES.hiringManager.jobPosting(jobPostingId!));
-  };
+  const { data, isLoading, error } = useGetJobReports(jobPostingId!);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          Error loading job reports: {error instanceof Error ? error.message : 'Unknown error'}
+        </Alert>
+      </Box>
+    );
+  }
+
+  // Use the data from API or fallback to empty arrays
+  const applicationData = data?.applicationData || [];
+  const sourceData = data?.sourceData || [];
+  const skillMatchData = data?.criteriaMatchStats || [];
 
   return (
     <Box sx={{ p: 3 }}>
@@ -48,38 +50,44 @@ export default function JobReportsPage() {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Applications Over Time */}
+        {/* Applications Over Time - Now a Line Chart */}
         <Grid item xs={12} md={6}>
           <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
             <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Applications Over Time
             </Typography>
-            <Box sx={{ mt: 2 }}>
-              {applicationData.map((item, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1" sx={{ color: colors.black1 }}>
-                      {item.month}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
-                      {item.applications} applications
-                    </Typography>
-                  </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={item.percentage} 
-                    sx={{ 
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: `${colors.orange1}20`,
-                      '& .MuiLinearProgress-bar': {
-                        bgcolor: colors.orange1,
-                        borderRadius: 4,
-                      },
+            <Box sx={{ height: 300, width: '100%' }}>
+              <ResponsiveContainer>
+                <LineChart
+                  data={applicationData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`${value} applications`, 'Applications']}
+                    labelStyle={{ color: colors.black1 }}
+                    contentStyle={{ 
+                      backgroundColor: colors.white,
+                      borderColor: colors.gray2,
                     }}
                   />
-                </Box>
-              ))}
+                  <Line 
+                    type="monotone" 
+                    dataKey="applications" 
+                    stroke={colors.orange1} 
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: colors.orange1, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: colors.orange1, strokeWidth: 0 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </Box>
           </Paper>
         </Grid>
@@ -135,12 +143,12 @@ export default function JobReportsPage() {
                         {skill.name}
                       </Typography>
                       <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
-                        {skill.score}%
+                        {skill.percentage}%
                       </Typography>
                     </Box>
                     <LinearProgress 
                       variant="determinate" 
-                      value={skill.score} 
+                      value={skill.percentage} 
                       sx={{ 
                         height: 8,
                         borderRadius: 4,
