@@ -286,6 +286,8 @@ export const useGetApplicationsSummary = (jobPostingId: string) => {
         )
       );
 
+      console.log('rez',response)
+
       if (!response.ok) {
         throw new Error("Failed to fetch applications summary");
       }
@@ -333,4 +335,28 @@ export const prepareCriteriaData = (
   data: CriteriaGroupRepresentation
 ): Partial<CriteriaRepresentation> => {
   return transformToApiRepresentation(data);
+};
+
+export const useGetCandidateDetails = (jobPostingId: string | undefined, applicantEmail: string | undefined) => {
+  return useQuery({
+    queryKey: ['candidateDetails', jobPostingId, applicantEmail],
+    queryFn: async () => {
+      if (!jobPostingId || !applicantEmail) {
+        throw new Error("Job posting ID and applicant email are required");
+      }
+
+      const url = apiUrls.getApplicantDetailsByEmail(applicantEmail, jobPostingId);
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+
+      console.log('responseeee', response)
+
+      return response.json();
+    },
+    enabled: !!jobPostingId && !!applicantEmail,
+  });
 };

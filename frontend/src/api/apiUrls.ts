@@ -27,9 +27,9 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
   },
-  getApplicantDetailsByEmail: (applicantEmail: string, jobPostingId: string) => 
-    `${applicantsUrl}/email/${encodeURIComponent(applicantEmail)}/job-postings/${jobPostingId}`,
+  getApplicantDetailsByEmail: (applicantEmail: string, jobPostingId: string) =>
+    `${applicantsUrl}/email/${applicantEmail}/job-postings/${jobPostingId}`,
   getJobPostStatistics: (jobPostingId: string) => `${jobPostingsUrl}/${jobPostingId}/statistics`,
-  getAllJobPostings: `${jobPostingsUrl}`,
   getJobPosting: (id: string) => `${jobPostingsUrl}/${id}`,
+  getApplicantResume: (resumePath: string) => `${apiUrl}/applicants/resume/${resumePath}`,
 }

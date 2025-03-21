@@ -22,9 +22,8 @@ interface ApplicationByMonth {
 interface JobStatistics {
   applicantsPerMonth: ApplicationByMonth[];
   totalApplicants: number;
-  // Uncomment when backend implements these
-  // applicationSources: { name: string; value: number }[];
-  // skillMatchData: { name: string; score: number }[];
+  applicationSources: { name: string; value: number }[];
+  skillMatchData: { name: string; score: number }[];
 }
 
 export default function JobReportsPage() {
@@ -41,7 +40,6 @@ export default function JobReportsPage() {
       try {
         setLoading(true);
         setError(null);
-        console.log('fetching statistics for:', jobPostingId);
         const token = localStorage.getItem('token');
         const response = await fetch(
           apiUrls.getJobPostStatistics(jobPostingId!),
@@ -157,76 +155,140 @@ export default function JobReportsPage() {
           </Paper>
         </Grid>
 
-        {/* Application Sources - Using dummy data until backend implements it */}
+        {/* Application Sources */}
         <Grid item xs={12} md={6}>
           <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
             <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Application Sources
             </Typography>
             <Box sx={{ mt: 2 }}>
-              {sourceData.map((source, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1" sx={{ color: colors.black1 }}>
-                      {source.name}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: source.color, fontWeight: 500 }}>
-                      {source.value}%
-                    </Typography>
-                  </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={source.value} 
-                    sx={{ 
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: `${source.color}20`,
-                      '& .MuiLinearProgress-bar': {
-                        bgcolor: source.color,
+              {statistics?.applicationSources ? (
+                statistics.applicationSources.map((source, index) => (
+                  <Box key={index} sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body1" sx={{ color: colors.black1 }}>
+                        {source.name}
+                      </Typography>
+                      <Typography variant="body1" sx={{ 
+                        color: index === 0 ? colors.orange1 : 
+                               index === 1 ? colors.blue1 : colors.gray2, 
+                        fontWeight: 500 
+                      }}>
+                        {source.value}%
+                      </Typography>
+                    </Box>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={source.value} 
+                      sx={{ 
+                        height: 8,
                         borderRadius: 4,
-                      },
-                    }}
-                  />
-                </Box>
-              ))}
+                        bgcolor: `${index === 0 ? colors.orange1 : 
+                                  index === 1 ? colors.blue1 : colors.gray2}20`,
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: index === 0 ? colors.orange1 : 
+                                  index === 1 ? colors.blue1 : colors.gray2,
+                          borderRadius: 4,
+                        },
+                      }}
+                    />
+                  </Box>
+                ))
+              ) : (
+                sourceData.map((source, index) => (
+                  <Box key={index} sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body1" sx={{ color: colors.black1 }}>
+                        {source.name}
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: source.color, fontWeight: 500 }}>
+                        {source.value}%
+                      </Typography>
+                    </Box>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={source.value} 
+                      sx={{ 
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: `${source.color}20`,
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: source.color,
+                          borderRadius: 4,
+                        },
+                      }}
+                    />
+                  </Box>
+                ))
+              )}
             </Box>
           </Paper>
         </Grid>
 
-        {/* Required Skills Match - Using dummy data until backend implements it */}
+        {/* Required Skills Match */}
         <Grid item xs={12}>
           <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
             <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Required Skills Match
             </Typography>
             <Grid container spacing={2}>
-              {skillMatchData.map((skill, index) => (
-                <Grid item xs={12} sm={6} key={index}>
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1" sx={{ color: colors.black1 }}>
-                        {skill.name}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
-                        {skill.score}%
-                      </Typography>
-                    </Box>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={skill.score} 
-                      sx={{ 
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: `${colors.orange1}20`,
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: colors.orange1,
+              {statistics?.skillMatchData ? (
+                statistics.skillMatchData.map((skill, index) => (
+                  <Grid item xs={12} sm={6} key={index}>
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body1" sx={{ color: colors.black1 }}>
+                          {skill.name}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                          {skill.score}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={skill.score} 
+                        sx={{ 
+                          height: 8,
                           borderRadius: 4,
-                        },
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              ))}
+                          bgcolor: `${colors.orange1}20`,
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: colors.orange1,
+                            borderRadius: 4,
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                ))
+              ) : (
+                skillMatchData.map((skill, index) => (
+                  <Grid item xs={12} sm={6} key={index}>
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body1" sx={{ color: colors.black1 }}>
+                          {skill.name}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: colors.orange1, fontWeight: 500 }}>
+                          {skill.score}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={skill.score} 
+                        sx={{ 
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: `${colors.orange1}20`,
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: colors.orange1,
+                            borderRadius: 4,
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                ))
+              )}
             </Grid>
           </Paper>
         </Grid>

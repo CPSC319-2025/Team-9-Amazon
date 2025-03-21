@@ -22,6 +22,10 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { colors, titleStyle, paperStyle, chipStyle } from '../../styles/commonStyles';
 import { apiUrls } from '../../api/apiUrls';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { useGetCandidateDetails } from '../../queries/jobPosting';
 
 interface CandidateDetails {
   applicant: {
@@ -49,49 +53,58 @@ interface CandidateDetails {
   }[];
 }
 
+// Set the worker source for PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 export default function CandidateReportPage() {
   const navigate = useNavigate();
   const { jobPostingId, applicantEmail } = useParams();
   
-  const [candidateData, setCandidateData] = useState<CandidateDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+
+  const { 
+    data: candidateData,
+    isLoading: loading,
+    error,
+  } = useGetCandidateDetails(jobPostingId, applicantEmail);
 
   useEffect(() => {
-    const fetchCandidateData = async () => {
-      if (!jobPostingId || !applicantEmail) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const token = localStorage.getItem('token');
-        const response = await fetch(
-          apiUrls.getApplicantDetailsByEmail(decodeURIComponent(applicantEmail), jobPostingId),
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
+    if (candidateData?.application?.resumePath) {
+      // Fetch the resume from S3 or wherever it's stored
+      const fetchResume = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(
+            apiUrls.getApplicantResume(candidateData.application.resumePath),
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              }
             }
+          );
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
           }
-        );
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          
+          // Create a blob URL from the response
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          setResumeUrl(url);
+        } catch (err) {
+          console.error('Error fetching resume:', err);
         }
-        
-        const data = await response.json();
-        setCandidateData(data);
-      } catch (err) {
-        console.error('Error fetching candidate data:', err);
-        setError('Failed to load candidate data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
+      
+      fetchResume();
+    }
+  }, [candidateData]);
 
-    fetchCandidateData();
-  }, [jobPostingId, applicantEmail]);
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
 
   const handleBack = () => {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
@@ -342,14 +355,64 @@ export default function CandidateReportPage() {
                   bgcolor: colors.white,
                   borderRadius: 1,
                   display: 'flex',
-                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  justifyContent: resumeUrl ? 'flex-start' : 'center',
                   alignItems: 'center',
-                  border: `1px dashed ${colors.gray2}`
+                  border: `1px dashed ${colors.gray2}`,
+                  overflow: 'auto',
+                  position: 'relative'
                 }}
               >
-                <Typography variant="body1" sx={{ color: colors.gray2 }}>
-                  Resume viewer will be integrated here
-                </Typography>
+                {resumeUrl ? (
+                  <>
+                    <Document
+                      file={resumeUrl}
+                      onLoadSuccess={onDocumentLoadSuccess}
+                      loading={<CircularProgress />}
+                      error={<Typography color="error">Failed to load resume</Typography>}
+                    >
+                      <Page 
+                        pageNumber={pageNumber} 
+                        width={500}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                      />
+                    </Document>
+                    {numPages && numPages > 1 && (
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        width: '100%', 
+                        p: 2,
+                        position: 'sticky',
+                        bottom: 0,
+                        bgcolor: 'rgba(255, 255, 255, 0.9)'
+                      }}>
+                        <Button 
+                          disabled={pageNumber <= 1} 
+                          onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
+                        >
+                          Previous
+                        </Button>
+                        <Typography>
+                          Page {pageNumber} of {numPages}
+                        </Typography>
+                        <Button 
+                          disabled={pageNumber >= numPages} 
+                          onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
+                        >
+                          Next
+                        </Button>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <Typography variant="body1" sx={{ color: colors.gray2 }}>
+                    {candidateData?.application?.resumePath 
+                      ? "Loading resume..." 
+                      : "No resume available"}
+                  </Typography>
+                )}
               </Box>
             </Paper>
           </Stack>
