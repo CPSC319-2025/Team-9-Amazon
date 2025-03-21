@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { ApiError } from "../representations/error";
-import { fetchWithAuth } from "../api/apiUtils";
+//import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
 
 // Query keys
@@ -16,7 +16,7 @@ export const useGetSkills = (): UseQueryResult<
   return useQuery({
     queryKey: skillKeys.all,
     queryFn: async () => {
-      const response = await fetchWithAuth(apiUrls.getSkillsUrl);
+      const response = await fetch(apiUrls.getSkillsUrl);
 
       if (!response.ok) {
         const errorData = await response.json();

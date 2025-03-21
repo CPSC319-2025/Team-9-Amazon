@@ -28,10 +28,15 @@ export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
       backdrop-blur-md bg-white/30 border border-white/40 shadow-lg
       hover:shadow-xl transition-all hover:scale-101 min-h-[250px]"
     >
-      <div className="flex justify-between items-center">
-        <h3 className="font-bold text-2xl text-[#146eb4]">{job.title}</h3>
-        <h3 className="text-gray-800">{`#${job.code}`}</h3>
+    
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col">
+          <h3 className="font-bold text-2xl text-[#146eb4]">{job.title}</h3>
+          <p className="text-lg text-gray-600">{job.location}</p>
+        </div>
+        <h3 className="text-gray-800 text-sm">{`#${job.code}`}</h3>
       </div>
+
       <section className="flex-grow">
         {job.description.length > 150 
           ? `${job.description.slice(0, 150)}...`
