@@ -4,17 +4,17 @@ import { Box, Button, Container, Grid, Typography } from "@mui/material";
 import { textButtonStyle, colors } from "../../styles/commonStyles";
 import { JobCard } from "../../components/Common/JobCard";
 import { Header } from "../../components/Common/Header";
-import { mockJobPostings } from "../../utils/mockData";
-import { JobPosting } from "../../types/JobPosting/jobPosting";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths";
 import { SearchBar } from "../../components/Common/SearchBar";
+import { useGetAllJobPostings } from "../../queries/jobPosting";
 
 const HiringManagerDashboardPage = () => {
-  const [jobPostings] = useState<JobPosting[]>(mockJobPostings);
-  const [searchTerm, setSearchTerm] = useState("");
-
   const navigate = useNavigate();
+
+  const { data: jobPostings, isLoading, error } = useGetAllJobPostings();
+  
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleCreateJob = () => {
     navigate(ROUTES.hiringManager.hiringManagerCreateJob);
@@ -35,19 +35,51 @@ const HiringManagerDashboardPage = () => {
   };
 
   const filteredJobPostings = useMemo(() => {
-    if (!searchTerm.trim()) return jobPostings;
+    if (!jobPostings || !searchTerm.trim()) return jobPostings || [];
 
     const searchLower = searchTerm.toLowerCase();
     return jobPostings.filter(
       (job) =>
         job.title.toLowerCase().includes(searchLower) ||
-        job.description?.toLowerCase().includes(searchLower)
+        (job.description?.toLowerCase() || "").includes(searchLower)
     );
   }, [jobPostings, searchTerm]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
   };
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="h5">Loading job postings...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography color="error">
+          Error loading job postings. Please try again later.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>

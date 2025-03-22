@@ -20,12 +20,36 @@ import {
   ApplicationsSummaryResponse,
   PotentialCandidatesResponse,
 } from "../types/application";
+import { transformJobPosting, transformJobPostings } from "../utils/transformJobPosting";
 
 // Query keys
 export const jobPostingKeys = {
   all: ["jobPosting"] as const,
   detail: (jobPostingId: string) =>
     [...jobPostingKeys.all, jobPostingId] as const,
+};
+
+export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> => {
+  return useQuery({
+    queryKey: jobPostingKeys.all,
+    queryFn: async () => {
+      const url = apiUrls.jobPostings.all;
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+
+      // The API should return an array of job postings with associated tags
+      const data: (JobPostingAttributes & { jobTags: JobTagAttributes[] })[] = await response.json();
+
+      const jobPostings: JobPosting[] = transformJobPostings(data);
+
+      return jobPostings;
+    },
+    retry: 1,
+  });
 };
 
 export const useGetJobPosting = (
@@ -51,21 +75,7 @@ export const useGetJobPosting = (
       const data: JobPostingAttributes & { jobTags: JobTagAttributes[] } = await response.json();
 
       // convert the job posting data to the JobPosting type
-      const jobPosting: JobPosting = {
-        id: String(data.id),
-        title: data.title,
-        subtitle: data.subtitle,
-        description: data.description,
-        location: data.location,
-        status: data.status,
-        createdAt: data.createdAt,
-        qualifications: data.qualifications,
-        responsibilities: data.responsibilities,
-        tags: data.jobTags.map((tag) => tag.name),
-        num_applicants: data.num_applicants,
-        num_machine_evaluated: data.num_machine_evaluated,
-        num_processes: data.num_processes,
-      };
+      const jobPosting: JobPosting = transformJobPosting(data);
       return jobPosting;
     },
     retry: 1,
