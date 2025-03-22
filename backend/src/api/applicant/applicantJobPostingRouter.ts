@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { StatusCodes } from "http-status-codes";
 import JobPosting from "@/database/models/jobPosting"; // Import Sequelize model
+import JobTag from "@/database/models/jobTag";
+import { JobPostingAttributes } from "@/database/models/jobPosting";
+
 
 const router = Router();
 
@@ -9,18 +12,18 @@ router.get("/", async (req, res) => {
   try {
     const jobPostings = await JobPosting.findAll({
       attributes: ["id", "title", "description", "responsibilities", "qualifications", "location"], 
+      include: [
+        {
+          model: JobTag,
+          as: "jobTags",
+          attributes: ["id", "name"], 
+          through: { attributes: [] }, 
+        },
+      ],
     });
 
-    // const formattedJobPostings = jobPostings.map((job) => ({
-    //   id: job.id,
-    //   title: job.title,
-    //   description: job.description,
-    //   location: job.location,
-    //   qualifications: job.qualifications ? job.qualifications.split(",").map((q) => q.trim()) : [],
-    //   responsibilities: job.responsibilities ? job.responsibilities.split(",").map((r) => r.trim()) : [],
-    // }));
     const formattedJobPostings = jobPostings.map((job) => {
-      const jobData = job.toJSON();
+      const jobData = job.toJSON() as JobPostingAttributes & { jobTags?: { id: number; name: string }[] };
     
       return {
         id: jobData.id,
@@ -34,6 +37,10 @@ router.get("/", async (req, res) => {
         responsibilities: jobData.responsibilities
           ? jobData.responsibilities.split(",").map((r) => r.trim())
           : [],
+          jobTags: jobData.jobTags?.map((tag: { id: number; name: string }) => ({
+            id: tag.id,
+            name: tag.name,
+          })) || [],
       };
     });
 

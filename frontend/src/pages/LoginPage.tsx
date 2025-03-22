@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { login } from "../api/login";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,10 +33,19 @@ export default function LoginPage() {
 
       const response = await login(email, password);
 
+      // Store the token in localStorage
+      localStorage.setItem("token", response.token);
+
+      // Navigate based on user role
       if (response.staff.isHiringManager) {
         navigate(ROUTES.hiringManager.hiringManagerDashboard);
+      } else if (response.staff.isAdmin) {
+        navigate("/admin/user-management");
       } else {
-        setError("Access denied. Only hiring managers can access this system.");
+        setError(
+          "Access denied. Only hiring managers or Admins can access this system."
+        );
+        localStorage.removeItem("token"); // Remove token if user doesn't have proper access
       }
     } catch (err) {
       setError(
@@ -43,6 +53,7 @@ export default function LoginPage() {
           ? err.message
           : "Failed to login. Please try again."
       );
+      localStorage.removeItem("token"); // Remove token on error
     } finally {
       setLoading(false);
     }

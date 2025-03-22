@@ -1,5 +1,5 @@
 import { Applicant } from "../types/applicant";
-import { JobPosting } from "../types/JobPosting/jobPosting";
+import { JobPosting, JobPostingStatus } from "../types/JobPosting/jobPosting";
 import { CriteriaGroup } from "../types/criteria";
 
 export const mockApplicants: Applicant[] = [
@@ -62,7 +62,7 @@ export const mockJobPostings: JobPosting[] = [
     description:
       "We are looking for a software engineer to work on our ML compiler team.",
     location: "San Francisco, CA",
-    status: "Published",
+    status: JobPostingStatus.OPEN,
     createdAt: new Date("2021-09-01"),
     qualifications: "BS in Computer Science or equivalent experience",
     responsibilities: "Design and implement ML compiler optimizations",
@@ -76,7 +76,7 @@ export const mockJobPostings: JobPosting[] = [
     description:
       "We are looking for a data scientist to work on our machine learning team.",
     location: "New York, NY",
-    status: "Published",
+    status: JobPostingStatus.OPEN,
     createdAt: new Date("2021-09-15"),
 
     responsibilities: "Analyze and model data for business insights",
@@ -90,7 +90,7 @@ export const mockJobPostings: JobPosting[] = [
     description:
       "We are looking for a product manager to work on our product management team.",
     location: "Seattle, WA",
-    status: "Published",
+    status: JobPostingStatus.OPEN,
     createdAt: new Date("2021-10-01"),
     qualifications: "BS in Business or equivalent experience",
     responsibilities: "Define product strategy and roadmap",
@@ -104,7 +104,7 @@ export const mockJobPostings: JobPosting[] = [
     description:
       "We are looking for a UX designer to work on our user experience team.",
     location: "Los Angeles, CA",
-    status: "Published",
+    status: JobPostingStatus.OPEN,
     createdAt: new Date("2021-10-15"),
     qualifications: "BS in Design or equivalent experience",
     responsibilities: "Create user-centric designs and prototypes",
@@ -120,7 +120,7 @@ export const mockJobPostings: JobPosting[] = [
     description:
       "We are currently in search of a software engineer who will join our full stack development team. The ideal candidate will be tasked with designing and implementing robust solutions across the entire software development stack. This position requires a professional who is adept at developing both client and server software, and who can effectively integrate various technologies to create seamless, efficient, and scalable applications. The role offers the opportunity to work alongside a dedicated team of developers and engineers who are committed to innovating and pushing the boundaries of technology in order to deliver cutting-edge software products",
     location: "Austin, TX",
-    status: "Published",
+    status: JobPostingStatus.OPEN,
     createdAt: new Date("2021-11-01"),
     qualifications: "BS in Computer Science or equivalent experience",
     responsibilities: "Develop and maintain full stack applications",

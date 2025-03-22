@@ -17,7 +17,7 @@ import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
 import criteriaRouter from "./api/criteria/criteriaRouter";
 import skillsRouter from "./api/skills/skillsRouter";
 import applicantJobPostingRouter from "./api/applicant/applicantJobPostingRouter";
-import applicationRouter from "./api/applicant/applicationRouter";
+import applicationsRouter from "./api/application/applicationsRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -56,8 +56,6 @@ const corsOrigins = (
   return callback(new Error("Not allowed by CORS"));
 };
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: corsOrigins,
@@ -74,6 +72,10 @@ app.use(rateLimiter);
 // Request logging
 app.use(requestLogger);
 
+// Body Parsing Middleware (Should be after security and logging)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
 // Routes
 app.use("/health-check", healthCheckRouter);
 app.use("/login", loginRouter);
@@ -82,7 +84,7 @@ app.use("/job-postings", jobPostingsRouter);
 app.use("/criteria", criteriaRouter);
 app.use("/skills", skillsRouter);
 app.use("/applicant/job-postings", applicantJobPostingRouter);
-app.use("/applicant/application", applicationRouter);
+app.use("/applications", applicationsRouter);
 
 // Swagger UI
 app.use(openAPIRouter);

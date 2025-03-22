@@ -1,10 +1,16 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "stream";
+import { extname } from "path";
 import { env } from "./envConfig";
+import { fileTypeFromBuffer } from "file-type";
 
 const bucketName = "recruit-store";
 const resumeDirectory = `resumes`;
+
+if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+  throw new Error("AWS credentials are missing.");
+}
 
 const s3Client = new S3Client({
   region: "ca-central-1",
@@ -14,22 +20,89 @@ const s3Client = new S3Client({
   },
 });
 
-export const s3UploadPdfBase64 = async (fileName: string, base64String: string): Promise<void> => {
-  const fileContent = Buffer.from(base64String, "base64");
-  const params = {
-    Bucket: bucketName,
-    Key: `${resumeDirectory}/${fileName}`,
-    Body: fileContent,
-    ContentEncoding: "base64",
-    ContentType: "application/pdf",
-  };
+// Allowed MIME types for resume uploads
+const allowedMimeTypes = [
+  "application/pdf",
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+];
 
-  const upload = new Upload({
-    client: s3Client,
-    params,
-  });
+// Function to upload binary file (decoded from Base64) to S3
+export const s3UploadFile = async (fileName: string, fileBuffer: Buffer, mimeType: string): Promise<string> => {
+  try {
+    const params = {
+      Bucket: bucketName,
+      Key: `${resumeDirectory}/${fileName}`,
+      Body: fileBuffer,
+      ContentType: mimeType,
+    };
 
-  await upload.done();
+    await s3Client.send(new PutObjectCommand(params));
+
+    console.log(`Successfully uploaded ${fileName} to S3.`);
+
+    return `https://${bucketName}.s3.amazonaws.com/${resumeDirectory}/${fileName}`;
+  } catch (error) {
+    console.error(`Error uploading ${fileName} to S3:`, error);
+    throw new Error("Failed to upload file.");
+  }
+};
+
+
+// helper to get file type 
+export const getMimeType = async (base64String: string): Promise<string> => {
+  try {
+    //extract base64 data w/o metadata
+    const matches = base64String.match(/^data:(.+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      throw new Error("Invalid Base64 format");
+    }
+
+    const base64Data = matches[2];
+    const fileBuffer = Buffer.from(base64Data, "base64");
+
+    const fileType = await fileTypeFromBuffer(fileBuffer);
+
+    console.log("fileType:", fileType);
+
+    if (fileType && allowedMimeTypes.includes(fileType.mime)) {
+      return fileType.mime;
+    }
+
+    throw new Error("Unsupported file type");
+  } catch (error) {
+    console.error("Error detecting MIME type:", error);
+    throw new Error("Failed to determine file type.");
+  }
+};
+
+// constraint 1 : base64String cannot contain metadata, otherwise use helper getMimeType
+// constraint 2 : even w/ helper to get mime type, if base64String not exclude metadata, upload is success but file cant open
+export const s3UploadBase64 = async (fileName: string, base64String: string): Promise<void> => {
+  try {
+    const fileContent = Buffer.from(base64String, "base64");
+    //const contentType = await getMimeType(base64String);
+    const contentType = (await fileTypeFromBuffer(fileContent))?.mime ?? "application/octet-stream";
+
+    const params = {
+      Bucket: bucketName,
+      Key: `${resumeDirectory}/${fileName}`,
+      Body: fileContent,
+      ContentEncoding: "base64",
+      ContentType: contentType,
+    };
+
+    const upload = new Upload({
+      client: s3Client,
+      params,
+    });
+
+    await upload.done();
+    console.log(`Successfully uploaded ${fileName} to S3.`);
+  } catch (error) {
+    console.error(`Error uploading ${fileName} to S3:`, error);
+    throw new Error("Failed to upload file.");
+  }
 };
 
 export const s3DownloadPdfBase64 = async (fileName: string): Promise<string> => {

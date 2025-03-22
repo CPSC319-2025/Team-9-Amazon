@@ -78,6 +78,25 @@ export const cardStyle: CSSObject = {
   },
 };
 
+export const modalStyle = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  bgcolor: colors.white,
+  borderRadius: "0.5rem",
+  boxShadow: 24,
+  p: 4,
+  maxWidth: "42rem",
+  minWidth: "30rem",
+  width: "auto ",
+  m: 2,
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+  maxHeight: "90vh",
+}
+
 // Layout Styles
 export const headerStyle: CSSObject = {
   bgcolor: colors.gray1,
