@@ -10,7 +10,8 @@ import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationMo
 import { UseMutationResult } from "@tanstack/react-query";
 import { set } from "zod";
 import { FormModal } from "../../components/Common/Modals/FormModal";
-import { CreateCriteriaRequest } from "../../representations/criteria";
+import { CreateCriteriaRequest, CriteriaRepresentation } from "../../representations/criteria";
+import CriteriaEditModal from "../../components/Admin/CriteriaEditModal";
 
 const initialCreateCriteriaRequest: CreateCriteriaRequest = {
   name: "",
@@ -27,10 +28,11 @@ const initialCreateCriteriaRequest: CreateCriteriaRequest = {
 const CriteriaManagerPage = () => {
   const { data: criteria, isLoading, isError, error: criteriaFetchError } = useGetGlobalCriteria();
   
-  // const [openFormModal, setOpenFormModal] = React.useState(false);
-
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [createCriteriaData, setCreateCriteriaData] = useState<CreateCriteriaRequest>(initialCreateCriteriaRequest);
+
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [selectedCriteria, setSelectedCriteria] = useState<CriteriaRepresentation | null>(null);
 
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteCriteriaId, setDeleteCriteriaId] = useState<string>("");
@@ -51,6 +53,7 @@ const CriteriaManagerPage = () => {
 
   const handleCloseModal = () => {
     setOpenCreateModal(false);
+    setOpenEditModal(false);
     setOpenDeleteModal(false);
   };
 
@@ -64,8 +67,11 @@ const CriteriaManagerPage = () => {
   };
 
   const handleCriteriaDetailsClick = (id: GridRowId) => () => {
-    // setOpenFormModal(true);
-    return id;
+    const criteriaToEdit = criteria?.find(c => c.id === id);
+    if (criteriaToEdit) {
+      setSelectedCriteria(criteriaToEdit);
+      setOpenEditModal(true);
+    }
   };
 
   const columns: GridColDef[] = [
@@ -140,14 +146,25 @@ const CriteriaManagerPage = () => {
             }}
           />
         </Box>
-        <FormModal isOpen={openCreateModal} handleClose={handleCloseModal} titleText={"Create New Criteria"} mutationHook={useCreateCriteria} dataState={createCriteriaData} setDataState={setCreateCriteriaData} />
+        <FormModal 
+          isOpen={openCreateModal} 
+          handleClose={handleCloseModal} 
+          titleText={"Create New Criteria"} 
+          mutationHook={useCreateCriteria} 
+          dataState={createCriteriaData} 
+          setDataState={setCreateCriteriaData} 
+        />
+        <CriteriaEditModal
+          isOpen={openEditModal}
+          handleClose={handleCloseModal}
+          criteria={selectedCriteria}
+        />
         <ConfirmationModal
           isOpen={openDeleteModal}
           handleClose={handleCloseModal}
           titleText="Are you sure your want to delete this criteria?"
           mutationHook={useDeleteCriteria(deleteCriteriaId)}
           />
-        {/* <DynamicFormModal isOpen={openFormModal}/> */}
       </Box>
       <CustomSnackbar
         open={snackbarOpen}

@@ -36,6 +36,7 @@ export const apiUrls = {
   criteria: {
     base: criteriaUrl,
     delete: `${criteriaUrl}/:criteria_id`,
+    update: `${criteriaUrl}/:criteria_id`,
   },
   getJobReportsUrl: jobPostingsUrl + "/:jobPostingId/reports",
   getCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
