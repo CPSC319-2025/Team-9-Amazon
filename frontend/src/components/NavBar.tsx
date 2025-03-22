@@ -23,6 +23,7 @@ import { ROUTES } from "../routes/routePaths";
 import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
 import { DecodedToken } from "../types/utils";
+import { WorkspacePremium } from "@mui/icons-material";
 
 const TopNavbar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -166,7 +167,7 @@ const TopNavbar = () => {
                       onClick={handleMenuClose}
                     >
                       <ListItemIcon>
-                        <WorkIcon />
+                        <WorkspacePremium />
                       </ListItemIcon>
                       <ListItemText primary="Skills management" />
                     </ListItemButton>
