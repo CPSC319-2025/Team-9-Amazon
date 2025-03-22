@@ -176,10 +176,10 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Skill</TableCell>
-                    <TableCell>Points Per Year</TableCell>
-                    <TableCell>Max Points</TableCell>
-                    <TableCell width="80px">Actions</TableCell>
+                    <TableCell width={"400px"} >Skill</TableCell>
+                    <TableCell >Points Per Year</TableCell>
+                    <TableCell >Max Points</TableCell>
+                    <TableCell >Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -188,10 +188,12 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
                       <TableCell>
                         <Autocomplete
                           options={skills || []}
-                          getOptionLabel={(option) => option.name}
+                          getOptionLabel={(option) =>
+                            typeof option == 'string' ? option : option.name
+                          }
                           value={skills?.find(s => s.name === rule.skill) || null}
                           onChange={(_, newValue) => {
-                            handleRuleChange(index, "skill", newValue?.name || "");
+                            handleRuleChange(index, "skill", newValue ? (typeof newValue == 'string' ? newValue : newValue.name) : "");
                           }}
                           loading={isLoadingSkills}
                           renderInput={(params) => (
