@@ -64,6 +64,9 @@ const JobDetails = () => {
         <Typography variant="h6" color="error">
           Failed to save changes. Please try again.
         </Typography>
+        <Typography variant="body2" color="error">
+          {error.message}
+        </Typography>
       </Box>
     );
   }

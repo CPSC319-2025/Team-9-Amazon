@@ -41,7 +41,7 @@ export interface JobPostingAttributes {
 
 export interface JobPostingCreationAttributes extends Optional<
   JobPostingAttributes,
-  "id" | "createdAt" | "status" | "num_applicants" | "num_machine_evaluated" | "num_processes"
+  "staffId" | "id" | "createdAt" | "status" | "num_applicants" | "num_machine_evaluated" | "num_processes"
 > {}
 
 export const JobPostingSchema = {

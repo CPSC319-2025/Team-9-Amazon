@@ -1,5 +1,5 @@
 import Criteria, { CriteriaType } from "@/database/models/criteria";
-import Database, { JobPosting, JobTag } from "@/database/database";
+import Database, { JobPosting, JobTag, Staff } from "@/database/database";
 import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
@@ -48,7 +48,7 @@ router.get("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
 
 type JobPostingRequest = JobPostingCreationAttributes & { tags?: string[] };
 
-// POST /job-postings
+// create POST /job-postings
 router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
   const {
     title,
@@ -56,13 +56,24 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     description,
     responsibilities,
     qualifications,
-    staffId,
     location,
     tags, // optional tags array
   } = req.body as JobPostingRequest;
 
-  if (!title || !description || !staffId || !location) {
+  if (!title || !description || !location) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const staffId = req.auth?.id;
+
+  // validate staffId as valid hiring manager
+  if (!staffId) {
+    return res.status(403).json({ error: "Invalid staffId" });
+  }
+
+  const staff = await Staff.findByPk(staffId);
+  if (!staff || !staff.isHiringManager) {
+    return res.status(403).json({ error: "You are not authorized to create job postings" });
   }
 
   // Wrap the creation process in a transaction for atomicity.
@@ -122,7 +133,6 @@ export interface JobPostingEditRequest {
   description?: string;
   responsibilities?: string;
   qualifications?: string;
-  staffId?: number;
   location?: string;
   status?: JobPostingStatus;
   tags?: string[]; // array of tag names
@@ -142,6 +152,13 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
     if (!jobPosting) {
       return res.status(404).json({ error: "Job posting not found" });
     }
+
+    // check the user is authorized to update this job posting
+    const userId = req.auth?.id;
+    if (!userId || jobPosting.get("staffId") !== userId) {
+      return res.status(403).json({ error: "You are not authorized to update this job posting" });
+    }
+
     // Start a transaction for atomic updates.
     t = await Database.GetSequelize().transaction();
 
@@ -152,7 +169,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
       description,
       responsibilities,
       qualifications,
-      staffId,
       location,
       status,
       tags, // array of tag names
@@ -190,9 +206,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
       if (trimmedQual) {
         updates.qualifications = trimmedQual;
       }
-    }
-    if (staffId !== undefined && typeof staffId === "number" && staffId > 0) {
-      updates.staffId = staffId;
     }
     if (location !== undefined) {
       const trimmedLocation = typeof location === "string" ? location.trim() : location;
