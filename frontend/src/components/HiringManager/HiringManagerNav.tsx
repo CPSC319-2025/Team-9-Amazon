@@ -8,6 +8,7 @@ import ChangeStatusButton from "./ChangeStatusButton";
 import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { JOB_STATUS_TRANSITION } from "../../utils/jobPostingStatusTransition";
 import { useEditJobPosting } from "../../queries/jobPosting";
+import CircularProgressLoader from "../Common/Loaders/CircularProgressLoader";
 
 interface HiringManagerNavProps {
   jobPostingId: string;
@@ -25,12 +26,12 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
   const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
     jobPosting?.id || ""
   );
-  
+
 
   useEffect(() => {
     setJobStatus(jobPosting.status);
   }
-  , [jobPosting.status]);
+    , [jobPosting.status]);
 
   useEffect(() => {
     // If on base job posting route, default to "Job Details"
@@ -65,7 +66,9 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
   };
 
   if (isPending) {
-    return <p>Loading...</p>;
+    return (<CircularProgressLoader
+      variant="indeterminate"
+      text="Loading job posting ..." />);
   }
 
   if (error) {

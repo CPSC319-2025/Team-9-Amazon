@@ -6,6 +6,7 @@ import { JobDetailsMode } from "../../types/JobPosting/JobDetailsMode";
 import { useCreateJobPosting } from "../../queries/jobPosting";
 import { JobPostingCreationRequest } from "../../types/JobPosting/api/jobPosting";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
+import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 
 const convertToCreationRequest = (
   job: JobPosting
@@ -41,7 +42,9 @@ const CreateJobPostingPage = () => {
   };
 
   if (isPending) {
-    return <p>Loading...</p>;
+    return (<CircularProgressLoader
+      variant="indeterminate"
+      text="Creating job posting ..." />);
   }
 
   if (error) {

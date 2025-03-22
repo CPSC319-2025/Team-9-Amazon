@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { useGetAllJobPostings } from "../../queries/jobPosting";
+import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 
 const HiringManagerDashboardPage = () => {
   const navigate = useNavigate();
@@ -51,16 +52,9 @@ const HiringManagerDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant="h5">Loading job postings...</Typography>
-      </Box>
+      <CircularProgressLoader
+              variant="indeterminate"
+              text="Loading job postings ..." />
     );
   }
 

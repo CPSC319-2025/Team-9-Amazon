@@ -5,6 +5,7 @@ import JobDetailsView from "../../components/HiringManager/JobPostings/JobDetail
 import { JobDetailsMode } from "../../types/JobPosting/JobDetailsMode";
 import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { useEditJobPosting } from "../../queries/jobPosting";
+import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 
 const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
   const {
@@ -72,7 +73,9 @@ const JobDetails = () => {
   }
 
   if (isPending) {
-    return <p>Saving changes...</p>;
+    return (<CircularProgressLoader
+            variant="indeterminate"
+            text="Saving changes ..." />);
   }
 
   return <JobDetailsView mode={JobDetailsMode.EDIT} jobPosting={jobPosting} editable={true} onSave={handleSaveJob} />;

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ROUTES } from "../routes/routePaths";
 import { useGetJobPosting } from "../queries/jobPosting";
 import { Box, Typography } from "@mui/material";
+import CircularProgressLoader from "../components/Common/Loaders/CircularProgressLoader";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();
@@ -43,16 +44,9 @@ const HiringManagerLayout = () => {
 
   if (!jobPosting || isLoadingJobPosting) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant="h5">Loading job posting...</Typography>
-      </Box>
+      <CircularProgressLoader
+        variant="indeterminate"
+        text="Loading job posting ..." />
     );
   }
 
