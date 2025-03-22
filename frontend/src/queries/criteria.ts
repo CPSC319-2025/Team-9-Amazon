@@ -83,3 +83,54 @@ export const useDeleteCriteria = (criteriaId: string) => (): UseMutationResult<D
     }
   });
 };
+
+export interface UpdateCriteriaRequest {
+  name: string;
+  criteriaJson?: {
+    rules: Array<{
+      skill: string;
+      pointsPerYearOfExperience: number;
+      maxPoints: number;
+    }>;
+  };
+}
+
+export interface UpdateCriteriaResponse {
+  id: number;
+  name: string;
+  criteriaJson: {
+    rules: Array<{
+      skill: string;
+      pointsPerYearOfExperience: number;
+      maxPoints: number;
+    }>;
+  };
+}
+
+export const useUpdateCriteria = (criteriaId: string): UseMutationResult<UpdateCriteriaResponse, Error, UpdateCriteriaRequest, unknown> => {
+  const queryClient = useQueryClient();
+  const url = apiUrls.criteria.update.replace(":criteria_id", criteriaId);
+  
+  return useMutation<UpdateCriteriaResponse, Error, UpdateCriteriaRequest>({
+    mutationFn: async (data) => {
+      const response = await fetchWithAuth(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message = errorData.details ?? errorData.error ?? "Failed to update criteria";
+        throw new Error(message);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: criteriaKeys.global});
+    }
+  });
+};
