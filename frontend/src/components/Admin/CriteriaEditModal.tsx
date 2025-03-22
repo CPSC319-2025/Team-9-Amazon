@@ -17,12 +17,14 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Autocomplete,
 } from "@mui/material";
 import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { colors, filledButtonStyle, textButtonStyle } from "../../styles/commonStyles";
 import { Rule } from "../../types/criteria";
 import { CriteriaRepresentation } from "../../representations/criteria";
 import { useUpdateCriteria } from "../../queries/criteria";
+import { useGetSkills } from "../../queries/skill";
 import CustomSnackbar from "../Common/SnackBar";
 
 interface CriteriaEditModalProps {
@@ -49,6 +51,9 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "info" | "error" | "warning" | undefined
   >("success");
+
+  // Fetch all skills
+  const { data: skills, isLoading: isLoadingSkills } = useGetSkills();
 
   // Update state when criteria changes
   React.useEffect(() => {
@@ -181,13 +186,29 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
                   {rules.map((rule, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <TextField
-                          fullWidth
-                          value={rule.skill}
-                          onChange={(e) =>
-                            handleRuleChange(index, "skill", e.target.value)
-                          }
-                          variant="standard"
+                        <Autocomplete
+                          options={skills || []}
+                          getOptionLabel={(option) => option.name}
+                          value={skills?.find(s => s.name === rule.skill) || null}
+                          onChange={(_, newValue) => {
+                            handleRuleChange(index, "skill", newValue?.name || "");
+                          }}
+                          loading={isLoadingSkills}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              variant="standard"
+                              placeholder="Select a skill"
+                              fullWidth
+                            />
+                          )}
+                          freeSolo
+                          filterOptions={(options, state) => {
+                            const inputValue = state.inputValue.toLowerCase().trim();
+                            return options.filter(option => 
+                              option.name.toLowerCase().includes(inputValue)
+                            );
+                          }}
                         />
                       </TableCell>
                       <TableCell>
