@@ -28,7 +28,6 @@ export interface JobPostingCreationRequest {
   description: string;
   responsibilities?: string;
   qualifications?: string;
-  staffId: number;
   location: string;
   tags?: string[];
 }

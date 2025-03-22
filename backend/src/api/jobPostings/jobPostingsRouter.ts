@@ -1,10 +1,6 @@
 import Criteria, { CriteriaType } from "@/database/models/criteria";
-import Database, { JobPosting, JobTag } from "@/database/database";
-import {
-  JobPostingAttributes,
-  JobPostingCreationAttributes,
-  JobPostingStatus,
-} from "@/database/models/jobPosting";
+import Database, { JobPosting, JobTag, Staff } from "@/database/database";
+import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
@@ -62,7 +58,7 @@ router.get(
 
 type JobPostingRequest = JobPostingCreationAttributes & { tags?: string[] };
 
-// POST /job-postings
+// create POST /job-postings
 router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
   const {
     title,
@@ -70,13 +66,24 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     description,
     responsibilities,
     qualifications,
-    staffId,
     location,
     tags, // optional tags array
   } = req.body as JobPostingRequest;
 
-  if (!title || !description || !staffId || !location) {
+  if (!title || !description || !location) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const staffId = req.auth?.id;
+
+  // validate staffId as valid hiring manager
+  if (!staffId) {
+    return res.status(403).json({ error: "Invalid staffId" });
+  }
+
+  const staff = await Staff.findByPk(staffId);
+  if (!staff || !staff.isHiringManager) {
+    return res.status(403).json({ error: "You are not authorized to create job postings" });
   }
 
   // Wrap the creation process in a transaction for atomicity.
@@ -140,7 +147,6 @@ export interface JobPostingEditRequest {
   description?: string;
   responsibilities?: string;
   qualifications?: string;
-  staffId?: number;
   location?: string;
   status?: JobPostingStatus;
   tags?: string[]; // array of tag names
@@ -156,84 +162,78 @@ router.put(
     try {
       const { jobPostingId } = req.params;
 
-      // Find the existing job posting
-      const jobPosting = await JobPosting.findOne({
-        where: { id: jobPostingId },
-      });
+    // Find the existing job posting
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+    });
+    
+    if (!jobPosting) {
+      return res.status(404).json({ error: "Job posting not found" });
+    }
 
-      if (!jobPosting) {
-        return res.status(404).json({ error: "Job posting not found" });
-      }
-      // Start a transaction for atomic updates.
-      t = await Database.GetSequelize().transaction();
+    // check the user is authorized to update this job posting
+    const userId = req.auth?.id;
+    if (!userId || jobPosting.get("staffId") !== userId) {
+      return res.status(403).json({ error: "You are not authorized to update this job posting" });
+    }
 
-      // Extract allowed fields from request body using JobPostingEditRequest
-      const {
-        title,
-        subtitle,
-        description,
-        responsibilities,
-        qualifications,
-        staffId,
-        location,
-        status,
-        tags, // array of tag names
-      } = req.body as JobPostingEditRequest;
+    // Start a transaction for atomic updates.
+    t = await Database.GetSequelize().transaction();
 
-      const updates: JobPostingEditRequest = {};
+    // Extract allowed fields from request body using JobPostingEditRequest
+    const {
+      title,
+      subtitle,
+      description,
+      responsibilities,
+      qualifications,
+      location,
+      status,
+      tags, // array of tag names
+    } = req.body as JobPostingEditRequest;
 
-      // validations
-      if (title !== undefined) {
-        const trimmedTitle = typeof title === "string" ? title.trim() : title;
-        if (trimmedTitle) {
-          updates.title = trimmedTitle;
-        }
+    const updates: JobPostingEditRequest = {};
+
+    // validations
+    if (title !== undefined) {
+      const trimmedTitle = typeof title === "string" ? title.trim() : title;
+      if (trimmedTitle) {
+        updates.title = trimmedTitle;
       }
-      if (subtitle !== undefined) {
-        const trimmedSubtitle =
-          typeof subtitle === "string" ? subtitle.trim() : subtitle;
-        if (trimmedSubtitle) {
-          updates.subtitle = trimmedSubtitle;
-        }
+    }
+    if (subtitle !== undefined) {
+      const trimmedSubtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
+      if (trimmedSubtitle) {
+        updates.subtitle = trimmedSubtitle;
       }
-      if (description !== undefined) {
-        const trimmedDescription =
-          typeof description === "string" ? description.trim() : description;
-        if (trimmedDescription) {
-          updates.description = trimmedDescription;
-        }
+    }
+    if (description !== undefined) {
+      const trimmedDescription = typeof description === "string" ? description.trim() : description;
+      if (trimmedDescription) {
+        updates.description = trimmedDescription;
       }
-      if (responsibilities !== undefined) {
-        const trimmedResp =
-          typeof responsibilities === "string"
-            ? responsibilities.trim()
-            : responsibilities;
-        if (trimmedResp) {
-          updates.responsibilities = trimmedResp;
-        }
+    }
+    if (responsibilities !== undefined) {
+      const trimmedResp = typeof responsibilities === "string" ? responsibilities.trim() : responsibilities;
+      if (trimmedResp) {
+        updates.responsibilities = trimmedResp;
       }
-      if (qualifications !== undefined) {
-        const trimmedQual =
-          typeof qualifications === "string"
-            ? qualifications.trim()
-            : qualifications;
-        if (trimmedQual) {
-          updates.qualifications = trimmedQual;
-        }
+    }
+    if (qualifications !== undefined) {
+      const trimmedQual = typeof qualifications === "string" ? qualifications.trim() : qualifications;
+      if (trimmedQual) {
+        updates.qualifications = trimmedQual;
       }
-      if (staffId !== undefined && typeof staffId === "number" && staffId > 0) {
-        updates.staffId = staffId;
+    }
+    if (location !== undefined) {
+      const trimmedLocation = typeof location === "string" ? location.trim() : location;
+      if (trimmedLocation) {
+        updates.location = trimmedLocation;
       }
-      if (location !== undefined) {
-        const trimmedLocation =
-          typeof location === "string" ? location.trim() : location;
-        if (trimmedLocation) {
-          updates.location = trimmedLocation;
-        }
-      }
-      if (status !== undefined) {
-        updates.status = status;
-      }
+    }
+    if (status !== undefined) {
+      updates.status = status;
+    }
 
       jobPosting.set(updates);
       await jobPosting.save({ transaction: t });
