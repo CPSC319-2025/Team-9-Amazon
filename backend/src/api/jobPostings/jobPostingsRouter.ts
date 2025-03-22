@@ -1,6 +1,6 @@
 import Criteria, { CriteriaType } from "@/database/models/criteria";
 import Database, { JobPosting, JobTag, Staff } from "@/database/database";
-import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
+import { JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
@@ -17,9 +17,41 @@ import { s3DownloadPdfBase64 } from "@/common/utils/awsTools";
 
 const router = Router();
 
-type JobPostingWithTags = JobPostingAttributes & {
-  jobTags: JobTagAttributes[];
-};
+
+// get all job postings for a hiring manager
+router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
+  try {
+    const staffId = req.auth?.id;
+    if (!staffId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    // TDOD: pagination
+
+    // Query job postings for the given staffId
+    const jobPostings = await JobPosting.findAll({
+      where: { staffId },
+      include: [
+        {
+          model: JobTag,
+          as: "jobTags",
+          attributes: ["id", "name"],
+          through: { attributes: [] },
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.json(jobPostings.map((jp) => jp.toJSON()));
+  } catch (error) {
+    console.error("Error fetching job postings:", error);
+    return res.status(500).json({
+      error: "Failed to fetch job postings",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
 
 // Get job posting of id
 router.get(
