@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "../pages/HomePageApplicant";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
 import TopNavbar from "../components/NavBar";
 import HiringManagerLayout from "../layouts/HiringManagerLayout";
-import JobDetails from "../pages/HiringManager/JobDetails";
+import JobInfo from "../pages/HiringManager/JobDetails";
 import CandidateReportPage from "../pages/HiringManager/CandidateReportPage";
 import JobReportsPage from "../pages/HiringManager/JobReportsPage";
 
@@ -21,10 +21,15 @@ import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
 
-const AppRoutes = () => {
+const AppWithConditionalNavbar = () => {
+  const location = useLocation();
+
+  const hideNavbar =
+    location.pathname === "/" || location.pathname.startsWith("/applicant");
+
   return (
-    <BrowserRouter>
-      <TopNavbar />
+    <>
+      {!hideNavbar && <TopNavbar />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -38,7 +43,6 @@ const AppRoutes = () => {
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path={ROUTES.hiringManager.hiringManagerCreateJob}
           element={
@@ -47,7 +51,6 @@ const AppRoutes = () => {
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path={ROUTES.hiringManager.jobPosting(":jobPostingId")}
           element={
@@ -56,10 +59,10 @@ const AppRoutes = () => {
             </RoleProtectedRoute>
           }
         >
-          <Route index element={<JobDetails />} />
+          <Route index element={<JobInfo />} />
           <Route
             path={ROUTES.hiringManager.jobDetails(":jobPostingId")}
-            element={<JobDetails />}
+            element={<JobInfo />}
           />
           <Route
             path={ROUTES.hiringManager.evaluationMetrics(":jobPostingId")}
@@ -83,7 +86,7 @@ const AppRoutes = () => {
         <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />
-          <Route path="details/:jobPostingId" element={<JobDetails />} />
+          <Route path="details/:jobPostingId" element={<JobInfo />} />
         </Route>
 
         {/* Admin Routes */}
@@ -114,6 +117,14 @@ const AppRoutes = () => {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+    </>
+  );
+};
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <AppWithConditionalNavbar />
     </BrowserRouter>
   );
 };

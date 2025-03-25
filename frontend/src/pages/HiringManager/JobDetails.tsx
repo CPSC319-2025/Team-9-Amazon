@@ -29,7 +29,7 @@ const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
   };
 };
 
-const JobDetails = () => {
+const JobInfo = () => {
   const { jobPosting } = useOutletContext<{ jobPosting: JobPosting | null }>();
 
   const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
@@ -75,4 +75,4 @@ const JobDetails = () => {
   return <JobDetailsView mode={JobDetailsMode.EDIT} jobPosting={jobPosting} editable={true} onSave={handleSaveJob} />;
 };
 
-export default JobDetails;
+export default JobInfo;

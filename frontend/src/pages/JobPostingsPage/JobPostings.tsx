@@ -33,8 +33,8 @@ export default function JobPostings() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  //const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  //const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   // State for job type filter
@@ -64,9 +64,13 @@ export default function JobPostings() {
     fetchJobPostings();
   }, []);
 
-  const handleJobClick = (job: Job) => {
+  /*const handleJobClick = (job: Job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
+  };*/
+
+  const handleJobClick = (job: Job) => {
+    navigate(`details/${job.id}`);
   };
 
   // Function to handle filter changes
@@ -145,7 +149,7 @@ export default function JobPostings() {
             <JobPost
               key={job.id}
               job={job}
-              onLearnMore={() => handleJobClick(job)}
+              onLearnMore={() => navigate(`/applicant/job-postings/details/${job.id}`)}
               onApply={() =>
                 navigate(
                   `apply/${job.id}?title=${encodeURIComponent(job.title)}`
@@ -161,7 +165,7 @@ export default function JobPostings() {
       </div>
 
       {/* Job Details Modal */}
-      <Modal
+      {/*<Modal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         aria-labelledby="job-modal-title"
@@ -239,7 +243,7 @@ export default function JobPostings() {
             </>
           )}
         </Box>
-      </Modal>
-    </div>
+      </Modal>  */}
+    </div> 
   );
 }
