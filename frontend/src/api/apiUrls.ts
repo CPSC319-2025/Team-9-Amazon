@@ -6,6 +6,7 @@ const applicationUrl = `${apiUrl}/applications`;
 
 export const apiUrls = {
   applicantJobPostingsUrl: `${apiUrl}/applicant/job-postings`,
+  getJobTagsUrl: `${apiUrl}/applicant/job-postings/tags`,
   createApplicationUrl: applicationUrl + "/",
   getJobPostingCriteriaUrl: jobPostingsUrl + "/:jobPostingId/criteria",
   editJobPostingCriteriaUrl:

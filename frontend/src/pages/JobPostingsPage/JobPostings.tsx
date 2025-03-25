@@ -30,6 +30,7 @@ export default function JobPostings() {
 
   const { searchTerm, location } = useOutletContext<ContextType>();
   const [jobPostings, setJobPostings] = useState<Job[]>([]);
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +65,25 @@ export default function JobPostings() {
     fetchJobPostings();
   }, []);
 
+  useEffect(() => {
+    const fetchJobTypes = async () => {
+      try {
+        const response = await fetch(apiUrls.getJobTagsUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          setJobTypes(result.data);
+        } else {
+          console.error("Failed to fetch job types");
+        }
+      } catch (err) {
+        console.error("Error fetching job types:", err);
+      }
+    };
+
+    fetchJobTypes();
+  }, []);
+
   /*const handleJobClick = (job: Job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
@@ -88,8 +108,12 @@ export default function JobPostings() {
     const locationLower = location.toLowerCase();
 
     // Job type filtering logic
+    // const jobTypeMatch =
+    //   selectedJobTypes.length === 0 || selectedJobTypes.includes(job.job_type);
     const jobTypeMatch =
-      selectedJobTypes.length === 0 || selectedJobTypes.includes(job.job_type);
+      selectedJobTypes.length === 0 ||
+      job.tags?.some((tag: string) => selectedJobTypes.includes(tag));
+
 
     return (
       jobTypeMatch &&
@@ -113,13 +137,16 @@ export default function JobPostings() {
     <div className="flex gap-8 m-8">
       {/* Sidebar for Filters */}
       <aside
-        className="w-[250px] h-[300px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
+        //className="w-[250px] h-[300px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
+        className="w-[250px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
         style={{
           minWidth: "250px",
           maxWidth: "250px",
           minHeight: "300px",
-          maxHeight: "300px",
-          overflow: "hidden",
+          maxHeight: "80vh",
+          overflowY: "auto",
+          //maxHeight: "300px",
+          //overflow: "hidden",
         }}
       >
         <h3 className="font-bold text-lg mb-4">Filter By:</h3>
@@ -127,7 +154,7 @@ export default function JobPostings() {
         {/* Job Type Filter */}
         <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Type</h4>
         <div className="flex flex-col gap-2">
-          {["Full-time", "Part-time", "Remote"].map((type) => (
+          {jobTypes.map((type) => (
             <FormControlLabel
               key={type}
               control={
@@ -149,7 +176,10 @@ export default function JobPostings() {
             <JobPost
               key={job.id}
               job={job}
-              onLearnMore={() => navigate(`/applicant/job-postings/details/${job.id}`)}
+              //onLearnMore={() => navigate(`/applicant/job-postings/details/${job.id}`)}
+              onLearnMore={() =>
+                navigate(`/applicant/job-postings/details/${job.id}`, { state: { job } })
+              }              
               onApply={() =>
                 navigate(
                   `apply/${job.id}?title=${encodeURIComponent(job.title)}`
@@ -244,6 +274,6 @@ export default function JobPostings() {
           )}
         </Box>
       </Modal>  */}
-    </div> 
+    </div>
   );
 }
