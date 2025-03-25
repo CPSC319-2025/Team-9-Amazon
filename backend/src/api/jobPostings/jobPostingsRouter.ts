@@ -18,7 +18,7 @@ const router = Router();
 type JobPostingWithTags = JobPostingAttributes & { jobTags: JobTagAttributes[] };
 
 // Get job posting of id
-router.get("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+router.get("/:jobPostingId", async (req, res) => {
   try {
     const { jobPostingId } = req.params;
 

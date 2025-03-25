@@ -3,12 +3,21 @@ import { useParams, useNavigate } from "react-router";
 import { apiUrls } from "../../api/apiUrls";
 import CustomButton from "../../components/Common/Buttons/CustomButton";
 import { Job } from "../../components/Common/JobPost";
+import { useGetJobPosting } from "../../queries/jobPosting";
+
 
 export default function JobDetails() {
   const { jobPostingId } = useParams();
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+  /*const {
+
+    data: jobPosting,
+    isLoading: isLoadingJobPosting,
+    error: jobPostingDataError,
+  } = useGetJobPosting(jobPostingId || "");
+   */
   const [error, setError] = useState<string | null>(null);
   
 
@@ -36,7 +45,7 @@ export default function JobDetails() {
   }, [jobPostingId]);
 
 
-  if (loading) return <p className="text-center text-lg">Loading...</p>;
+  //if (loading) return <p className="text-center text-lg">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   if (!selectedJob) return <p className="text-center text-gray-600">Job not found.</p>;
@@ -57,7 +66,7 @@ export default function JobDetails() {
       <div className="mt-4">
         <h4 className="font-semibold">What You Will Do:</h4>
         <ul className="list-disc list-inside pl-4">
-          {selectedJob.responsibilities.map((responsibility, index) => (
+          {selectedJob.responsibilities?.map((responsibility, index) => (
             <li key={index}>{responsibility}</li>
           ))}
         </ul>
@@ -66,7 +75,7 @@ export default function JobDetails() {
       <div className="mt-4">
         <h4 className="font-semibold">What We're Looking For:</h4>
         <ul className="list-disc list-inside pl-4">
-          {selectedJob.qualifications.map((qualification, index) => (
+          {selectedJob.qualifications?.map((qualification, index) => (
             <li key={index}>{qualification}</li>
           ))}
         </ul>

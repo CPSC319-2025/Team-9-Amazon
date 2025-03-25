@@ -20,6 +20,7 @@ import AccountManagerPage from "../pages/Admin/AccountManagerPage";
 import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
+import JobDetails from "../pages/JobPostingsPage/jobDetailsApplication";
 
 const AppWithConditionalNavbar = () => {
   const location = useLocation();
@@ -86,7 +87,7 @@ const AppWithConditionalNavbar = () => {
         <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />
-          <Route path="details/:jobPostingId" element={<JobInfo />} />
+          <Route path="details/:jobPostingId" element={<JobDetails />} />
         </Route>
 
         {/* Admin Routes */}
