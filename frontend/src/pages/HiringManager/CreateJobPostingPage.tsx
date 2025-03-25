@@ -7,6 +7,7 @@ import { useCreateJobPosting } from "../../queries/jobPosting";
 import { JobPostingCreationRequest } from "../../types/JobPosting/api/jobPosting";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
+import HttpErrorDisplay from "../../components/Common/Errors/HttpErrorDisplay";
 
 const convertToCreationRequest = (
   job: JobPosting
@@ -48,7 +49,26 @@ const CreateJobPostingPage = () => {
   }
 
   if (error) {
-    return <p>Error: {error.message}</p>;
+    if (error.code === 404) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Resource not found"
+        details="Error loading resources. Please try again later." />);
+    }
+    if (error.code === 403) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Forbidden"
+        details="You are not authorized to access this resource." />);
+    }
+
+    
+    return (
+      <HttpErrorDisplay 
+        statusCode={error.code || -1}
+        message="Error"
+        details={error.message} />
+    );
   }
 
   return (

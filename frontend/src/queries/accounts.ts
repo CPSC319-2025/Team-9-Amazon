@@ -1,5 +1,4 @@
 import { useMutation, UseMutationResult, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import { CriteriaRepresentation } from "../representations/criteria";
 import { ApiError } from "../representations/error";
 import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
@@ -18,7 +17,7 @@ export const useGetAccounts = (): UseQueryResult<AccountRepresentation, ApiError
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();

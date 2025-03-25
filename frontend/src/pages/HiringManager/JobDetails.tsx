@@ -6,6 +6,7 @@ import { JobDetailsMode } from "../../types/JobPosting/JobDetailsMode";
 import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { useEditJobPosting } from "../../queries/jobPosting";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
+import HttpErrorDisplay from "../../components/Common/Errors/HttpErrorDisplay";
 
 const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
   const {
@@ -60,15 +61,24 @@ const JobDetails = () => {
   }
 
   if (error) {
+    if (error.code === 404) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Job postings not found"
+        details="Error loading job postings. Please try again later." />);
+    }
+    if (error.code === 403) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Forbidden"
+        details="You are not authorized to access this resource." />);
+    }
+
     return (
-      <Box sx={{ padding: "40px", textAlign: "center" }}>
-        <Typography variant="h6" color="error">
-          Failed to save changes. Please try again.
-        </Typography>
-        <Typography variant="body2" color="error">
-          {error.message}
-        </Typography>
-      </Box>
+      <HttpErrorDisplay 
+        statusCode={error.code || -1}
+        message="Error"
+        details={error.message} />
     );
   }
 
