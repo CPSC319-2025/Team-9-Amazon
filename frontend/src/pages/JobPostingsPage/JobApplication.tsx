@@ -117,6 +117,7 @@ export default function JobApplication() {
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = applicationForm;
 
   const phone = applicationForm.watch("phone");
@@ -192,6 +193,11 @@ export default function JobApplication() {
 
         if (file.type.includes("word")) {
           const parsedData = await parseResume(file);
+        setValue("first_name", parsedData.firstName || "");
+        setValue("last_name", parsedData.lastName || "");
+        setValue("email", parsedData.email || "");
+        setValue("phone", parsedData.phone || "");
+
           // const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
           const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
@@ -311,10 +317,80 @@ export default function JobApplication() {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-lg space-y-4"
       >
+        <div className="flex flex-col items-center gap-1 text-center">
+          <label className="text-sm font-medium">Upload Resume to Auto Parse</label>
+          <div className="flex items-center text-center">
+            <input
+              type="file"
+              accept=".doc,.docx"
+              onChange={handleFileUpload}
+              className="text-sm text-gray-500
+                file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-[#FF9900] file:text-white
+                hover:file:bg-[#FF9966] cursor-pointer
+                mx-auto"
+            />
+          </div>
+          {fileName && (
+            <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
+              <div className="flex items-center gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span className="text-sm text-center text-gray-600 font-medium">
+                  {fileName}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFileName("");
+                  setValue("resume", "");
+                  setShowWorkExperience(false);
+                  setWorkExperience([]);
+                }}
+                className="text-gray-500 hover:text-red-500 p-1 hover:bg-red-50 rounded-full transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+          <input type="hidden" {...register("resume")} />
+          {errors.resume && (
+            <span className="text-red-500 text-sm">
+              {errors.resume.message}
+            </span>
+          )}
+        </div>
+
         <CustomFormTextField
           label="First Name"
           name="first_name"
-          placeholder="John"
+          placeholder={!watch("first_name") ? "John" : ""}
           register={register}
           errors={errors}
           required
@@ -351,72 +427,6 @@ export default function JobApplication() {
           errors={errors}
         />
 
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Resume</label>
-          <input
-            type="file"
-            accept=".doc,.docx,.pdf"
-            onChange={handleFileUpload}
-            className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-semibold
-                file:bg-[#FF9900] file:text-white
-                hover:file:bg-[#FF9966]"
-          />
-          {fileName && (
-            <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
-              <div className="flex items-center gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span className="text-sm text-gray-600 font-medium">
-                  {fileName}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setFileName("");
-                  setValue("resume", "");
-                  setShowWorkExperience(false);
-                  setWorkExperience([]);
-                }}
-                className="text-gray-500 hover:text-red-500 p-1 hover:bg-red-50 rounded-full transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-          <input type="hidden" {...register("resume")} />
-          {errors.resume && (
-            <span className="text-red-500 text-sm">
-              {errors.resume.message}
-            </span>
-          )}
-        </div>
 
         {showWorkExperience && (
           <>

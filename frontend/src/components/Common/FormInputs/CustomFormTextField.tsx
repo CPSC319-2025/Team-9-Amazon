@@ -22,6 +22,9 @@ export default function CustomFormTextField(props: CustomFormTextFieldProps) {
         helperText={
           props.errors && (props.errors[props.name]?.message as string)
         }
+        InputLabelProps={{
+          shrink: true, //
+        }}
         sx={{
           width: "100%",
           "& .MuiOutlinedInput-root": {

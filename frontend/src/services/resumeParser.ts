@@ -16,39 +16,51 @@ interface Experience {
 }
 
 interface ParsedResume {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
   experiences: Experience[];
 }
 
 export async function parseResume(file: File): Promise<ParsedResume> {
   try {
-    // Convert Word document to text
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
     const text = result.value;
 
-    // Use OpenAI to parse the text
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content: `Extract work experience information from the resume text and format it as JSON.
-          Rules to Follow:
-            Accurate Dates: Extract start and end dates in MM/YYYY format.
-            Ongoing Jobs: If the job is not terminated or PRESENT, leave "endDate" as an empty string (""), do not leave it as PRESENT.
-            Skills Extraction: Extract relevant skills and list them in an array.
-            Multiple Experiences: If multiple jobs exist, extract all into an array under "experiences"
-            Usethe following structure:
+          content: `Extract applicant details and work experience from the resume text and format it as JSON.
+
+            Rules to Follow:
+            1. Extract the following fields: firstName, lastName, email, phone, and experiences.
+            2. Email must be valid and match standard email format.
+            3. Phone must follow xxx-xxx-xxxx format (US-style).
+            4. Accurate Dates: Extract start and end dates in MM/YYYY format.
+            5. Ongoing Jobs: If the job is current, leave "endDate" as an empty string.
+            6. Skills Extraction: Extract relevant skills and list them in an array.
+            7. If multiple jobs exist, extract all into an array under "experiences".
+
+            Use this structure:
             {
-                "experiences": [
-                    {
-                    "title": "Job Title",
-                    "company": "Company Name",
-                    "startDate": "MM/YYYY",
-                    "endDate": "MM/YYYY or leave blank if the job is ongoing",
-                    "description": "Job description"
-                    }
-                ]
+              "firstName": "John",
+              "lastName": "Doe",
+              "email": "john.doe@example.com",
+              "phone": "123-456-7890",
+              "experiences": [
+                {
+                  "title": "Software Engineer",
+                  "company": "Tech Corp",
+                  "startDate": "01/2021",
+                  "endDate": "12/2023",
+                  "skills": ["JavaScript", "React", "Node.js"],
+                  "description": "Worked on web applications..."
+                }
+              ]
             }`,
         },
         {
@@ -58,9 +70,20 @@ export async function parseResume(file: File): Promise<ParsedResume> {
       ],
     });
 
-    const parsedData = JSON.parse(
-      completion.choices[0].message.content || "{}"
-    );
+    const parsedData = JSON.parse(completion.choices[0].message.content || "{}");
+
+    // Validate email and phone
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
+
+    if (!emailRegex.test(parsedData.email)) {
+      throw new Error("Extracted email is not in a valid format.");
+    }
+
+    if (!phoneRegex.test(parsedData.phone)) {
+      throw new Error("Extracted phone number must be in xxx-xxx-xxxx format.");
+    }
+
     return parsedData;
   } catch (error) {
     console.error("Error parsing resume:", error);
