@@ -355,18 +355,17 @@ export default function JobApplication() {
           <label className="text-sm font-medium">Resume</label>
           <input
             type="file"
-            accept=".doc,.docx"
+            accept=".doc,.docx,.pdf"
             onChange={handleFileUpload}
             className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-sm file:font-semibold
                 file:bg-[#FF9900] file:text-white
-                hover:file:bg-[#FF9966]
-                cursor-pointer"
+                hover:file:bg-[#FF9966]"
           />
           {fileName && (
-            <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors cursor-pointer">
+            <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
               <div className="flex items-center gap-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -394,7 +393,7 @@ export default function JobApplication() {
                   setShowWorkExperience(false);
                   setWorkExperience([]);
                 }}
-                className="text-gray-500 hover:text-red-500 p-1 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                className="text-gray-500 hover:text-red-500 p-1 hover:bg-red-50 rounded-full transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -430,7 +429,7 @@ export default function JobApplication() {
                 <button
                   type="button"
                   onClick={() => removeWorkExperience(index)}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700  cursor-pointer"
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                 >
                   ✕
                 </button>
