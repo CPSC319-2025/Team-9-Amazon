@@ -1,5 +1,5 @@
-import CustomButton from './Buttons/CustomButton';
-//import { useNavigate } from 'react-router';
+import CustomButton from "./Buttons/CustomButton";
+import { Chip } from "@mui/material";
 
 export interface Job {
   id: string;
@@ -12,6 +12,7 @@ export interface Job {
   posted_at: string;
   qualifications: string[];
   responsibilities: string[];
+  tags?: string[]; 
 }
 
 interface JobPostProps {
@@ -21,14 +22,13 @@ interface JobPostProps {
 }
 
 export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
-  //const navigate = useNavigate();
+  console.log("Job tags:", job.tags);
   return (
-    <div 
+    <div
       className="flex flex-col gap-4 w-[450px] rounded-xl p-4 
       backdrop-blur-md bg-white/30 border border-white/40 shadow-lg
       hover:shadow-xl transition-all hover:scale-101 min-h-[250px]"
     >
-    
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
           <h3 className="font-bold text-2xl text-[#146eb4]">{job.title}</h3>
@@ -38,26 +38,33 @@ export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
       </div>
 
       <section className="flex-grow">
-        {job.description.length > 150 
+        {job.description.length > 150
           ? `${job.description.slice(0, 150)}...`
-          : job.description
-        }
+          : job.description}
       </section>
-      <div className='flex justify-between items-center'>
-        <CustomButton
-          variant='outlined'
-          onClick={onLearnMore}
-          //onClick={() => navigate(`/job-details/${job.id}`)}
-        >
+
+      <div className="flex justify-between items-center">
+        <CustomButton variant="outlined" onClick={onLearnMore}>
           Learn More
         </CustomButton>
-        <CustomButton
-          variant='filled'
-          onClick={onApply}
-        >
+        <CustomButton variant="filled" onClick={onApply}>
           Apply
         </CustomButton>
       </div>
+
+      {job.tags && job.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {job.tags.map((tag) => (
+            <Chip
+              key={tag}
+              label={tag}
+              variant="outlined"
+              color="primary"
+              size="small"
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "../pages/HomePageApplicant";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -21,11 +21,17 @@ import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
 import SkillsManagerPage from "../pages/Admin/SkillsManagerPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
+import JobDetailsApplicant from "../pages/JobPostingsPage/jobDetailsApplication";
 
-const AppRoutes = () => {
+const AppWithConditionalNavbar = () => {
+  const location = useLocation();
+
+  const hideNavbar =
+    location.pathname === "/" || location.pathname.startsWith("/applicant");
+
   return (
-    <BrowserRouter>
-      <TopNavbar />
+    <>
+      {!hideNavbar && <TopNavbar />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -39,7 +45,6 @@ const AppRoutes = () => {
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path={ROUTES.hiringManager.hiringManagerCreateJob}
           element={
@@ -48,7 +53,6 @@ const AppRoutes = () => {
             </RoleProtectedRoute>
           }
         />
-
         <Route
           path={ROUTES.hiringManager.jobPosting(":jobPostingId")}
           element={
@@ -84,7 +88,7 @@ const AppRoutes = () => {
         <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />
-          <Route path="details/:jobPostingId" element={<JobDetails />} />
+          <Route path="details/:jobPostingId" element={<JobDetailsApplicant />} />
         </Route>
 
         {/* Admin Routes */}
@@ -123,6 +127,14 @@ const AppRoutes = () => {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+    </>
+  );
+};
+
+const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <AppWithConditionalNavbar />
     </BrowserRouter>
   );
 };
