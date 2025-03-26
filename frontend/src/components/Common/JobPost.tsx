@@ -27,7 +27,7 @@ export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
     <div
       className="flex flex-col gap-4 w-[450px] rounded-xl p-4 
       backdrop-blur-md bg-white/30 border border-white/40 shadow-lg
-      hover:shadow-xl transition-all hover:scale-101 min-h-[250px]"
+      hover:shadow-xl transition-all hover:scale-101 min-h-[250px] max-h-[280px] overflow-hidden"
     >
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
