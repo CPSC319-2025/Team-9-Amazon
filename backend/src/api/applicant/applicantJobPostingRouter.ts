@@ -16,14 +16,14 @@ router.get("/", async (req, res) => {
         {
           model: JobTag,
           as: "jobTags",
-          attributes: ["id", "name"], 
+          attributes: ["name"], 
           through: { attributes: [] }, 
         },
       ],
     });
 
     const formattedJobPostings = jobPostings.map((job) => {
-      const jobData = job.toJSON() as JobPostingAttributes & { jobTags?: { id: number; name: string }[] };
+      const jobData = job.toJSON() as JobPostingAttributes & { jobTags?: { name: string }[] };
     
       return {
         id: jobData.id,
@@ -37,10 +37,7 @@ router.get("/", async (req, res) => {
         responsibilities: jobData.responsibilities
           ? jobData.responsibilities.split(",").map((r) => r.trim())
           : [],
-          jobTags: jobData.jobTags?.map((tag: { id: number; name: string }) => ({
-            id: tag.id,
-            name: tag.name,
-          })) || [],
+          tags: jobData.jobTags?.map((tag) => tag.name) || [],
       };
     });
 
@@ -48,7 +45,25 @@ router.get("/", async (req, res) => {
     //return res.status(200).json({ success: true, data: jobPostings });
   } catch (error) {
     console.error("Error fetching job postings:", error);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Error fetching job postings" });
+  }
+});
+
+router.get("/tags", async (req, res) => {
+  try {
+    const tags = await JobTag.findAll({
+      attributes: ["name"],
+      order: [["name", "ASC"]], // sort alphabetically
+    });
+
+    console.log("tags:", tags);
+    const tagNames = tags.map(tag => tag.dataValues.name);
+    console.log("tagNames:", tagNames);
+
+    return res.status(StatusCodes.OK).json({ success: true, data: tagNames });
+  } catch (error) {
+    console.error("Error fetching job tags:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error fetching job type filters" });
   }
 });
 
