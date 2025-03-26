@@ -152,7 +152,7 @@ export default function JobPostings() {
         <h3 className="font-bold text-lg mb-4">Filter By:</h3>
 
         {/* Job Type Filter */}
-        <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Type</h4>
+        <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Tags</h4>
         <div className="flex flex-col gap-2">
           {jobTypes.map((type) => (
             <FormControlLabel
