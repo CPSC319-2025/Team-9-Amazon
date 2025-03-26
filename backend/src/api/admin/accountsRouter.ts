@@ -20,6 +20,20 @@ accountsRouter.get("/", authenticateJWT, requireAdmin, async (req, res) => {
   }
 });
 
+// Get all hiring manager accounts
+accountsRouter.get("/hiringManagers", authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const staff = await Staff.findAll({
+      where: { isHiringManager: true },
+      attributes: { exclude: ["password"] },
+      raw: true,
+    });
+    res.status(200).json({ staff });
+  } catch (error) {
+    handleZodError(error, res, "Failed to get staff members");
+  }
+});
+
 // Get specific account
 accountsRouter.get("/:account_id", authenticateJWT, requireAdmin, async (req, res) => {
   try {

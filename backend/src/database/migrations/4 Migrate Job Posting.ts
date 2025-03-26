@@ -1,6 +1,6 @@
 import { QueryInterface } from "sequelize";
 import { JobPostingSchema } from "../models/jobPosting";
-import { JobPostingTableName } from "../models/jobPosting.constants";
+import { JobPostingTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

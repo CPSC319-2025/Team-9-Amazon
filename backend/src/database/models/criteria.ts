@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting from "./jobPosting";
 import { ApplicationScoring } from "@/services/applicationScoring";
+import { CriteriaTableName } from "./tableNames";
 export enum CriteriaType {
   global = "global",
   local = "local",
@@ -104,8 +105,6 @@ export const CriteriaSchema = {
     defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
   },
 };
-
-export const CriteriaTableName = "criteria";
 
 export default class Criteria
   extends Model<CriteriaAttributes, CriteriaCreationAttributes>

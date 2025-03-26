@@ -99,13 +99,13 @@ export default function JobDetailsApplicant() {
             </div>
           </div>
 
-          {selectedJob.tags?.length > 0 && (
+          {(selectedJob.tags ?? []).length > 0 && (
             <div className="flex items-start gap-2 mb-3">
               <WorkIcon className="text-[#146eb4] mt-0.5" />
               <div>
                 <p className="text-base text-gray-600 font-medium">Tags</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {selectedJob.tags.map((tag, index) => (
+                  {(selectedJob.tags ?? []).map((tag, index) => (
                     <span
                       key={index}
                       className="bg-[#146eb4] text-white text-xs px-2 py-0.5 rounded-full"

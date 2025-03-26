@@ -1,5 +1,6 @@
 import { QueryInterface } from "sequelize";
-import { CriteriaSchema, CriteriaTableName } from "../models/criteria";
+import { CriteriaSchema } from "../models/criteria";
+import { CriteriaTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

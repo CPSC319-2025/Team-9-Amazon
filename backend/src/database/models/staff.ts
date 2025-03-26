@@ -1,5 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import bcrypt from "bcryptjs";
+import { StaffTableName } from "./tableNames";
 
 interface StaffAttributes {
   id: number;
@@ -69,7 +70,7 @@ export const StaffSchema = {
   },
 };
 
-export const StaffTableName = "staff";
+
 
 class Staff extends Model<StaffAttributes, StaffCreationAttributes> {
   declare id: number;

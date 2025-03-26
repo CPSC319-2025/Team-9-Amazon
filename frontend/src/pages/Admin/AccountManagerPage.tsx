@@ -115,7 +115,7 @@ const AccountManagerPage = () => {
       field: "actions",
       type: "actions",
       // headerName: 'Actions',
-      flex: 1,
+      flex: 0.3,
       align: "right",
       cellClassName: "actions",
       getActions: (temp) => {

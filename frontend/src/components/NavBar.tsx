@@ -24,6 +24,7 @@ import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
 import { DecodedToken } from "../types/utils";
 import { WorkspacePremium } from "@mui/icons-material";
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const TopNavbar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -34,14 +35,10 @@ const TopNavbar = () => {
   const location = useLocation();
 
   const shouldShowLoginButton =
-    !isLoggedIn &&
-    location.pathname !== "/login" &&
-    !location.pathname.startsWith("/applicant");
+    !isLoggedIn && location.pathname !== "/login" && !location.pathname.startsWith("/applicant");
 
   const shouldShowAccountButton =
-    isLoggedIn &&
-    location.pathname !== "/login" &&
-    !location.pathname.startsWith("/applicant");
+    isLoggedIn && location.pathname !== "/login" && !location.pathname.startsWith("/applicant");
 
   useEffect(() => {
     const checkAuth = () => {
@@ -89,10 +86,7 @@ const TopNavbar = () => {
   };
 
   return (
-    <AppBar
-      position="sticky"
-      sx={{ backgroundColor: "#fff", color: "#000", padding: "10px" }}
-    >
+    <AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000", padding: "10px" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* AWS Logo */}
         <Box
@@ -117,12 +111,7 @@ const TopNavbar = () => {
               <ArrowDropDownIcon sx={{ marginLeft: "5px" }} />
             </IconButton>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              sx={{ minWidth: "250px" }}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} sx={{ minWidth: "250px" }}>
               <List sx={{ width: "220px" }}>
                 {isHiringManager && (
                   <ListItemButton
@@ -139,37 +128,32 @@ const TopNavbar = () => {
 
                 {isAdmin && (
                   <>
-                    <ListItemButton
-                      component={Link}
-                      to="admin/user-management"
-                      onClick={handleMenuClose}
-                    >
+                    <ListItemButton component={Link} to="admin/user-management" onClick={handleMenuClose}>
                       <ListItemIcon>
                         <GroupIcon />
                       </ListItemIcon>
                       <ListItemText primary="User accounts management" />
                     </ListItemButton>
 
-                    <ListItemButton
-                      component={Link}
-                      to="admin/criteria-management"
-                      onClick={handleMenuClose}
-                    >
+                    <ListItemButton component={Link} to="admin/criteria-management" onClick={handleMenuClose}>
                       <ListItemIcon>
                         <CheckCircleIcon />
                       </ListItemIcon>
                       <ListItemText primary="Criteria management" />
                     </ListItemButton>
 
-                    <ListItemButton
-                      component={Link}
-                      to="admin/skills-management"
-                      onClick={handleMenuClose}
-                    >
+                    <ListItemButton component={Link} to="admin/skills-management" onClick={handleMenuClose}>
                       <ListItemIcon>
                         <WorkspacePremium />
                       </ListItemIcon>
                       <ListItemText primary="Skills management" />
+                    </ListItemButton>
+
+                    <ListItemButton component={Link} to="admin/assign-job-postings" onClick={handleMenuClose}>
+                      <ListItemIcon>
+                        <AssignmentIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Assign Job Postings" />
                     </ListItemButton>
                   </>
                 )}

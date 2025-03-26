@@ -1,5 +1,6 @@
 import { QueryInterface, DataTypes } from "sequelize";
-import { ApplicationSchema, ApplicationTableName } from "../models/application";
+import { ApplicationSchema } from "../models/application";
+import { ApplicationTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

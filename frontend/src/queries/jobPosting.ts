@@ -15,7 +15,7 @@ import { apiUrls } from "../api/apiUrls";
 import { fetchWithAuth } from "../api/apiUtils";
 import { criteriaKeys } from "./criteria";
 import { JobPosting } from "../types/JobPosting/jobPosting";
-import { JobPostingAttributes, JobPostingCreationRequest, JobPostingEditRequest, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
+import { JobPostingAssignRequest, JobPostingAttributes, JobPostingCreationRequest, JobPostingEditRequest, JobTagAttributes } from "../types/JobPosting/api/jobPosting";
 import {
   ApplicationsSummaryResponse,
   PotentialCandidatesResponse,
@@ -25,8 +25,9 @@ import { transformJobPosting, transformJobPostings } from "../utils/transformJob
 // Query keys
 export const jobPostingKeys = {
   all: ["jobPosting"] as const,
+  unassigned: ["jobPosting", "unassigned"] as const, // Extends from "all"
   detail: (jobPostingId: string) =>
-    [...jobPostingKeys.all, jobPostingId] as const,
+    [...jobPostingKeys.all, jobPostingId] as const, // Extends from "all"
 };
 
 export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> => {
@@ -46,6 +47,24 @@ export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> =
 
       const jobPostings: JobPosting[] = transformJobPostings(data);
 
+      return jobPostings;
+    },
+    retry: 1,
+  });
+};
+
+export const useGetUnassignedJobPostings = (): UseQueryResult<JobPosting[], ApiError> => {
+  return useQuery({
+    queryKey: jobPostingKeys.unassigned,
+    queryFn: async () => {
+      const url = apiUrls.jobPostings.unassigned;
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      const jobPostings = await response.json()
       return jobPostings;
     },
     retry: 1,
@@ -132,6 +151,31 @@ export const useEditJobPosting = (jobPostingId: string) => {
     },
   });
 };
+
+export const assignJobPosting = (jobPostingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<JobPosting, ApiError, JobPostingAssignRequest>({
+    mutationFn: async (updatePayload: JobPostingEditRequest) => {
+      const url = apiUrls.jobPostings.assign(jobPostingId);
+      const response = await fetchWithAuth(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      const ret = await response.json()
+      return ret;
+    },
+    onSuccess: () => {
+      // Invalidate the job posting detail query to refresh data after edit.
+      queryClient.invalidateQueries({ queryKey: jobPostingKeys.unassigned });
+    },
+  });
+}
 
 
 

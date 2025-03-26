@@ -8,6 +8,7 @@ import { AccountRepresentation, AccountRequest, CreateAccountResponse, DeleteAcc
 // Query keys (used for caching)
 export const accountKeys = {
   all: ["accounts"] as const,
+  hiringManagers: ["accounts", "hiringManagers"] as const,
 };
 
 export const useGetAccounts = (): UseQueryResult<AccountRepresentation, ApiError> => {
@@ -15,6 +16,23 @@ export const useGetAccounts = (): UseQueryResult<AccountRepresentation, ApiError
     queryKey: accountKeys.all,
     queryFn: async () => {
       const response = await fetchWithAuth(apiUrls.accounts.base);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+
+      return response.json();
+    },
+    retry: 1,
+  });
+};
+
+export const useGetHiringManagers = (): UseQueryResult<AccountRepresentation, ApiError> => {
+  return useQuery({
+    queryKey: accountKeys.hiringManagers,
+    queryFn: async () => {
+      const response = await fetchWithAuth(apiUrls.accounts.hiringManagers);
 
       if (!response.ok) {
         const errorData = await response.json();

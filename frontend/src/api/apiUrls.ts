@@ -28,9 +28,12 @@ export const apiUrls = {
       `${jobPostingsUrl}/${jobPostingId}`,
     createJobPosting: jobPostingsUrl,
     all: jobPostingsUrl,
+    unassigned: `${jobPostingsUrl}/unassigned`,
+    assign: (jobPostingId: string) => `${jobPostingsUrl}/assign/${jobPostingId}`
   },
   accounts: {
     base: `${adminUrl}/accounts`,
+    hiringManagers: `${adminUrl}/accounts/hiringManagers`,
     edit: `${adminUrl}/accounts/:accountId`,
     delete: `${adminUrl}/accounts/:accountId`,
   },

@@ -22,6 +22,7 @@ import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
 import SkillsManagerPage from "../pages/Admin/SkillsManagerPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
 import JobDetailsApplicant from "../pages/JobPostingsPage/jobDetailsApplication";
+import AssignJobPostingsPage from "../pages/Admin/AssignJobPostings";
 
 const AppWithConditionalNavbar = () => {
   const location = useLocation();
@@ -121,6 +122,14 @@ const AppWithConditionalNavbar = () => {
           element={
             <RoleProtectedRoute requiredRole="admin">
               <SkillsManagerPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/assign-job-postings"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <AssignJobPostingsPage />
             </RoleProtectedRoute>
           }
         />

@@ -314,26 +314,20 @@ export default function JobApplication() {
         <p className="text-lg">{`#${job?.jobPostingId}`}</p>
       </div>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-lg space-y-4"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg space-y-4">
         <div className="flex flex-col items-center gap-1 text-center">
-          <label className="text-sm font-medium">Upload Resume to Auto Parse</label>
-          <div className="flex items-center text-center">
-            <input
-              type="file"
-              accept=".doc,.docx"
-              onChange={handleFileUpload}
-              className="text-sm text-gray-500
-                file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-semibold
-                file:bg-[#FF9900] file:text-white
-                hover:file:bg-[#FF9966] cursor-pointer
-                mx-auto"
-            />
-          </div>
+          <label
+            htmlFor="file-upload"
+            className="text-sm text-gray-500 py-2 px-4
+              rounded-full border-0
+              font-semibold
+              bg-[#FF9900] text-white
+              hover:bg-[#FF9966] cursor-pointer
+              mx-auto"
+          >
+            Upload Resume to Auto Parse
+          </label>
+          <input id="file-upload" type="file" accept=".doc,.docx" onChange={handleFileUpload} className="hidden" />
           {fileName && (
             <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
               <div className="flex items-center gap-3">
