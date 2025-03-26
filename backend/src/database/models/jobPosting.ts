@@ -62,6 +62,7 @@ export const JobPostingSchema = {
       model: "staff",
       key: "id",
     },
+    onDelete: "SET NULL"
   },
   status: {
     type: DataTypes.STRING,

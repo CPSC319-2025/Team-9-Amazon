@@ -43,3 +43,7 @@ export interface JobPostingEditRequest {
   status?: JobPostingStatus; 
   tags?: string[]; // array of tag names
 }
+
+export interface JobPostingAssignRequest {
+  staffId: number;
+}

@@ -1,19 +1,19 @@
-import Criteria, { CriteriaType } from "@/database/models/criteria";
-import Database, { JobPosting, JobTag, Staff } from "@/database/database";
-import { JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
+  requireAdmin,
   requireHiringManager,
 } from "@/common/middleware/auth";
-import { Router } from "express";
-import Application from "@/database/models/application";
-import Applicant from "@/database/models/applicant";
-import { Op } from "sequelize";
-import { ApplicationScoring } from "@/services/applicationScoring";
-import { JobTagAttributes } from "@/database/models/jobTag";
-import { Transaction } from "sequelize";
-import path from 'path';
+import { handleZodError } from "@/common/middleware/errorHandler";
 import { s3DownloadPdfBase64 } from "@/common/utils/awsTools";
+import Database, { JobPosting, JobTag, Staff } from "@/database/database";
+import Applicant from "@/database/models/applicant";
+import Application from "@/database/models/application";
+import Criteria, { CriteriaType } from "@/database/models/criteria";
+import { JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
+import { ApplicationScoring } from "@/services/applicationScoring";
+import { Router } from "express";
+import path from 'path';
+import { Op, Transaction } from "sequelize";
 
 const router = Router();
 
@@ -49,6 +49,19 @@ router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
       error: "Failed to fetch job postings",
       details: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+});
+
+// get all unassigned job postings
+router.get("/unassigned", authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    // Query job postings for the given staffId
+    const jobPostings = await JobPosting.findAll({
+      where: { staffId: { [Op.is]: null } },
+    }) ?? [];
+    return res.json(jobPostings.map((jp) => jp.toJSON()));
+  } catch (error) {
+    handleZodError(error, res, "Error fetching unassigned job postings");
   }
 });
 
@@ -184,6 +197,10 @@ export interface JobPostingEditRequest {
   tags?: string[]; // array of tag names
 }
 
+export interface JobPostingAssignRequest {
+  staffId: number;
+}
+
 // PUT /job-postings/:jobPostingId – Edit an existing job posting
 router.put(
   "/:jobPostingId",
@@ -305,6 +322,28 @@ router.put(
     }
   }
 );
+
+// PUT /job-postings/assign/:jobPostingId – Assign a job posting to a hiring manager
+router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const { jobPostingId } = req.params;
+
+    // Find the existing job posting
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+    });
+
+    if (!jobPosting) {
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+    const { staffId } = req.body as JobPostingAssignRequest;
+    await jobPosting.update({staffId})
+
+    res.json(jobPosting.toJSON());
+  } catch (error) {
+    handleZodError(error, res, "Error assigning job posting");
+  }
+});
 
 // Get all local criteria for a specific job posting
 router.get(

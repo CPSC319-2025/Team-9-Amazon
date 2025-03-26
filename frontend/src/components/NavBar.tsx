@@ -24,6 +24,7 @@ import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
 import { DecodedToken } from "../types/utils";
 import { WorkspacePremium } from "@mui/icons-material";
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const TopNavbar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -146,6 +147,13 @@ const TopNavbar = () => {
                         <WorkspacePremium />
                       </ListItemIcon>
                       <ListItemText primary="Skills management" />
+                    </ListItemButton>
+
+                    <ListItemButton component={Link} to="admin/assign-job-postings" onClick={handleMenuClose}>
+                      <ListItemIcon>
+                        <AssignmentIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Assign Job Postings" />
                     </ListItemButton>
                   </>
                 )}
