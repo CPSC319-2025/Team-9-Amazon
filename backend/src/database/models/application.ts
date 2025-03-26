@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import Applicant, { ApplicantTableName } from "./applicant";
-import { JobPostingTableName } from "./jobPosting.constants";
+import Applicant from "./applicant";
 import JobPosting from "./jobPosting";
+import { ApplicantTableName, ApplicationTableName, JobPostingTableName } from "./tableNames";
 
 interface Experience {
   title: string;
@@ -114,8 +114,6 @@ export const ApplicationSchema = {
     defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
   },
 };
-
-export const ApplicationTableName = "applications";
 
 export default class Application
   extends Model<ApplicationAttributes, ApplicationCreationAttributes>

@@ -1,1 +1,0 @@
-export const JobPostingTableName = "job_postings";

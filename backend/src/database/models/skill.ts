@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+import { SkillTableName } from "./tableNames";
 
 interface SkillAttributes {
   skillId: number;
@@ -34,7 +35,6 @@ export const SkillSchema = {
   },
 };
 
-export const SkillTableName = "skills";
 
 export default class Skill
   extends Model<SkillAttributes, SkillCreationAttributes>

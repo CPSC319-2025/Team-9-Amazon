@@ -1,5 +1,6 @@
 import { QueryInterface } from "sequelize";
-import { JobTagPostingRelationSchema, JobTagPostingRelationTableName } from "../models/tagJobPostingRelation";
+import { JobTagPostingRelationSchema } from "../models/tagJobPostingRelation";
+import { JobTagPostingRelationTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

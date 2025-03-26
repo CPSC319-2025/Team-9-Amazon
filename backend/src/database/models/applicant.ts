@@ -1,5 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import Application from "./application";
+import {ApplicantTableName } from "./tableNames";
 
 interface ApplicantAttributes {
   id: number | undefined;
@@ -27,7 +28,6 @@ export const ApplicantSchema = {
     defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
   },
 };
-export const ApplicantTableName = "applicants";
 export default class Applicant
   extends Model<ApplicantAttributes>
   implements ApplicantAttributes

@@ -1,5 +1,6 @@
 import { QueryInterface } from "sequelize";
-import { ApplicantSchema, ApplicantTableName } from "../models/applicant";
+import { ApplicantSchema } from "../models/applicant";
+import { ApplicantTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

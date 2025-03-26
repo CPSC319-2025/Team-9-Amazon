@@ -11,9 +11,9 @@ import Skill from "./models/skill";
 
 const models = [
   Skill,
-  Applicant,
   Staff,
   JobPosting,
+  Applicant,
   Application,
   Criteria,
   JobTag,

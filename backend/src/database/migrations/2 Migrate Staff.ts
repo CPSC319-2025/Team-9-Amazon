@@ -1,5 +1,6 @@
 import { QueryInterface, DataTypes } from "sequelize";
-import { StaffSchema, StaffTableName } from "../models/staff";
+import { StaffSchema } from "../models/staff";
+import { StaffTableName } from "../models/tableNames";
 
 export default {
   async up(queryInterface: QueryInterface) {

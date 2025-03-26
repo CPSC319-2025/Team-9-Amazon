@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting from "./jobPosting";
 import JobTagJobPostingRelation from "./tagJobPostingRelation";
+import { JobTagTableName } from "./tableNames";
 
 export interface JobTagAttributes {
   id: number | undefined;
@@ -20,7 +21,6 @@ export const JobTagSchema = {
     defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
   },
 };
-export const JobTagTableName = "job_tags";
 export default class JobTag extends Model<JobTagAttributes> implements JobTagAttributes {
   id!: number;
   name!: string;

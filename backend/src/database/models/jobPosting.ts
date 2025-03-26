@@ -2,7 +2,6 @@ import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 import Criteria from "./criteria";
 import JobTag from "./jobTag";
 import JobTagJobPostingRelation from "./tagJobPostingRelation";
-import { JobPostingTableName } from "./jobPosting.constants";
 
 // types
 import {
@@ -16,6 +15,7 @@ import {
   BelongsToManyHasAssociationsMixin,
   BelongsToManyCountAssociationsMixin,
 } from "sequelize";
+import { JobPostingTableName } from "./tableNames";
 
 export enum JobPostingStatus {
   DRAFT = "DRAFT",
@@ -30,7 +30,7 @@ export interface JobPostingAttributes {
   description: string;
   responsibilities: string | undefined;
   qualifications: string | undefined;
-  staffId: number;
+  staffId: number | undefined | null;
   status: JobPostingStatus;
   location: string;
   num_applicants: number;
@@ -57,7 +57,7 @@ export const JobPostingSchema = {
   qualifications: { type: DataTypes.STRING },
   staffId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: "staff",
       key: "id",
@@ -105,7 +105,7 @@ export default class JobPosting
   title!: string;
   subtitle: string | undefined;
   description!: string;
-  staffId!: number;
+  staffId: number | undefined | null;
   status!: JobPostingStatus;
   location!: string;
   responsibilities: string | undefined;
