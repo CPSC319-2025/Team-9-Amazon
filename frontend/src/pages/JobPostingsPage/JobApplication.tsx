@@ -1,5 +1,5 @@
 import { useOutletContext, useParams, useSearchParams, useNavigate} from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -74,12 +74,13 @@ export default function JobApplication() {
   const [fileName, setFileName] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showWorkExperience, setShowWorkExperience] = useState(false);
+  const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   const createApplication = useCreateApplication();
 
   const { data: skills, isLoading: skillsLoading, error: skillsError } = useGetSkills();
   const [selectedSkills, setSelectedSkills] = useState<{ [key: number]: string[] }>({});
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<{ [key: number]: boolean }>({});
   const navigate = useNavigate();
 
   type WorkExperienceEntry = {
@@ -190,8 +191,8 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
-          //const parsedData = await parseResume(file);
-          const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
+          const parsedData = await parseResume(file);
+          // const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
           const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
             //const formattedExperiences = parsedData.experiences.map((exp) =>
@@ -273,6 +274,28 @@ export default function JobApplication() {
       setValue("phone", formattedValue);
     }
   }, [phone, setValue]);
+
+  useEffect(() => {
+    // Handle clicks outside of dropdowns
+    function handleClickOutside(event: MouseEvent) {
+      Object.entries(dropdownRefs.current).forEach(([index, ref]) => {
+        if (ref && !ref.contains(event.target as Node) && openDropdowns[parseInt(index)]) {
+          setOpenDropdowns(prev => ({
+            ...prev,
+            [parseInt(index)]: false
+          }));
+        }
+      });
+    }
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdowns]);
 
   return (
     <div className="flex flex-col items-center min-h-screen">
@@ -444,10 +467,20 @@ export default function JobApplication() {
                   <label className="text-sm font-medium text-gray-700 mb-1">Skills *</label>
 
                   {/* Dropdown Button */}
-                  <div className="relative">
+                  <div 
+                    className="relative"
+                    ref={(el) => {
+                      dropdownRefs.current[index] = el;
+                    }}
+                  >
                     <button
                       type="button"
-                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      onClick={() => {
+                        setOpenDropdowns(prev => ({
+                          ...prev,
+                          [index]: !prev[index]
+                        }));
+                      }}
                       className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 flex justify-between items-center"
                     >
                       {selectedSkills[index]?.length > 0 ? selectedSkills[index].join(", ") : "Select Skills"}
@@ -455,7 +488,7 @@ export default function JobApplication() {
                     </button>
 
                     {/* Dropdown Menu (Scrollable Checkboxes) */}
-                    {dropdownOpen && (
+                    {openDropdowns[index] && (
                       <div className="absolute w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-y-auto z-10">
                         {skillsLoading ? (
                           <p className="p-2">Loading skills...</p>

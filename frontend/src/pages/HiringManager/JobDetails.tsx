@@ -29,7 +29,7 @@ const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
   };
 };
 
-const JobInfo = () => {
+const JobDetails = () => {
   const { jobPosting } = useOutletContext<{ jobPosting: JobPosting | null }>();
 
   const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
@@ -64,6 +64,9 @@ const JobInfo = () => {
         <Typography variant="h6" color="error">
           Failed to save changes. Please try again.
         </Typography>
+        <Typography variant="body2" color="error">
+          {error.message}
+        </Typography>
       </Box>
     );
   }
@@ -75,4 +78,4 @@ const JobInfo = () => {
   return <JobDetailsView mode={JobDetailsMode.EDIT} jobPosting={jobPosting} editable={true} onSave={handleSaveJob} />;
 };
 
-export default JobInfo;
+export default JobDetails;

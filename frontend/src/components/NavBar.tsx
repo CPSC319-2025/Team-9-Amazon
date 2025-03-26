@@ -23,6 +23,7 @@ import { ROUTES } from "../routes/routePaths";
 import { getToken } from "../api/login";
 import { jwtDecode } from "jwt-decode";
 import { DecodedToken } from "../types/utils";
+import { WorkspacePremium } from "@mui/icons-material";
 
 const TopNavbar = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -158,6 +159,17 @@ const TopNavbar = () => {
                         <CheckCircleIcon />
                       </ListItemIcon>
                       <ListItemText primary="Criteria management" />
+                    </ListItemButton>
+
+                    <ListItemButton
+                      component={Link}
+                      to="admin/skills-management"
+                      onClick={handleMenuClose}
+                    >
+                      <ListItemIcon>
+                        <WorkspacePremium />
+                      </ListItemIcon>
+                      <ListItemText primary="Skills management" />
                     </ListItemButton>
                   </>
                 )}

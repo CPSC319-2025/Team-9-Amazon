@@ -5,7 +5,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import HiringManagerDashboardPage from "../pages/HiringManager/HiringManagerDashboardPage";
 import TopNavbar from "../components/NavBar";
 import HiringManagerLayout from "../layouts/HiringManagerLayout";
-import JobInfo from "../pages/HiringManager/JobDetails";
+import JobDetails from "../pages/HiringManager/JobDetails";
 import CandidateReportPage from "../pages/HiringManager/CandidateReportPage";
 import JobReportsPage from "../pages/HiringManager/JobReportsPage";
 
@@ -19,8 +19,9 @@ import CreateJobPostingPage from "../pages/HiringManager/CreateJobPostingPage";
 import AccountManagerPage from "../pages/Admin/AccountManagerPage";
 import CriteriaManagerPage from "../pages/Admin/CriteriaManagerPage";
 import CriteriaDetailsPage from "../pages/Admin/CriteriaDetailsPage";
+import SkillsManagerPage from "../pages/Admin/SkillsManagerPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
-import JobDetails from "../pages/JobPostingsPage/jobDetailsApplication";
+import JobDetailsApplicant from "../pages/JobPostingsPage/jobDetailsApplication";
 
 const AppWithConditionalNavbar = () => {
   const location = useLocation();
@@ -60,10 +61,10 @@ const AppWithConditionalNavbar = () => {
             </RoleProtectedRoute>
           }
         >
-          <Route index element={<JobInfo />} />
+          <Route index element={<JobDetails />} />
           <Route
             path={ROUTES.hiringManager.jobDetails(":jobPostingId")}
-            element={<JobInfo />}
+            element={<JobDetails />}
           />
           <Route
             path={ROUTES.hiringManager.evaluationMetrics(":jobPostingId")}
@@ -87,7 +88,7 @@ const AppWithConditionalNavbar = () => {
         <Route path="applicant/job-postings" element={<JobPostingsPage />}>
           <Route index element={<JobPostings />} />
           <Route path="apply/:jobPostingId" element={<JobApplication />} />
-          <Route path="details/:jobPostingId" element={<JobDetails />} />
+          <Route path="details/:jobPostingId" element={<JobDetailsApplicant />} />
         </Route>
 
         {/* Admin Routes */}
@@ -112,6 +113,14 @@ const AppWithConditionalNavbar = () => {
           element={
             <RoleProtectedRoute requiredRole="admin">
               <CriteriaDetailsPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/skills-management"
+          element={
+            <RoleProtectedRoute requiredRole="admin">
+              <SkillsManagerPage />
             </RoleProtectedRoute>
           }
         />

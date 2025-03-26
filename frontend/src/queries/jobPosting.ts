@@ -20,12 +20,36 @@ import {
   ApplicationsSummaryResponse,
   PotentialCandidatesResponse,
 } from "../types/application";
+import { transformJobPosting, transformJobPostings } from "../utils/transformJobPosting";
 
 // Query keys
 export const jobPostingKeys = {
   all: ["jobPosting"] as const,
   detail: (jobPostingId: string) =>
     [...jobPostingKeys.all, jobPostingId] as const,
+};
+
+export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> => {
+  return useQuery({
+    queryKey: jobPostingKeys.all,
+    queryFn: async () => {
+      const url = apiUrls.jobPostings.all;
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+
+      // The API should return an array of job postings with associated tags
+      const data: (JobPostingAttributes & { jobTags: JobTagAttributes[] })[] = await response.json();
+
+      const jobPostings: JobPosting[] = transformJobPostings(data);
+
+      return jobPostings;
+    },
+    retry: 1,
+  });
 };
 
 export const useGetJobPosting = (
@@ -51,21 +75,7 @@ export const useGetJobPosting = (
       const data: JobPostingAttributes & { jobTags: JobTagAttributes[] } = await response.json();
 
       // convert the job posting data to the JobPosting type
-      const jobPosting: JobPosting = {
-        id: String(data.id),
-        title: data.title,
-        subtitle: data.subtitle,
-        description: data.description,
-        location: data.location,
-        status: data.status,
-        createdAt: data.createdAt,
-        qualifications: data.qualifications,
-        responsibilities: data.responsibilities,
-        tags: data.jobTags.map((tag) => tag.name),
-        num_applicants: data.num_applicants,
-        num_machine_evaluated: data.num_machine_evaluated,
-        num_processes: data.num_processes,
-      };
+      const jobPosting: JobPosting = transformJobPosting(data);
       return jobPosting;
     },
     retry: 1,
@@ -333,4 +343,101 @@ export const prepareCriteriaData = (
   data: CriteriaGroupRepresentation
 ): Partial<CriteriaRepresentation> => {
   return transformToApiRepresentation(data);
+};
+
+// Types for job reports
+interface JobReportsResponse {
+  totalApplications: number;
+  applicationData: Array<{
+    month: string;
+    applications: number;
+    percentage: number;
+  }>;
+  sourceData: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
+  criteriaMatchStats: Array<{
+    criteriaId: number,
+    name: string,
+    meetCount: number,
+    totalApplicants: number,
+    percentage: number
+  }>;
+}
+
+// Types for candidate report
+interface CandidateReportResponse {
+  name: string;
+  role: string;
+  matchScore: number;
+  details: {
+    email: string;
+    phone: string;
+    personalLinks: string[];
+  };
+  criteria: Array<{
+    name: string;
+    score: number;
+  }>;
+  rules: {
+    matched: string[];
+    missing: string[];
+  };
+  resume: string
+}
+
+// Get job reports
+export const useGetJobReports = (jobPostingId: string) => {
+  return useQuery<JobReportsResponse, ApiError>({
+    queryKey: ["jobReports", jobPostingId],
+    queryFn: async () => {
+      if (!jobPostingId) {
+        throw new Error("Job posting ID is required");
+      }
+
+      const url = apiUrls.getJobReportsUrl.replace(
+        ":jobPostingId",
+        jobPostingId
+      );
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch job reports");
+      }
+
+      return response.json();
+    },
+    enabled: !!jobPostingId,
+  });
+};
+
+// Get candidate report
+export const useGetCandidateReport = (
+  jobPostingId: string,
+  candidateEmail: string
+) => {
+  return useQuery<CandidateReportResponse, ApiError>({
+    queryKey: ["candidateReport", jobPostingId, candidateEmail],
+    queryFn: async () => {
+      if (!jobPostingId || !candidateEmail) {
+        throw new Error("Job posting ID and candidate email are required");
+      }
+
+      const url = apiUrls.getCandidateReportUrl
+        .replace(":jobPostingId", jobPostingId)
+        .replace(":candidateEmail", encodeURIComponent(candidateEmail));
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch candidate report");
+      }
+
+      return response.json();
+    },
+    enabled: !!jobPostingId && !!candidateEmail,
+  });
 };

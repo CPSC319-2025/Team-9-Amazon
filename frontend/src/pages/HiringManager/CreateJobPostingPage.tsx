@@ -8,15 +8,13 @@ import { JobPostingCreationRequest } from "../../types/JobPosting/api/jobPosting
 import { JobPosting } from "../../types/JobPosting/jobPosting";
 
 const convertToCreationRequest = (
-  job: JobPosting,
-  staffId: number
+  job: JobPosting
 ): JobPostingCreationRequest => ({
   title: job.title,
   subtitle: job.subtitle,
   description: job.description,
   responsibilities: job.responsibilities,
   qualifications: job.qualifications,
-  staffId, // use the provided staffId
   location: job.location,
   tags: job.tags, // expecting an array of tag names
 });
@@ -29,7 +27,7 @@ const CreateJobPostingPage = () => {
   const handleCreateJob = async (newJob: JobPosting) => {
     try {
       console.log("Creating job posting:", newJob);
-      const payload = convertToCreationRequest(newJob, 1);
+      const payload = convertToCreationRequest(newJob);
       const createdJob = await createJobPosting(payload);
       console.log("Created job posting:", createdJob);
       navigate(ROUTES.hiringManager.hiringManagerDashboard);

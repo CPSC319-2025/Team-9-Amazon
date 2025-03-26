@@ -13,7 +13,7 @@ type ContextType = {
 };
 
 
-export default function JobDetails() {
+export default function JobDetailsApplicant() {
   const { jobPostingId } = useParams();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);

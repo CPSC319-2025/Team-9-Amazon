@@ -1,6 +1,6 @@
 import Criteria, { CriteriaType } from "@/database/models/criteria";
-import Database, { JobPosting, JobTag } from "@/database/database";
-import { JobPostingAttributes, JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
+import Database, { JobPosting, JobTag, Staff } from "@/database/database";
+import { JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
 import {
   authenticateJWT,
   requireHiringManager,
@@ -12,43 +12,85 @@ import { Op } from "sequelize";
 import { ApplicationScoring } from "@/services/applicationScoring";
 import { JobTagAttributes } from "@/database/models/jobTag";
 import { Transaction } from "sequelize";
+import path from 'path';
+import { s3DownloadPdfBase64 } from "@/common/utils/awsTools";
 
 const router = Router();
 
-type JobPostingWithTags = JobPostingAttributes & { jobTags: JobTagAttributes[] };
 
 // Get job posting of id
-router.get("/:jobPostingId", async (req, res) => {
+router.get("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
   try {
-    const { jobPostingId } = req.params;
-
-    const jobPosting = await JobPosting.findOne({
-      where: { id: jobPostingId },
-      include: [{
-        model: JobTag,
-        as: "jobTags",
-        attributes: ["id", "name"],
-        through: { attributes: [] },
-      }],
-    });
-
-    if (!jobPosting) {
-      return res.status(404).json({ error: "Job posting not found" });
+    const staffId = req.auth?.id;
+    if (!staffId) {
+      return res.status(403).json({ error: "Not authorized" });
     }
 
-    res.json(jobPosting);
+    // TDOD: pagination
 
+    // Query job postings for the given staffId
+    const jobPostings = await JobPosting.findAll({
+      where: { staffId },
+      include: [
+        {
+          model: JobTag,
+          as: "jobTags",
+          attributes: ["id", "name"],
+          through: { attributes: [] },
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.json(jobPostings.map((jp) => jp.toJSON()));
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to fetch job posting",
+    console.error("Error fetching job postings:", error);
+    return res.status(500).json({
+      error: "Failed to fetch job postings",
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
 
+
+// Get job posting of id
+router.get(
+  "/:jobPostingId",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+
+      const jobPosting = await JobPosting.findOne({
+        where: { id: jobPostingId },
+        include: [
+          {
+            model: JobTag,
+            as: "jobTags",
+            attributes: ["id", "name"],
+            through: { attributes: [] },
+          },
+        ],
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({ error: "Job posting not found" });
+      }
+
+      res.json(jobPosting);
+    } catch (error) {
+      res.status(500).json({
+        error: "Failed to fetch job posting",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
 type JobPostingRequest = JobPostingCreationAttributes & { tags?: string[] };
 
-// POST /job-postings
+// create POST /job-postings
 router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
   const {
     title,
@@ -56,13 +98,24 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     description,
     responsibilities,
     qualifications,
-    staffId,
     location,
     tags, // optional tags array
   } = req.body as JobPostingRequest;
 
-  if (!title || !description || !staffId || !location) {
+  if (!title || !description || !location) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const staffId = req.auth?.id;
+
+  // validate staffId as valid hiring manager
+  if (!staffId) {
+    return res.status(403).json({ error: "Invalid staffId" });
+  }
+
+  const staff = await Staff.findByPk(staffId);
+  if (!staff || !staff.isHiringManager) {
+    return res.status(403).json({ error: "You are not authorized to create job postings" });
   }
 
   // Wrap the creation process in a transaction for atomicity.
@@ -99,7 +152,11 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       );
       // Associate tags with the job posting using the defined belongsToMany relationship.
 
-      await Object.getPrototypeOf(newJobPosting).setJobTags.call(newJobPosting, tagInstances, { transaction: t });
+      await Object.getPrototypeOf(newJobPosting).setJobTags.call(
+        newJobPosting,
+        tagInstances,
+        { transaction: t }
+      );
     }
 
     // Commit the transaction
@@ -122,17 +179,20 @@ export interface JobPostingEditRequest {
   description?: string;
   responsibilities?: string;
   qualifications?: string;
-  staffId?: number;
   location?: string;
   status?: JobPostingStatus;
   tags?: string[]; // array of tag names
 }
 
 // PUT /job-postings/:jobPostingId – Edit an existing job posting
-router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
-  let t: Transaction | null = null; // Transaction reference
-  try {
-    const { jobPostingId } = req.params;
+router.put(
+  "/:jobPostingId",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    let t: Transaction | null = null; // Transaction reference
+    try {
+      const { jobPostingId } = req.params;
 
     // Find the existing job posting
     const jobPosting = await JobPosting.findOne({
@@ -142,6 +202,13 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
     if (!jobPosting) {
       return res.status(404).json({ error: "Job posting not found" });
     }
+
+    // check the user is authorized to update this job posting
+    const userId = req.auth?.id;
+    if (!userId || jobPosting.get("staffId") !== userId) {
+      return res.status(403).json({ error: "You are not authorized to update this job posting" });
+    }
+
     // Start a transaction for atomic updates.
     t = await Database.GetSequelize().transaction();
 
@@ -152,7 +219,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
       description,
       responsibilities,
       qualifications,
-      staffId,
       location,
       status,
       tags, // array of tag names
@@ -191,9 +257,6 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
         updates.qualifications = trimmedQual;
       }
     }
-    if (staffId !== undefined && typeof staffId === "number" && staffId > 0) {
-      updates.staffId = staffId;
-    }
     if (location !== undefined) {
       const trimmedLocation = typeof location === "string" ? location.trim() : location;
       if (trimmedLocation) {
@@ -204,39 +267,44 @@ router.put("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, 
       updates.status = status;
     }
 
-    jobPosting.set(updates);
-    await jobPosting.save({ transaction: t });
+      jobPosting.set(updates);
+      await jobPosting.save({ transaction: t });
 
-    // Process tags if provided.
-    if (tags && Array.isArray(tags)) {
-      const tagInstances = await Promise.all(
-        tags.map(async (tagName) => {
-          // Find or create a tag by name.
-          const [tag] = await JobTag.findOrCreate({
-            where: { name: tagName },
-            defaults: { name: tagName },
-            transaction: t,
-          });
-          return tag;
-        })
-      );
-      // Associate the found/created tags with the job posting.
-      await Object.getPrototypeOf(jobPosting).setJobTags.call(jobPosting, tagInstances, { transaction: t });
+      // Process tags if provided.
+      if (tags && Array.isArray(tags)) {
+        const tagInstances = await Promise.all(
+          tags.map(async (tagName) => {
+            // Find or create a tag by name.
+            const [tag] = await JobTag.findOrCreate({
+              where: { name: tagName },
+              defaults: { name: tagName },
+              transaction: t,
+            });
+            return tag;
+          })
+        );
+        // Associate the found/created tags with the job posting.
+        await Object.getPrototypeOf(jobPosting).setJobTags.call(
+          jobPosting,
+          tagInstances,
+          { transaction: t }
+        );
+      }
+
+      // Commit transaction.
+      await t.commit();
+
+      res.json(jobPosting.toJSON());
+    } catch (error) {
+      if (t) await t.rollback();
+      console.error("Error updating job posting:", error);
+      res.status(500).json({
+        error: "Failed to edit job posting",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
     }
-
-    // Commit transaction.
-    await t.commit();
-
-    res.json(jobPosting.toJSON());
-  } catch (error) {
-    if (t) await t.rollback();
-    console.error("Error updating job posting:", error);
-    res.status(500).json({
-      error: "Failed to edit job posting",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
   }
-});
+);
 
 // Get all local criteria for a specific job posting
 router.get(
@@ -623,6 +691,445 @@ router.get(
       res.status(500).json({
         error: "Failed to scan database",
         details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
+// Get job metrics for reports page
+router.get(
+  "/:jobPostingId/reports",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error:
+            "Job posting not found or you don't have permission to view its reports",
+        });
+      }
+
+      // Get applications for this job posting with creation dates
+      const applications = await Application.findAll({
+        where: { jobPostingId },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email"],
+          },
+        ],
+        attributes: ["jobPostingId", "applicantId", "score", "createdAt"],
+      });
+
+      // Calculate applications over time (by month)
+      const applicationsByMonth = new Map();
+      const now = new Date();
+      const fourMonthsAgo = new Date();
+      fourMonthsAgo.setMonth(now.getMonth() - 3); // Get data for last 4 months
+
+      // Initialize with last 4 months
+      for (let i = 0; i < 4; i++) {
+        const monthDate = new Date();
+        monthDate.setMonth(now.getMonth() - i);
+        const monthName = monthDate.toLocaleString("default", {
+          month: "short",
+        });
+        applicationsByMonth.set(monthName, 0);
+      }
+
+      // Count applications by month
+      applications.forEach((application) => {
+        const appDate = new Date(application.createdAt);
+        if (appDate >= fourMonthsAgo) {
+          const monthName = appDate.toLocaleString("default", {
+            month: "short",
+          });
+          if (applicationsByMonth.has(monthName)) {
+            applicationsByMonth.set(
+              monthName,
+              applicationsByMonth.get(monthName) + 1
+            );
+          }
+        }
+      });
+
+      // Convert to array and calculate percentages
+      const maxApplications = Math.max(...applicationsByMonth.values(), 1);
+      const applicationData = Array.from(applicationsByMonth.entries())
+        .map(([month, count]) => ({
+          month,
+          applications: count,
+          percentage: Math.round((count / maxApplications) * 100),
+        }))
+        .reverse(); // Show oldest month first
+
+      // // Calculate application sources
+      // const sourceCount = new Map();
+      // let totalSourcedApplications = 0;
+
+      // applications.forEach(application => {
+      //   const source = application.applicant?.source || "Other";
+      //   sourceCount.set(source, (sourceCount.get(source) || 0) + 1);
+      //   totalSourcedApplications++;
+      // });
+
+      // Define colors for common sources
+      const sourceColors = {
+        LinkedIn: "#0077B5",
+        Indeed: "#2164f3",
+        "Company Site": "#6B7280",
+        Referral: "#FF9B50",
+        "Job Board": "#00A86B",
+        Other: "#9CA3AF",
+      };
+
+      //////////////////////////////////////////////////////////////////////////////
+
+      // Get all criteria for this job posting
+      const criteria = await Criteria.findAll({
+        where: { jobPostingId },
+      });
+
+      if (!criteria.length) {
+        return { error: "No criteria found for this job posting" };
+      }
+
+      const all_applications = await Application.findAll({
+        where: { jobPostingId },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email"],
+          },
+        ],
+        attributes: ["jobPostingId", "applicantId", "score", "createdAt"],
+      });
+
+      if (!all_applications.length) {
+        return { error: "No applications found for this job posting" };
+      }
+
+      const totalApplicants = all_applications.length;
+      const criteriaMatchStats = [];
+
+      for (const criterion of criteria) {
+        const rules = criterion.criteriaJson.rules;
+        let applicantsMeetingCriterion = 0;
+
+        for (const application of all_applications) {
+          let meetsAnyCriterionRule = false;
+
+          // Extract applicant skills from their experiences
+          const applicantSkills = new Set();
+          if (
+            application.experienceJson &&
+            application.experienceJson.experiences
+          ) {
+            application.experienceJson.experiences.forEach((exp) => {
+              if (exp.skills) {
+                exp.skills.forEach((skill) =>
+                  applicantSkills.add(skill.toLowerCase())
+                );
+              }
+            });
+          }
+
+          // Check if the applicant meets any rule in this criterion
+          for (const rule of rules) {
+            if (applicantSkills.has(rule.skill.toLowerCase())) {
+              meetsAnyCriterionRule = true;
+              break;
+            }
+          }
+
+          if (meetsAnyCriterionRule) {
+            applicantsMeetingCriterion++;
+          }
+        }
+
+        // Calculate percentage
+        const percentage =
+          totalApplicants > 0
+            ? Math.round((applicantsMeetingCriterion / totalApplicants) * 100)
+            : 0;
+
+        criteriaMatchStats.push({
+          criteriaId: criterion.id,
+          name: criterion.name,
+          meetCount: applicantsMeetingCriterion,
+          totalApplicants,
+          percentage,
+        });
+      }
+
+      // Sort by highest match percentage first
+      criteriaMatchStats.sort((a, b) => b.percentage - a.percentage);
+
+      res.json({
+        totalApplications: applications.length,
+        applicationData,
+        criteriaMatchStats,
+      });
+    } catch (error) {
+      console.error("Error fetching job reports:", error);
+      res.status(500).json({
+        error: "Failed to fetch job reports",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
+// Get a specific candidate report for a job posting
+router.get(
+  "/:jobPostingId/candidate-report/:candidateEmail",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to view this candidate"
+        });
+      }
+
+      // Find the applicant by email
+      const applicant = await Applicant.findOne({
+        where: { email: candidateEmail }
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this applicant and job posting with applicant included
+      const application = await Application.findOne({
+        where: {
+          jobPostingId,
+          applicantId: applicant.dataValues.id
+        },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: ["id", "firstName", "lastName", "email", "phone", "linkedIn"]
+          }
+        ]
+      });
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found for this candidate" });
+      }
+
+      const applicantData = await Applicant.findByPk(applicant.dataValues.id, {
+        attributes: ["id", "firstName", "lastName", "email", "phone", "linkedIn"]
+      });
+
+      // Get criteria for this job posting
+      const criteria = await Criteria.findAll({
+        where: { jobPostingId }
+      });
+
+      if (!criteria.length) {
+        return res.status(400).json({ error: "No criteria found for this job posting" });
+      }
+
+      // Calculate scores for each criterion
+      const criteriaScores = [];
+      let totalScore = 0;
+      let maxPossibleScore = 0;
+
+      // Process each criterion
+      for (const criterion of criteria) {
+        let criterionScore = 0;
+        const applicantSkills = new Set();
+        
+        // Extract applicant skills from experiences
+        if (application.experienceJson && application.experienceJson.experiences) {
+          application.experienceJson.experiences.forEach(exp => {
+            if (exp.skills && Array.isArray(exp.skills)) {
+              exp.skills.forEach(skill => applicantSkills.add(skill.toLowerCase()));
+            }
+          });
+        }
+        
+        // Calculate criterion score based on matched skills
+        if (criterion.criteriaJson && criterion.criteriaJson.rules) {
+          let rulePoints = 0;
+          
+          for (const rule of criterion.criteriaJson.rules) {
+            if (applicantSkills.has(rule.skill.toLowerCase())) {
+              // Award points based on the rule's configuration
+              rulePoints += rule.maxPoints;
+            }
+          }
+          
+          // Calculate score as a percentage of maximum possible points
+          criterionScore = criterion.criteriaMaxScore > 0 
+            ? (rulePoints / criterion.criteriaMaxScore) * 100 
+            : 0;
+        }
+        
+        // Add to total scores
+        totalScore += criterionScore;
+        maxPossibleScore += 100; // Each criterion has a max score of 100%
+        
+        // Add to criteria array
+        criteriaScores.push({
+          name: criterion.name,
+          score: Math.round(criterionScore)
+        });
+      }
+
+
+      // Process rules for matching and missing
+      const matchedRules: string[] = [];
+      const missingRules: string[] = [];
+      
+      // Extract applicant skills once
+      const applicantSkills = new Set();
+      if (application.experienceJson && application.experienceJson.experiences) {
+        application.experienceJson.experiences.forEach(exp => {
+          if (exp.skills && Array.isArray(exp.skills)) {
+            exp.skills.forEach(skill => applicantSkills.add(skill.toLowerCase()));
+          }
+        });
+      }
+      
+      // Determine matched and missing rules
+      for (const criterion of criteria) {
+        if (criterion.criteriaJson && criterion.criteriaJson.rules) {
+          for (const rule of criterion.criteriaJson.rules) {
+            const ruleText = rule.skill;
+            
+            if (applicantSkills.has(ruleText.toLowerCase())) {
+              if (!matchedRules.includes(ruleText)) {
+                matchedRules.push(ruleText);
+              }
+            } else {
+              if (!missingRules.includes(ruleText)) {
+                missingRules.push(ruleText);
+              }
+            }
+          }
+        }
+      }
+
+      // Determine current role from latest experience
+      let currentRole = "Applicant";
+      if (application.experienceJson && 
+          application.experienceJson.experiences && 
+          application.experienceJson.experiences.length > 0) {
+            // Sort experiences by start date (newest first)
+            const sortedExperiences = [
+              ...application.experienceJson.experiences,
+            ].sort((a, b) => {
+              // Convert MM/YYYY to Date objects for comparison
+              const [aMonth, aYear] = a.startDate.split("/");
+              const [bMonth, bYear] = b.startDate.split("/");
+              return (
+                new Date(parseInt(bYear), parseInt(bMonth) - 1).getTime() -
+                new Date(parseInt(aYear), parseInt(aMonth) - 1).getTime()
+              );
+            });
+
+            // Use the most recent experience title as current role if available
+            if (sortedExperiences[0] && sortedExperiences[0].title) {
+              currentRole = sortedExperiences[0].title;
+            }
+          }
+
+      const personalLinks = [];
+      
+      if (applicantData?.linkedIn) {
+        personalLinks.push(applicantData.linkedIn);
+      }
+
+      const score = Math.floor(application?.score || 0)
+
+      const applicationForResume = await Application.findOne({
+        where: {
+          jobPostingId: jobPostingId,
+          applicantId: applicant.dataValues.id
+        },
+      });
+
+      let resume = null
+      try {
+        // Extract just the filename from the full path
+        const resumeFileName = path.basename(applicationForResume?.dataValues.resumePath || '');
+
+        // Uncomment for testing
+        // const resumeFileName = '5_126'
+        
+        // Use your existing utility function to download the file as base64
+        resume = await s3DownloadPdfBase64(resumeFileName);
+        
+        // If you want to include the data URI prefix for immediate browser rendering
+        // (especially useful for PDFs in the frontend)
+        const fileExt = path.extname(resumeFileName).toLowerCase();
+        let mimeType = 'application/pdf'; // Default for PDFs
+        
+        // Determine MIME type based on file extension
+        if (fileExt === '.doc') {
+          mimeType = 'application/msword';
+        } else if (fileExt === '.docx') {
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+        
+        // Add data URI prefix
+        resume = `data:${mimeType};base64,${resume}`;
+      } catch (s3Error) {
+        console.error("Error retrieving resume from S3:", s3Error);
+        // Continue without resume content
+      }
+
+      const candidateReport = {
+        name: `${applicantData?.dataValues.firstName || ''} ${applicantData?.dataValues.lastName || ''}`,
+        role: currentRole,
+        matchScore: score,
+        details: {
+          email: applicantData?.dataValues.email || '',
+          phone: applicantData?.dataValues.phone || 'N/A',
+          personalLinks: personalLinks,
+        },
+        criteria: criteriaScores,
+        rules: {
+          matched: matchedRules,
+          missing: missingRules
+        },
+        resume: resume
+      };
+
+      res.json(candidateReport);
+    } catch (error) {
+      console.error("Error fetching candidate report:", error);
+      res.status(500).json({
+        error: "Failed to fetch candidate report",
+        details: error instanceof Error ? error.message : "Unknown error"
       });
     }
   }

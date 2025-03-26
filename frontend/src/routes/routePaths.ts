@@ -17,4 +17,10 @@ export const ROUTES = {
         candidateEmail
       )}`,
   },
+  admin: {
+    userManagement: "/admin/user-management",
+    criteriaManagement: "/admin/criteria-management",
+    criteriaDetails: "/admin/criteria-details",
+    skillsManagement: "/admin/skills-management",
+  },
 };

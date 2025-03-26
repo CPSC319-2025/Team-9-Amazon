@@ -1,23 +1,36 @@
-import { Box, Typography, Button, Tabs, Tab, Chip } from "@mui/material";
+import { Box, Typography, Tabs, Tab } from "@mui/material";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../../routes/routePaths";
-import {
-  chipStyle,
-  colors,
-  filledButtonStyle,
-} from "../../styles/commonStyles";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
+import JobStatusChip from "./JobStatusChip";
+import ChangeStatusButton from "./ChangeStatusButton";
+import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
+import { JOB_STATUS_TRANSITION } from "../../utils/jobPostingStatusTransition";
+import { useEditJobPosting } from "../../queries/jobPosting";
 
 interface HiringManagerNavProps {
   jobPostingId: string;
   jobPosting: JobPosting;
+
 }
 
 const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [tabValue, setTabValue] = useState(location.pathname);
+  const [jobStatus, setJobStatus] = useState(jobPosting.status);
+
+  const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
+    jobPosting?.id || ""
+  );
+  
+
+  useEffect(() => {
+    setJobStatus(jobPosting.status);
+  }
+  , [jobPosting.status]);
 
   useEffect(() => {
     // If on base job posting route, default to "Job Details"
@@ -32,10 +45,32 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
     setTabValue(location.pathname);
   }, [location]);
 
+  const onStatusChange = async () => {
+
+    try {
+      const payload: JobPostingEditRequest = {
+        status: JOB_STATUS_TRANSITION[jobStatus].next,
+      };
+      const updatedJob = await editJobPosting(payload);
+      console.log("Updated job posting:", updatedJob);
+
+    } catch (error) {
+      console.error("Failed to edit job status:", error);
+    }
+  };
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
     navigate(newValue);
   };
+
+  if (isPending) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error.message}</p>;
+  }
 
   return (
     <Box
@@ -84,24 +119,8 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
             gap: 1,
           }}
         >
-          <Chip
-            label="PUBLISHED"
-            sx={{
-              ...chipStyle,
-              color: `${colors.green1}`,
-              borderColor: colors.green1,
-            }}
-          />
-          <Button
-            variant="contained"
-            sx={{
-              ...filledButtonStyle,
-              backgroundColor: colors.orange1,
-              color: colors.black1,
-            }}
-          >
-            CLOSE JOB
-          </Button>
+          <JobStatusChip status={jobStatus} />
+          <ChangeStatusButton status={jobStatus} onClick={onStatusChange} />
         </Box>
       </Box>
 
