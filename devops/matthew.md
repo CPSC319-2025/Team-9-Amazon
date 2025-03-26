@@ -7,14 +7,6 @@ AWS ECR: store instances
 AWS Fargate: Deploy instances
 AWS Route53: DNS management
 
-Build frontend:
-docker build -t matthew-frontend:latest -f ./Dockerfile .
-docker run --rm -p 3000:3000 matthew-frontend
-
-Nginx:
-docker build -t matthew-nginx:latest -f ./Dockerfile .
-docker run --rm -p 80:80 matthew-nginx
-
 What I've accomplished:
 * I can build a docker container that serves nextjs app
 * I can build a docker container that runs nginx
@@ -26,10 +18,10 @@ What I've accomplished:
 * Set up Sequelize infrastructure for our project. This includes database reads, writes, migrations, and seeding
 * Set up application load balancers to route traffic for frontend and backend
 * Set up s3 storage buckets for storing application resumes, and set up utility functions to upload/download resources from s3
+* Serve frontend and backend over SSL
 
 Still to do:
-* Create seeder to generate sample data (Faker)
-* Get SSL certificate
+* Integration and NFR Testing: Write script to create 500 staff, some job postings, and 500 applicants that apply to those job postings
 
 
 Later to do:
