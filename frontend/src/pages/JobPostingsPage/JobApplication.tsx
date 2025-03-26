@@ -82,6 +82,7 @@ export default function JobApplication() {
   const [selectedSkills, setSelectedSkills] = useState<{ [key: number]: string[] }>({});
   const [openDropdowns, setOpenDropdowns] = useState<{ [key: number]: boolean }>({});
   const navigate = useNavigate();
+  const [isParsing, setIsParsing] = useState(false);
 
   type WorkExperienceEntry = {
     job_title: string;
