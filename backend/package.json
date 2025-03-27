@@ -15,7 +15,7 @@
     "lint": "biome check src/",
     "lint:fix": "biome check src/ --fix",
     "format": "biome format src/",
-    "test": "vitest run",
+    "test": "mocha -r ts-node/register 'src/**/tests/*.test.ts'",
     "prepare": "husky",
     "migrate:up": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:migrate",
     "migrate:down": "cd src/database && NODE_OPTIONS=\"-r ts-node/register\" npx sequelize-cli db:migrate:undo:all",
