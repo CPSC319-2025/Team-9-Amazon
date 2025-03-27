@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths";
 import {
@@ -19,8 +19,12 @@ import {
   Alert,
   Tooltip,
   Button,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   colors,
   titleStyle,
@@ -30,16 +34,49 @@ import {
 } from "../../styles/commonStyles";
 import { useGetCandidateReport } from "../../queries/jobPosting";
 import { FullscreenIcon } from "lucide-react";
+import { generateInterviewQuestions, InterviewQuestionsResponse } from "../../services/interviewQuestions";
 
 export default function CandidateReportPage() {
   const { jobPostingId, candidateEmail } = useParams();
   const navigate = useNavigate();
+  const [interviewQuestions, setInterviewQuestions] = useState<InterviewQuestionsResponse | null>(null);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [questionError, setQuestionError] = useState<string | null>(null);
 
   const {
     data: candidateData,
     isLoading,
     error,
   } = useGetCandidateReport(jobPostingId!, candidateEmail!);
+
+  useEffect(() => {
+    // If candidateData is available and there are no interview questions yet
+    if (candidateData && !candidateData.interviewQuestions && !interviewQuestions) {
+      const generateQuestions = async () => {
+        setIsLoadingQuestions(true);
+        setQuestionError(null);
+        try {
+          // Generate interview questions based on resume data and job details
+          const questions = await generateInterviewQuestions(
+            candidateData.details, // Resume data
+            `${candidateData.role} for ${jobPostingId}`, // Job description (simplified)
+            candidateData.role // Job title
+          );
+          setInterviewQuestions(questions);
+        } catch (err) {
+          console.error("Error generating interview questions:", err);
+          setQuestionError("Failed to generate interview questions");
+        } finally {
+          setIsLoadingQuestions(false);
+        }
+      };
+
+      generateQuestions();
+    } else if (candidateData?.interviewQuestions) {
+      // If the backend already provided interview questions
+      setInterviewQuestions({ questions: candidateData.interviewQuestions });
+    }
+  }, [candidateData, jobPostingId, interviewQuestions]);
 
   const handleBack = () => {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
@@ -110,7 +147,7 @@ export default function CandidateReportPage() {
         </Typography>
       </Box>
 
-      <Grid container xs={12} spacing={3}>
+      <Grid container spacing={3}>
         {/* Left Column - Candidate Info */}
         <Grid item xs={12} md={3}>
           <Stack spacing={3}>
@@ -305,6 +342,73 @@ export default function CandidateReportPage() {
                   ))}
                 </Box>
               </Box>
+            </Paper>
+
+            {/* Interview Questions Section */}
+            <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1 }}>
+              <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
+                Suggested Interview Questions
+              </Typography>
+              
+              {isLoadingQuestions ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : questionError ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {questionError}
+                </Alert>
+              ) : interviewQuestions?.questions && interviewQuestions.questions.length > 0 ? (
+                <Stack spacing={2}>
+                  {interviewQuestions.questions.map((question, index) => (
+                    <Accordion 
+                      key={index}
+                      sx={{ 
+                        boxShadow: 'none', 
+                        bgcolor: colors.white,
+                        '&:before': { display: 'none' },
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        mb: 1,
+                      }}
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{ 
+                          bgcolor: `${colors.blue1}10`,
+                          '&:hover': { bgcolor: `${colors.blue1}20` },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <Typography sx={{ flexGrow: 1, fontWeight: 500 }}>
+                            {question.question}
+                          </Typography>
+                          <Chip 
+                            label={question.category} 
+                            size="small" 
+                            sx={{ 
+                              ml: 2,
+                              bgcolor: colors.blue1,
+                              color: 'white',
+                              fontWeight: 500,
+                              fontSize: '0.7rem',
+                            }} 
+                          />
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Typography variant="body2" sx={{ color: colors.gray2 }}>
+                          {question.rationale}
+                        </Typography>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography variant="body2" sx={{ color: colors.gray2, textAlign: 'center', p: 2 }}>
+                  No interview questions available
+                </Typography>
+              )}
             </Paper>
           </Stack>
         </Grid>

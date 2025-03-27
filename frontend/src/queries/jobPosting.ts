@@ -457,6 +457,11 @@ interface CandidateReportResponse {
     url: string;
     fileType: string;
   }
+  interviewQuestions?: Array<{
+    question: string;
+    category: string;
+    rationale: string;
+  }>;
 }
 
 // Get job reports
