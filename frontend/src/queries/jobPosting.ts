@@ -69,10 +69,10 @@ export const useGetJobPosting = (
       const response = await fetchWithAuth(url);
 
       if (!response.ok) {
-        console.log("Error fetching job posting:", response);
+        // console.log("Error fetching job posting:", response);
         
         const errorData = await response.json();
-        console.log("Error fetching job posting:", errorData);
+        // console.log("Error fetching job posting:", errorData);
         throw ApiError.fromResponse(errorData, response);
       }
 
