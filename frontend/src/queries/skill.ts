@@ -37,7 +37,7 @@ export const useGetSkills = (): UseQueryResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -58,7 +58,7 @@ export const useGetSkill = (skillId: number): UseQueryResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -86,7 +86,7 @@ export const useCreateSkill = (): UseMutationResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -115,7 +115,7 @@ export const useUpdateSkill = (skillId: number): UseMutationResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -141,7 +141,7 @@ export const useDeleteSkill = (): UseMutationResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
     },
     onSuccess: () => {

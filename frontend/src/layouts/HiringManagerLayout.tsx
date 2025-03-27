@@ -3,7 +3,8 @@ import HiringManagerNav from "../components/HiringManager/HiringManagerNav";
 import { useEffect } from "react";
 import { ROUTES } from "../routes/routePaths";
 import { useGetJobPosting } from "../queries/jobPosting";
-import { Box, Typography } from "@mui/material";
+import CircularProgressLoader from "../components/Common/Loaders/CircularProgressLoader";
+import HttpErrorDisplay from "../components/Common/Errors/HttpErrorDisplay";
 
 const HiringManagerLayout = () => {
   const { jobPostingId } = useParams();
@@ -23,36 +24,33 @@ const HiringManagerLayout = () => {
   }, [location.pathname, jobPostingId, navigate]);
 
   if (jobPostingDataError) {
+    if (jobPostingDataError.code === 404) {
+      return (<HttpErrorDisplay 
+        statusCode={jobPostingDataError.code}
+        message="Job posting not found"
+        details="Error loading job postings. Please try again later." />);
+    }
+    if (jobPostingDataError.code === 403) {
+      return (<HttpErrorDisplay 
+        statusCode={jobPostingDataError.code}
+        message="Forbidden"
+        details="You are not authorized to access this resource." />);
+    }
+
+    
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography color="error">
-          Error loading job posting. Please try again later.
-        </Typography>
-        {jobPostingDataError?.message}
-        {jobPostingDataError?.details}
-      </Box>
+      <HttpErrorDisplay 
+        statusCode={jobPostingDataError.code || -1}
+        message="Error"
+        details={jobPostingDataError.message} />
     );
   }
 
   if (!jobPosting || isLoadingJobPosting) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant="h5">Loading job posting...</Typography>
-      </Box>
+      <CircularProgressLoader
+        variant="indeterminate"
+        text="Loading job posting ..." />
     );
   }
 

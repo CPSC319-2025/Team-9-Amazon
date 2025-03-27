@@ -26,7 +26,7 @@ export const useGetGlobalCriteria = (): UseQueryResult<
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();

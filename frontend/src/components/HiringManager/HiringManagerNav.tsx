@@ -8,6 +8,8 @@ import ChangeStatusButton from "./ChangeStatusButton";
 import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { JOB_STATUS_TRANSITION } from "../../utils/jobPostingStatusTransition";
 import { useEditJobPosting } from "../../queries/jobPosting";
+import CircularProgressLoader from "../Common/Loaders/CircularProgressLoader";
+import HttpErrorDisplay from "../Common/Errors/HttpErrorDisplay";
 
 interface HiringManagerNavProps {
   jobPostingId: string;
@@ -25,12 +27,12 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
   const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
     jobPosting?.id || ""
   );
-  
+
 
   useEffect(() => {
     setJobStatus(jobPosting.status);
   }
-  , [jobPosting.status]);
+    , [jobPosting.status]);
 
   useEffect(() => {
     // If on base job posting route, default to "Job Details"
@@ -65,11 +67,31 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
   };
 
   if (isPending) {
-    return <p>Loading...</p>;
+    return (<CircularProgressLoader
+      variant="indeterminate"
+      text="Loading job posting ..." />);
   }
 
   if (error) {
-    return <p>Error: {error.message}</p>;
+    if (error.code === 404) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Job postings not found"
+        details="Error loading job postings. Please try again later." />);
+    }
+    if (error.code === 403) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Forbidden"
+        details="You are not authorized to access this resource." />);
+    }
+
+    return (
+      <HttpErrorDisplay 
+        statusCode={error.code || -1}
+        message="Error"
+        details={error.message} />
+    );
   }
 
   return (

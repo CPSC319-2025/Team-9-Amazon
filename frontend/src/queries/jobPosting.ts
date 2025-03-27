@@ -39,7 +39,7 @@ export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> =
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       // The API should return an array of job postings with associated tags
@@ -50,6 +50,7 @@ export const useGetAllJobPostings = (): UseQueryResult<JobPosting[], ApiError> =
       return jobPostings;
     },
     retry: 1,
+    
   });
 };
 
@@ -87,8 +88,11 @@ export const useGetJobPosting = (
       const response = await fetchWithAuth(url);
 
       if (!response.ok) {
+        // console.log("Error fetching job posting:", response);
+        
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        // console.log("Error fetching job posting:", errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       const data: JobPostingAttributes & { jobTags: JobTagAttributes[] } = await response.json();
@@ -117,7 +121,7 @@ export const useCreateJobPosting = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
       return response.json();
     },
@@ -141,7 +145,7 @@ export const useEditJobPosting = (jobPostingId: string) => {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
       return response.json();
     },
@@ -202,7 +206,7 @@ export const useGetJobPostingCriteria = (
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       const data = await response.json();
@@ -238,7 +242,7 @@ export const useCreateJobPostingCriteria = (jobPostingId: string) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -280,7 +284,7 @@ export const useEditJobPostingCriteria = (jobPostingId: string) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
 
       return response.json();
@@ -318,7 +322,7 @@ export const useDeleteJobPostingCriteria = (jobPostingId: string) => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Delete criteria error:", errorData);
-        throw ApiError.fromResponse(errorData);
+        throw ApiError.fromResponse(errorData, response);
       }
     },
     onSuccess: () => {

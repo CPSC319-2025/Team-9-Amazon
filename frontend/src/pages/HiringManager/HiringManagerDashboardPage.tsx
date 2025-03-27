@@ -8,6 +8,8 @@ import { useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { useGetAllJobPostings } from "../../queries/jobPosting";
+import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
+import HttpErrorDisplay from "../../components/Common/Errors/HttpErrorDisplay";
 
 const HiringManagerDashboardPage = () => {
   const navigate = useNavigate();
@@ -51,33 +53,33 @@ const HiringManagerDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography variant="h5">Loading job postings...</Typography>
-      </Box>
+      <CircularProgressLoader
+              variant="indeterminate"
+              text="Loading job postings ..." />
     );
   }
 
   if (error) {
+
+    if (error.code === 404) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Job postings not found"
+        details="Error loading job postings. Please try again later." />);
+    }
+    if (error.code === 403) {
+      return (<HttpErrorDisplay 
+        statusCode={error.code}
+        message="Forbidden"
+        details="You are not authorized to access this resource." />);
+    }
+
+    
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Typography color="error">
-          Error loading job postings. Please try again later.
-        </Typography>
-      </Box>
+      <HttpErrorDisplay 
+        statusCode={error.code || -1}
+        message="Error"
+        details={error.message} />
     );
   }
 

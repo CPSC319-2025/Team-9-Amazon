@@ -5,15 +5,17 @@ export interface ApiErrorData {
 
 export class ApiError extends Error {
   details?: string;
+  code?: number;
 
-  constructor(error: string, details?: string) {
+  constructor(error: string, details?: string, code?: number) {
     super(error);
     this.name = "ApiError";
     this.details = details;
+    this.code = code;
   }
 
-  static fromResponse(data: ApiErrorData): ApiError {
-    return new ApiError(data.error, data.details);
+  static fromResponse(data: ApiErrorData, response: Response | undefined = undefined): ApiError {
+    return new ApiError(data.error, data.details, response ? response.status : undefined);
   }
 }
 
