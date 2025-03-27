@@ -11,6 +11,8 @@ import {
   ListItemText,
   Divider,
   Button,
+  Stack,
+  Tooltip,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import GroupIcon from "@mui/icons-material/Group";
@@ -85,10 +87,43 @@ const TopNavbar = () => {
     handleMenuClose();
   };
 
+  // Navigation items for the header
+  const navigationItems = [
+    ...(isHiringManager ? [
+      {
+        label: "Dashboard",
+        icon: <WorkIcon />,
+        path: ROUTES.hiringManager.hiringManagerDashboard,
+      }
+    ] : []),
+    ...(isAdmin ? [
+      {
+        label: "Users",
+        icon: <GroupIcon />,
+        path: "admin/user-management",
+      },
+      {
+        label: "Criteria",
+        icon: <CheckCircleIcon />,
+        path: "admin/criteria-management",
+      },
+      {
+        label: "Skills",
+        icon: <WorkspacePremium />,
+        path: "admin/skills-management",
+      },
+      {
+        label: "Assign Jobs",
+        icon: <AssignmentIcon />,
+        path: "admin/assign-job-postings",
+      }
+    ] : [])
+  ];
+
   return (
     <AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000", padding: "10px" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* AWS Logo */}
+        {/* Left side: AWS Logo */}
         <Box
           component={Link}
           to={
@@ -103,7 +138,35 @@ const TopNavbar = () => {
           <img src="/aws-icon.png" alt="AWS Logo" width={50} />
         </Box>
 
-        {/* Show either Login button or Profile Avatar based on login status */}
+        {/* Middle: Navigation buttons */}
+        {shouldShowAccountButton && navigationItems.length > 0 && (
+          <Stack direction="row" spacing={1} sx={{ flexGrow: 0 }}>
+            {navigationItems.map((item, index) => (
+              <Tooltip key={index} title={item.label}>
+                <Button
+                  component={Link}
+                  to={item.path}
+                  variant="text"
+                  startIcon={item.icon}
+                  sx={{
+                    color: '#232F3E',
+                    fontWeight: 'medium',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 153, 0, 0.1)',
+                    },
+                    ...(location.pathname === item.path && {
+                      borderBottom: '2px solid #FF9900',
+                    }),
+                  }}
+                >
+                  {item.label}
+                </Button>
+              </Tooltip>
+            ))}
+          </Stack>
+        )}
+
+        {/* Right side: Profile menu or Login button */}
         {shouldShowAccountButton ? (
           <>
             <IconButton onClick={handleMenuOpen}>
@@ -111,55 +174,8 @@ const TopNavbar = () => {
               <ArrowDropDownIcon sx={{ marginLeft: "5px" }} />
             </IconButton>
 
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} sx={{ minWidth: "250px" }}>
-              <List sx={{ width: "220px" }}>
-                {isHiringManager && (
-                  <ListItemButton
-                    component={Link}
-                    to={ROUTES.hiringManager.hiringManagerDashboard}
-                    onClick={handleMenuClose}
-                  >
-                    <ListItemIcon>
-                      <WorkIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Hiring Manager Dashboard" />
-                  </ListItemButton>
-                )}
-
-                {isAdmin && (
-                  <>
-                    <ListItemButton component={Link} to="admin/user-management" onClick={handleMenuClose}>
-                      <ListItemIcon>
-                        <GroupIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="User accounts management" />
-                    </ListItemButton>
-
-                    <ListItemButton component={Link} to="admin/criteria-management" onClick={handleMenuClose}>
-                      <ListItemIcon>
-                        <CheckCircleIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Criteria management" />
-                    </ListItemButton>
-
-                    <ListItemButton component={Link} to="admin/skills-management" onClick={handleMenuClose}>
-                      <ListItemIcon>
-                        <WorkspacePremium />
-                      </ListItemIcon>
-                      <ListItemText primary="Skills management" />
-                    </ListItemButton>
-
-                    <ListItemButton component={Link} to="admin/assign-job-postings" onClick={handleMenuClose}>
-                      <ListItemIcon>
-                        <AssignmentIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Assign Job Postings" />
-                    </ListItemButton>
-                  </>
-                )}
-
-                <Divider />
-
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <List sx={{ width: "180px" }}>
                 <ListItemButton onClick={handleLogout}>
                   <ListItemIcon>
                     <LogoutIcon />
