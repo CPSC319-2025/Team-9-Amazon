@@ -91,6 +91,12 @@ router.get(
         return res.status(404).json({ error: "Job posting not found" });
       }
 
+      // validate staffID as valid hiring manager
+      const staffId = req.auth?.id;
+      if (!staffId || jobPosting.get("staffId") !== staffId) {
+        return res.status(403).json({ error: "You are not authorized to view this job posting" });
+      }
+
       res.json(jobPosting);
     } catch (error) {
       res.status(500).json({
