@@ -7,6 +7,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { colors } from "../../../styles/commonStyles";
@@ -21,6 +22,10 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
+
+  const handleNavigateToReport = (email: string) => {
+    navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
+  };
 
   if (applications.length === 0) {
     return (
@@ -53,14 +58,7 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               },
               py: 2,
             }}
-            onClick={() =>
-              navigate(
-                ROUTES.hiringManager.candidateReport(
-                  jobPostingId!,
-                  application.applicant.email
-                )
-              )
-            }
+            onClick={() => handleNavigateToReport(application.applicant.email)}
           >
             <ListItemText
               primary={
@@ -89,27 +87,25 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               )}
             </Box>
             <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
-              <IconButton
-                edge="end"
-                onClick={() =>
-                  navigate(
-                    ROUTES.hiringManager.candidateReport(
-                      jobPostingId!,
-                      application.applicant.email
-                    )
-                  )
-                }
-                sx={{
-                  color: colors.black1,
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    color: colors.blue1,
-                    bgcolor: `${colors.blue1}15`,
-                  },
-                }}
-              >
-                <AssessmentIcon sx={{ color: colors.orange1 }} />
-              </IconButton>
+              <Tooltip title="View candidate report" arrow>
+                <IconButton
+                  edge="end"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent row click event from firing
+                    handleNavigateToReport(application.applicant.email);
+                  }}
+                  sx={{
+                    color: colors.black1,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      color: colors.blue1,
+                      bgcolor: `${colors.blue1}15`,
+                    },
+                  }}
+                >
+                  <AssessmentIcon sx={{ color: colors.orange1 }} />
+                </IconButton>
+              </Tooltip>
             </ListItemSecondaryAction>
           </ListItem>
         ))}
