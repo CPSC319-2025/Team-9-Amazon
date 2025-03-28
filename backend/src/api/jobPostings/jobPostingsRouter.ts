@@ -205,6 +205,37 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
   }
 });
 
+// DELETE a job posting. Only the owning hiring manager can delete job posting
+router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  try {
+    const { jobPostingId } = req.params;
+    const staffId = req.auth?.id;
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+      include: [
+        {
+          model: Staff,
+          as: "staff",
+          attributes: ["id"],
+        },
+      ],
+    });
+    // Try to delete
+    if (!jobPosting) {
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+    if (!staffId || jobPosting.dataValues.staffId !== staffId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+    await jobPosting.destroy();
+
+    res.json(jobPosting);
+  } catch (error) {
+    handleZodError(error, res, "Error deleting job posting");
+  }
+});
+
+
 export interface JobPostingEditRequest {
   title?: string;
   subtitle?: string;
@@ -363,6 +394,7 @@ router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, r
     handleZodError(error, res, "Error assigning job posting");
   }
 });
+
 
 // Get all local criteria for a specific job posting
 router.get(
