@@ -55,13 +55,32 @@ router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
 // get all unassigned job postings
 router.get("/unassigned", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    // Query job postings for the given staffId
     const jobPostings = await JobPosting.findAll({
       where: { staffId: { [Op.is]: null } },
     }) ?? [];
     return res.json(jobPostings.map((jp) => jp.toJSON()));
   } catch (error) {
     handleZodError(error, res, "Error fetching unassigned job postings");
+  }
+});
+
+// get all job postings assigned to accounts that are not hiring managers
+router.get("/invisible", authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const jobPostings = await JobPosting.findAll({
+      include: [
+        {
+          model: Staff,
+          as: "staff",
+          where: { isHiringManager: false }, // Filter staff who are not hiring managers
+          attributes: {exclude: ['password']}, 
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    return res.json(jobPostings.map((jp) => jp.toJSON()));
+  } catch (error) {
+    handleZodError(error, res, "Error fetching invisible job postings");
   }
 });
 
