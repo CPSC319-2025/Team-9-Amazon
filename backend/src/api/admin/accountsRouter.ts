@@ -1,5 +1,5 @@
 // routes/staffRoutes.js
-import { authenticateJWT, requireAdmin } from "@/common/middleware/auth";
+import { authenticateJWT, requireAdmin, signStaffToken } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
 import Staff from "@/database/models/staff";
 import { Router } from "express";
@@ -90,6 +90,7 @@ accountsRouter.post("/", authenticateJWT, requireAdmin, async (req, res) => {
       isHiringManager,
       isAdmin,
     });
+    const token = signStaffToken(staff);
 
     res.status(201).json({
       staff: {
@@ -100,6 +101,7 @@ accountsRouter.post("/", authenticateJWT, requireAdmin, async (req, res) => {
         phone: staff.phone,
         isHiringManager: staff.isHiringManager,
         isAdmin: staff.isAdmin,
+        token: token,
       },
     });
   } catch (error) {
