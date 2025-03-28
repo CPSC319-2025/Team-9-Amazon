@@ -16,6 +16,7 @@ import {
   BelongsToManyCountAssociationsMixin,
 } from "sequelize";
 import { JobPostingTableName } from "./tableNames";
+import Staff from "./staff";
 
 export enum JobPostingStatus {
   DRAFT = "DRAFT",
@@ -147,6 +148,11 @@ export default class JobPosting
       as: "jobTags",
       foreignKey: "jobPostingId",
       otherKey: "tagId",
+    });
+
+    JobPosting.belongsTo(Staff, {
+      foreignKey: "staffId",
+      as: "staff",
     });
   }
 }

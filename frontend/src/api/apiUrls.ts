@@ -29,6 +29,7 @@ export const apiUrls = {
     createJobPosting: jobPostingsUrl,
     all: jobPostingsUrl,
     unassigned: `${jobPostingsUrl}/unassigned`,
+    invisible: `${jobPostingsUrl}/invisible`,
     assign: (jobPostingId: string) => `${jobPostingsUrl}/assign/${jobPostingId}`
   },
   accounts: {
