@@ -194,7 +194,12 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     // Commit the transaction
     await t.commit();
 
-    res.status(201).json(newJobPosting.toJSON());
+    const freshJobPosting = await JobPosting.findOne({ where: { id: newJobPosting.id } });
+    if (!freshJobPosting) {
+      return res.status(500).json({ error: "Job posting creation error: Unable to re-fetch created posting" });
+    }
+
+    res.status(201).json(freshJobPosting.toJSON());
   } catch (error) {
     await t.rollback();
     console.error("Error creating job posting:", error);
