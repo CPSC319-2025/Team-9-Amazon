@@ -1,6 +1,8 @@
 import { Box, Typography, Tabs, Tab } from "@mui/material";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+
 import { ROUTES } from "../../routes/routePaths";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
 import JobStatusChip from "./JobStatusChip";
@@ -20,6 +22,7 @@ interface HiringManagerNavProps {
 const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [tabValue, setTabValue] = useState(location.pathname);
   const [jobStatus, setJobStatus] = useState(jobPosting.status);
@@ -50,13 +53,22 @@ const HiringManagerNav = ({ jobPostingId, jobPosting }: HiringManagerNavProps) =
   const onStatusChange = async () => {
 
     try {
+      const nextStatus = JOB_STATUS_TRANSITION[jobStatus].next;
+
       const payload: JobPostingEditRequest = {
-        status: JOB_STATUS_TRANSITION[jobStatus].next,
+        status: nextStatus,
       };
       const updatedJob = await editJobPosting(payload);
+
       console.log("Updated job posting:", updatedJob);
+      enqueueSnackbar(
+        `Job status changed to ${nextStatus}`,
+        { variant: "success" });
 
     } catch (error) {
+      enqueueSnackbar(
+        `Failed to change job status`,
+        { variant: "error" });
       console.error("Failed to edit job status:", error);
     }
   };

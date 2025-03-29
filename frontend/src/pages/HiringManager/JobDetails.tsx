@@ -7,6 +7,7 @@ import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { useEditJobPosting } from "../../queries/jobPosting";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 import HttpErrorDisplay from "../../components/Common/Errors/HttpErrorDisplay";
+import { useSnackbar } from "notistack";
 
 const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
   const {
@@ -32,6 +33,7 @@ const convertToEditPayload = (job: JobPosting): JobPostingEditRequest => {
 };
 
 const JobDetails = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const { jobPosting } = useOutletContext<{ jobPosting: JobPosting | null }>();
 
   const { mutateAsync: editJobPosting, error, isPending } = useEditJobPosting(
@@ -43,9 +45,12 @@ const JobDetails = () => {
       console.log("Editing job:", newJob);
       const payload = convertToEditPayload(newJob);
       const updatedJob = await editJobPosting(payload);
+
+      enqueueSnackbar("Job Posting Saved!", {variant: "success"});
       console.log("Updated job posting:", updatedJob);
 
     } catch (error) {
+      enqueueSnackbar("Failed to save job posting", {variant: "error"});
       console.error("Failed to create job:", error);
     }
   };
