@@ -1,9 +1,9 @@
-import { GetObjectCommand, S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"; // Import for generating signed URLs
 import { Upload } from "@aws-sdk/lib-storage";
-import { Readable } from "stream";
-import { extname } from "path";
-import { env } from "./envConfig";
 import { fileTypeFromBuffer } from "file-type";
+import { Readable } from "stream";
+import { env } from "./envConfig";
 
 const bucketName = "recruit-store";
 const resumeDirectory = `resumes`;
@@ -48,8 +48,7 @@ export const s3UploadFile = async (fileName: string, fileBuffer: Buffer, mimeTyp
   }
 };
 
-
-// helper to get file type 
+// helper to get file type
 export const getMimeType = async (base64String: string): Promise<string> => {
   try {
     //extract base64 data w/o metadata
@@ -127,4 +126,21 @@ export const s3DownloadPdfBase64 = async (fileName: string): Promise<string> => 
     });
 
   return streamToString(data.Body as Readable);
+};
+
+// Function to generate a temporary URL for a given file
+export const generateTemporaryUrl = async (fileName: string, expiresIn: number = 3600): Promise<string> => {
+  try {
+    const params = {
+      Bucket: bucketName,
+      Key: `${resumeDirectory}/${fileName}`,
+    };
+
+    const command = new GetObjectCommand(params);
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn });
+    return signedUrl;
+  } catch (error) {
+    console.error(`Error generating temporary URL for ${fileName}:`, error);
+    throw new Error("Failed to generate temporary URL.");
+  }
 };
