@@ -194,7 +194,11 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     // Commit the transaction
     await t.commit();
 
-    res.status(201).json(newJobPosting.toJSON());
+    const ret = {
+      ...newJobPosting.toJSON(),
+      id: newJobPosting.id,
+    }
+    res.status(201).json(ret);
   } catch (error) {
     await t.rollback();
     console.error("Error creating job posting:", error);

@@ -4,15 +4,12 @@ import { faker } from "@faker-js/faker";
 
 // config stuff
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const staffEmails: string[] = [
-  "staff1@example.com",
-  "staff2@example.com",
-  "staff3@example.com",
-  "staff300@example.com",
-];
-const applicantEmails: string[] = ["applicant1@example.com"];
+const n_staff = 1;
+const n_job_postings = 1;
+const n_applications = 1;
+const staffEmails: string[] = Array.from({ length: n_staff }, (_, i) => `staff${i + 1}@load-test.com`);
+const applicantEmails: string[] = Array.from({ length: n_applications }, (_, i) => `applicant${i + 1}@load-test.com`);
 const BASE_URL = "http://localhost:3001";
-const n_job_postings = 10;
 const adminEmail = "violet@CHPostal.com";
 const adminPassword = "password";
 
@@ -23,12 +20,26 @@ const apiUrls = {
   staff: `${BASE_URL}/admin/accounts`,
   deleteStaff: `${BASE_URL}/admin/accounts/:account_id`,
   jobPostings: `${BASE_URL}/job-postings`,
+  criteria: (jobId: number) => `${BASE_URL}/job-postings/${jobId}/criteria`,
   deleteJobPosting: (jobId: number) => `${BASE_URL}/job-postings/${jobId}`,
   applications: `${BASE_URL}/applications`,
 };
 let _authToken = "";
 const myPassword = "password1234";
 const _authTokens: { [key: string]: string } = {};
+const jobIds = [];
+const myCriteria = {
+  name: "Load Testing Criteria",
+  criteriaJson: {
+    rules: [
+      {
+        pointsPerYearOfExperience: 2,
+        maxPoints: 10,
+        skill: "React",
+      },
+    ],
+  },
+};
 
 // Functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +71,7 @@ const createStaff = async (): Promise<void> => {
       Authorization: `Bearer ${await getAdminToken()}`,
     },
   };
-  const promises = []
+  const promises = [];
   for (const email of staffEmails) {
     const payload = {
       email,
@@ -83,7 +94,7 @@ const createStaff = async (): Promise<void> => {
         })
     );
   }
-  await Promise.all(promises)
+  await Promise.all(promises);
 };
 
 const deleteStaff = async (): Promise<void> => {
@@ -99,17 +110,37 @@ const deleteStaff = async (): Promise<void> => {
   const promises = [];
   for (const { account_id, email } of accountIds) {
     const url = apiUrls.deleteStaff.replace(":account_id", account_id);
-    promises.push(axios.delete(url, options).then((response => {
-      console.log(`Deleting staff with email ${email} and account ID ${account_id}: ${response.status}`);
-    })).catch((error: any) => {
-      console.error(`Error deleting staff with account ID ${account_id}: ${error.response?.status}`);
-    }))
+    promises.push(
+      axios
+        .delete(url, options)
+        .then((response) => {
+          console.log(`Deleting staff with email ${email} and account ID ${account_id}: ${response.status}`);
+        })
+        .catch((error: any) => {
+          console.error(`Error deleting staff with account ID ${account_id}: ${error.response?.status}`);
+        })
+    );
   }
-  await Promise.all(promises)
+  await Promise.all(promises);
 };
 
-// Handling job postings
+// Handling job postings and criteria
 const createJobPostings = async (): Promise<void> => {
+  const createCriteria = async (staffEmail: string, jobId: number): Promise<void> => {
+    const options = {
+      headers: {
+        Authorization: `Bearer ${await getStaffToken(staffEmail)}`,
+      },
+    };
+    const payload = myCriteria;
+    try {
+      const response = await axios.post(apiUrls.criteria(jobId), payload, options);
+      console.log(`Creating criteria for job posting ${jobId}: ${response.status}`);
+    } catch (error: any) {
+      console.error(`Error creating criteria for job posting ${jobId}: ${error.response?.status}`);
+    }
+  }
+
   const createJobPosting = async (staffEmail: string, index: number): Promise<void> => {
     const options = {
       headers: {
@@ -125,6 +156,9 @@ const createJobPostings = async (): Promise<void> => {
     try {
       const response = await axios.post(apiUrls.jobPostings, payload, options);
       console.log(`Creating job posting ${index + 1}: ${response.status}`);
+      const jobId = response.data.id;
+      await createCriteria(staffEmail, jobId);
+      jobIds.push(jobId);
     } catch (error: any) {
       console.error(`Error creating job posting ${index + 1}: ${error.response?.status} - ${error.response?.data}`);
     }
@@ -164,28 +198,40 @@ const deleteJobPostings = async (): Promise<void> => {
     await Promise.all(promises);
   };
 
-  const promises = []
+  const promises = [];
   for (const staffEmail of staffEmails) {
     promises.push(deleteStaffJobPostings(staffEmail));
   }
   await Promise.all(promises);
 };
 
-// Function to send POST requests to make applications
+// Handling applications
 const makeApplications = async (): Promise<void> => {
-  for (let i = 0; i < 300; i++) {
+  const promises = [];
+  for (const email of applicantEmails) {
+    const jobId = Math.floor(Math.random() * n_job_postings) + 1;
     const payload = {
-      applicantEmail: `applicant${i + 1}@example.com`,
-      jobId: i + 1,
+      email,
+      jobPostingId: jobId,
     };
-
-    try {
-      const response = await axios.post(apiUrls.applications, payload);
-      console.log(`Making application for job ${i + 1}: ${response.status} - ${response.data}`);
-    } catch (error: any) {
-      console.error(`Error making application for job ${i + 1}: ${error.response?.status} - ${error.response?.data}`);
-    }
+    promises.push(
+      axios
+        .post(apiUrls.applications, payload)
+        .then((response) => {
+          console.log(`Making application for jobId ${jobId}, using email ${email}: ${response.status}`);
+        })
+        .catch((error: any) => {
+          console.error(
+            `Error making application for job ${jobId}, using using email ${email}: ${error.response?.status} - ${error.response?.message}`
+          );
+        })
+    );
   }
+  await Promise.all(promises);
+};
+
+const deleteApplications = async (): Promise<void> => {
+  // Applications will automatically be deleted when job posting is deleted
 };
 
 // Create staff, job postings, and applications
@@ -193,8 +239,8 @@ const migrateUp = async (): Promise<void> => {
   console.log("Creating Sample Data...");
   console.log("Step 1: Creating staff...");
   await createStaff();
-    console.log("Step 2: Creating job postings...");
-    await createJobPostings();
+  console.log("Step 2: Creating job postings...");
+  await createJobPostings();
   //   console.log("Step 3: Making applications...");
   //   await makeApplications();
   //   console.log("Integration tests completed.");
