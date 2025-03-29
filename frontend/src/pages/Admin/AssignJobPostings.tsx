@@ -1,24 +1,21 @@
-// import { PlusCircle, Trash2,  } from "lucide-react";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import HelpIcon from "@mui/icons-material/Help";
 import { Box, Stack, Tooltip } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridToolbar } from "@mui/x-data-grid";
+import { UseQueryResult } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-// import { Header } from "../../components/Common/Header";
 import { FormModal } from "../../components/Common/Modals/FormModal";
 import CustomSnackbar from "../../components/Common/SnackBar";
-import { useGetAccounts, useGetHiringManagers } from "../../queries/accounts";
+import { useGetHiringManagers } from "../../queries/accounts";
 import {
   assignJobPosting,
-  useGetAllJobPostings,
   useGetInvisibleJobPostings,
-  useGetUnassignedJobPostings,
+  useGetUnassignedJobPostings
 } from "../../queries/jobPosting";
+import { ApiError } from "../../representations/error";
 import { colors, titleStyle } from "../../styles/commonStyles";
 import { JobPostingAssignRequest } from "../../types/JobPosting/api/jobPosting";
 import { JobPosting } from "../../types/JobPosting/jobPosting";
-import HelpIcon from "@mui/icons-material/Help";
-import { UseQueryResult } from "@tanstack/react-query";
-import { ApiError } from "../../representations/error";
 
 const initialAssignFormData: JobPostingAssignRequest = {
   staffId: 1,

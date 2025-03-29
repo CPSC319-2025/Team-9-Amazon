@@ -33,7 +33,7 @@ export const ApplicantSchema = {
   },
 };
 export default class Applicant
-  extends Model<ApplicantAttributes>
+  extends Model<ApplicantAttributes, ApplicantCreationAttributes>
   implements ApplicantAttributes
 {
   id!: number;

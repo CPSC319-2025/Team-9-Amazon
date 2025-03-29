@@ -5,7 +5,7 @@ import { z } from "zod";
 import Database from "@/database/database";
 import { format } from "date-fns";
 import { s3UploadBase64 } from "@/common/utils/awsTools";
-
+import { handleZodError } from "@/common/middleware/errorHandler";
 
 const router = Router();
 
@@ -32,7 +32,6 @@ const applicationSchema = z.object({
     )
     .optional(),
 });
-
 
 router.post("/", async (req, res) => {
   try {
@@ -146,10 +145,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    if (
-      error instanceof Error &&
-      error.message === "You have already applied for this position"
-    ) {
+    if (error instanceof Error && error.message === "You have already applied for this position") {
       return res.status(409).json({
         error: error.message,
       });

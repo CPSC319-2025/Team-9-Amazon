@@ -207,6 +207,7 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
 
 // DELETE a job posting. Only the owning hiring manager can delete job posting
 router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  const t = await Database.GetSequelize().transaction();
   try {
     const { jobPostingId } = req.params;
     const staffId = req.auth?.id;
@@ -227,10 +228,21 @@ router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (re
     if (!staffId || jobPosting.dataValues.staffId !== staffId) {
       return res.status(403).json({ error: "Not authorized" });
     }
-    await jobPosting.destroy();
 
-    res.json(jobPosting);
+    await Criteria.destroy({
+      where: { jobPostingId },
+      transaction: t,
+    });
+    await jobPosting.destroy({transaction: t});
+    await t.commit();
+
+    
+    res.json({
+      "message": "Job posting deleted successfully",
+      jobPosting
+    });
   } catch (error) {
+    t.rollback();
     handleZodError(error, res, "Error deleting job posting");
   }
 });
