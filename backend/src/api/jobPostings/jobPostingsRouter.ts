@@ -201,11 +201,7 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     res.status(201).json(ret);
   } catch (error) {
     await t.rollback();
-    console.error("Error creating job posting:", error);
-    res.status(500).json({
-      error: "Failed to create job posting",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
+    handleZodError(error, res, "Error creating job posting");
   }
 });
 
