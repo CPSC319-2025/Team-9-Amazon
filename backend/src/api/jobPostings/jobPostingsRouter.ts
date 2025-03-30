@@ -224,12 +224,15 @@ router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (re
           attributes: ["id"],
         },
       ],
+      transaction: t,
     });
     // Try to delete
     if (!jobPosting) {
+      await t.rollback()
       return res.status(404).json({ error: "Job posting not found" });
     }
     if (!staffId || jobPosting.dataValues.staffId !== staffId) {
+      await t.rollback()
       return res.status(403).json({ error: "Not authorized" });
     }
 
@@ -246,7 +249,7 @@ router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (re
       jobPosting
     });
   } catch (error) {
-    t.rollback();
+    await t.rollback();
     handleZodError(error, res, "Error deleting job posting");
   }
 });

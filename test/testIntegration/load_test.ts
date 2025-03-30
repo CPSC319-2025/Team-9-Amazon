@@ -1,12 +1,14 @@
 import axios from "axios";
 import readline from "readline";
 import { faker } from "@faker-js/faker";
+import path from "path";
+import fs from "fs";
 
 // config stuff
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-const n_staff = 1;
-const n_job_postings = 1;
-const n_applications = 1;
+const n_staff = 2;
+const n_job_postings = 5;
+const n_applications = 50;
 const staffEmails: string[] = Array.from({ length: n_staff }, (_, i) => `staff${i + 1}@load-test.com`);
 const applicantEmails: string[] = Array.from({ length: n_applications }, (_, i) => `applicant${i + 1}@load-test.com`);
 const BASE_URL = "http://localhost:3001";
@@ -27,7 +29,7 @@ const apiUrls = {
 let _authToken = "";
 const myPassword = "password1234";
 const _authTokens: { [key: string]: string } = {};
-const jobIds = [];
+const jobIds: number[] = [];
 const myCriteria = {
   name: "Load Testing Criteria",
   criteriaJson: {
@@ -40,6 +42,7 @@ const myCriteria = {
     ],
   },
 };
+const resumeBase64 = fs.readFileSync(path.join(__dirname, "Load_Test_Resume.pdf")).toString("base64");
 
 // Functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,7 +81,7 @@ const createStaff = async (): Promise<void> => {
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       password: myPassword,
-      phone: faker.phone.number(),
+      phone: "403-123-4567",
       isAdmin: Math.random() < 0.5,
       isHiringManager: true,
     };
@@ -208,11 +211,17 @@ const deleteJobPostings = async (): Promise<void> => {
 // Handling applications
 const makeApplications = async (): Promise<void> => {
   const promises = [];
-  for (const email of applicantEmails) {
-    const jobId = Math.floor(Math.random() * n_job_postings) + 1;
+  for (let i = 0; i < applicantEmails.length; i++) {
+    const email = applicantEmails[i];
+    const jobId = jobIds[i % jobIds.length];
     const payload = {
       email,
-      jobPostingId: jobId,
+      first_name: faker.person.firstName(),
+      last_name: faker.person.lastName(),
+      phone: "403-123-4567",
+      personal_links: faker.internet.url(),
+      jobPostingId: jobId.toString(),
+      resume: resumeBase64,
     };
     promises.push(
       axios
@@ -230,10 +239,6 @@ const makeApplications = async (): Promise<void> => {
   await Promise.all(promises);
 };
 
-const deleteApplications = async (): Promise<void> => {
-  // Applications will automatically be deleted when job posting is deleted
-};
-
 // Create staff, job postings, and applications
 const migrateUp = async (): Promise<void> => {
   console.log("Creating Sample Data...");
@@ -241,9 +246,9 @@ const migrateUp = async (): Promise<void> => {
   await createStaff();
   console.log("Step 2: Creating job postings...");
   await createJobPostings();
-  //   console.log("Step 3: Making applications...");
-  //   await makeApplications();
-  //   console.log("Integration tests completed.");
+  console.log("Step 3: Making applications...");
+  await makeApplications();
+  console.log("Sample data created successfully.");
 };
 
 // Run test
@@ -265,15 +270,23 @@ const promptUser = (): void => {
   });
   const promptText = `
 RECRUIT integration load testing tool:
-a1: Insert sample data
-b1: Delete sample data
-0 : Exit
-    `;
+
+Sample Data Configuration:
+number of staff accounts  : ${n_staff}
+number of job postings    : ${n_job_postings}
+number applicants         : ${n_applications}
+
+Actions:
+1: Insert sample data
+2: Delete sample data
+0: Exit
+
+Please select an action: `;
 
   const handleAnswer = async (answer: string): Promise<void> => {
-    if (answer === "a1") {
+    if (answer === "1") {
       await migrateUp();
-    } else if (answer === "b1") {
+    } else if (answer === "2") {
       await migrateDown();
     } else if (answer === "0") {
       console.log("Exiting...");
