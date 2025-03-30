@@ -136,6 +136,7 @@ const HiringManagerDashboardPage = () => {
                         id={jobPosting.id}
                         title={jobPosting.title}
                         description={jobPosting.description ?? ""}
+                        status={jobPosting.status}
                         onClick={() => handleCardClick(jobPosting.id)}
                       />
                     </Grid>
