@@ -194,21 +194,62 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     // Commit the transaction
     await t.commit();
 
-    const freshJobPosting = await JobPosting.findOne({ where: { id: newJobPosting.id } });
-    if (!freshJobPosting) {
-      return res.status(500).json({ error: "Job posting creation error: Unable to re-fetch created posting" });
+    const ret = {
+      ...newJobPosting.toJSON(),
+      id: newJobPosting.id,
     }
-
-    res.status(201).json(freshJobPosting.toJSON());
+    res.status(201).json(ret);
   } catch (error) {
     await t.rollback();
-    console.error("Error creating job posting:", error);
-    res.status(500).json({
-      error: "Failed to create job posting",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
+    handleZodError(error, res, "Error creating job posting");
   }
 });
+
+// DELETE a job posting. Only the owning hiring manager can delete job posting
+router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  const t = await Database.GetSequelize().transaction();
+  try {
+    const { jobPostingId } = req.params;
+    const staffId = req.auth?.id;
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+      include: [
+        {
+          model: Staff,
+          as: "staff",
+          attributes: ["id"],
+        },
+      ],
+      transaction: t,
+    });
+    // Try to delete
+    if (!jobPosting) {
+      await t.rollback()
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+    if (!staffId || jobPosting.dataValues.staffId !== staffId) {
+      await t.rollback()
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    await Criteria.destroy({
+      where: { jobPostingId },
+      transaction: t,
+    });
+    await jobPosting.destroy({transaction: t});
+    await t.commit();
+
+    
+    res.json({
+      "message": "Job posting deleted successfully",
+      jobPosting
+    });
+  } catch (error) {
+    await t.rollback();
+    handleZodError(error, res, "Error deleting job posting");
+  }
+});
+
 
 export interface JobPostingEditRequest {
   title?: string;
@@ -368,6 +409,7 @@ router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, r
     handleZodError(error, res, "Error assigning job posting");
   }
 });
+
 
 // Get all local criteria for a specific job posting
 router.get(

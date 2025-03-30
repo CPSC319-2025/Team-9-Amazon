@@ -5,7 +5,7 @@ import { z } from "zod";
 import Database from "@/database/database";
 import { format } from "date-fns";
 import { s3UploadBase64 } from "@/common/utils/awsTools";
-
+import { handleZodError } from "@/common/middleware/errorHandler";
 
 const router = Router();
 
@@ -33,133 +33,75 @@ const applicationSchema = z.object({
     .optional(),
 });
 
-
 router.post("/", async (req, res) => {
+  const t = await Database.GetSequelize().transaction();
   try {
     console.log("Received application submission:", req.body);
-    // Validate request body
     const data = applicationSchema.parse(req.body);
-
-    // Additional validation for jobPostingId
-    if (!data.jobPostingId) {
-      return res.status(400).json({
-        error: "Validation error",
-        details: "Job posting ID is required",
-      });
-    }
-
-    // Get Sequelize instance
-    const sequelize = Database.GetSequelize();
-
-    // Start transaction
-    const result = await sequelize.transaction(async (t) => {
-      try {
-        let applicant = await Applicant.findOne({
-          where: { email: data.email },
-          transaction: t,
-          lock: true, // Prevent race conditions
-        });
-
-        if (applicant) {
-          // Update existing applicant
-          await applicant.update(
-            {
-              firstName: data.first_name,
-              lastName: data.last_name,
-              phone: data.phone,
-              linkedIn: data.personal_links,
-            },
-            { transaction: t }
-          );
-        } else {
-          // Create new applicant & commit before using it
-          applicant = await Applicant.create(
-            {
-              email: data.email,
-              firstName: data.first_name,
-              lastName: data.last_name,
-              phone: data.phone,
-              linkedIn: data.personal_links,
-            },
-            { transaction: t }
-          );
-        }
-
-        // Ensure applicant ID exists before proceeding
-        await t.afterCommit(async () => {
-          const freshApplicant = await Applicant.findOne({
-            where: { email: data.email },
-          });
-
-          if (!freshApplicant || !freshApplicant.get("id")) {
-            throw new Error("Failed to retrieve applicant after creation");
-          }
-
-          // Check for existing application
-          const existingApplication = await Application.findOne({
-            where: {
-              applicantId: freshApplicant.get("id"),
-              jobPostingId: parseInt(data.jobPostingId),
-            },
-          });
-
-          if (existingApplication) {
-            throw new Error("You have already applied for this position");
-          }
-
-          const resumeFileName = `${data.jobPostingId}_${freshApplicant.get("id")}`;
-          await s3UploadBase64(resumeFileName, data.resume);
-
-          // Create the application
-          await Application.create({
-            jobPostingId: parseInt(data.jobPostingId),
-            applicantId: freshApplicant.get("id"),
-            resumePath: resumeFileName,
-            experienceJson: {
-              experiences:
-                data.work_experience?.map((exp) => ({
-                  title: exp.job_title,
-                  company: exp.company,
-                  startDate: exp.from,
-                  endDate: exp.to || format(new Date(), "MM/yyyy"),
-                  skills: exp.skills.split(",").map((s) => s.trim()),
-                  description: exp.role_description || "",
-                })) || [],
-            },
-          });
-        });
-
-        return { message: "Application submitted successfully" };
-      } catch (error) {
-        console.error("Transaction error:", error);
-        throw error; // Ensures rollback
-      }
+    let applicant = await Applicant.findOne({
+      where: { email: data.email },
+      transaction: t,
     });
+    // Check for existing applicant
+    if (applicant) {
+      await applicant.update({
+          firstName: data.first_name,
+          lastName: data.last_name,
+          phone: data.phone,
+          linkedIn: data.personal_links,
+        },
+        { transaction: t }
+      );
+    } else {
+      applicant = await Applicant.create({
+          email: data.email,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          phone: data.phone,
+          linkedIn: data.personal_links,
+        },
+        { transaction: t }
+      );
+    }
+    // Check for existing application
+    const applicantId = applicant.get("id");
+    const existingApplication = await Application.findOne({
+      where: {
+        applicantId: applicantId,
+        jobPostingId: parseInt(data.jobPostingId),
+      },
+      transaction: t,
+    });
+    if (existingApplication) {
+      throw new Error("You have already applied for this position");
+    }
+    // Create application
+    const resumeFileName = `${data.jobPostingId}_${applicantId}`;
+    await s3UploadBase64(resumeFileName, data.resume);
+    await Application.create({
+      jobPostingId: parseInt(data.jobPostingId),
+      applicantId: applicantId,
+      resumePath: resumeFileName,
+      experienceJson: {
+        experiences:
+          data.work_experience?.map((exp) => ({
+            title: exp.job_title,
+            company: exp.company,
+            startDate: exp.from,
+            endDate: exp.to || format(new Date(), "MM/yyyy"),
+            skills: exp.skills.split(",").map((s) => s.trim()),
+            description: exp.role_description || "",
+          })) || [],
+      },
+    },
+    { transaction: t });
 
-    // Send successful response
-    res.status(201).json(result);
+    // Commit transaction
+    await t.commit();
+    res.status(201).json("Successfully created application");
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: "Validation error",
-        details: error.errors,
-      });
-    }
-
-    if (
-      error instanceof Error &&
-      error.message === "You have already applied for this position"
-    ) {
-      return res.status(409).json({
-        error: error.message,
-      });
-    }
-
-    console.error("Error creating application:", error);
-    return res.status(500).json({
-      error: "Failed to create application",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
+    await t.rollback();
+    handleZodError(error, res, "Failed to create application");
   }
 });
 
