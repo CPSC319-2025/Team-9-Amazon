@@ -49,9 +49,18 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               transition: "background-color 0.2s ease",
               "&:hover": {
                 bgcolor: `${colors.blue1}10`,
+                cursor: "pointer",
               },
               py: 2,
             }}
+            onClick={() =>
+              navigate(
+                ROUTES.hiringManager.candidateReport(
+                  jobPostingId!,
+                  application.applicant.email
+                )
+              )
+            }
           >
             <ListItemText
               primary={
