@@ -67,36 +67,41 @@ const HiringManagerDashboardPage = () => {
     setSearchTerm(value);
   };
 
-
   if (isLoading) {
     return (
       <CircularProgressLoader
         variant="indeterminate"
-        text="Loading job postings ..." />
+        text="Loading job postings ..."
+      />
     );
   }
 
   if (error) {
-
     if (error.code === 404) {
-      return (<HttpErrorDisplay
-        statusCode={error.code}
-        message="Job postings not found"
-        details="Error loading job postings. Please try again later." />);
+      return (
+        <HttpErrorDisplay
+          statusCode={error.code}
+          message="Job postings not found"
+          details="Error loading job postings. Please try again later."
+        />
+      );
     }
     if (error.code === 403) {
-      return (<HttpErrorDisplay
-        statusCode={error.code}
-        message="Forbidden"
-        details="You are not authorized to access this resource." />);
+      return (
+        <HttpErrorDisplay
+          statusCode={error.code}
+          message="Forbidden"
+          details="You are not authorized to access this resource."
+        />
+      );
     }
-
 
     return (
       <HttpErrorDisplay
         statusCode={error.code || -1}
         message="Error"
-        details={error.message} />
+        details={error.message}
+      />
     );
   }
 
@@ -104,9 +109,11 @@ const HiringManagerDashboardPage = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Header title="Job Postings" actions={headerActions} />
 
-
       <Box sx={{ display: "flex" }}>
-        <JobStatusFilterSidebar selectedStatuses={selectedStatuses} onChange={setSelectedStatuses} />
+        <JobStatusFilterSidebar
+          selectedStatuses={selectedStatuses}
+          onChange={setSelectedStatuses}
+        />
 
         <Box sx={{ flex: 1 }}>
           <Container maxWidth={false} sx={{ py: 4 }}>
@@ -142,6 +149,24 @@ const HiringManagerDashboardPage = () => {
                     </Grid>
                   ))}
                 </Grid>
+              ) : jobPostings?.length !== 0 ? (
+                <Box
+                  sx={{
+                    py: 8,
+                    textAlign: "center",
+                    color: colors.black1,
+                  }}
+                >
+                  <Typography variant="h6">
+                    No job postings found matching "{searchTerm}."
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 1, color: colors.black1 + "99" }}
+                  >
+                    Try adjusting your search terms or browse all postings.
+                  </Typography>
+                </Box>
               ) : (
                 <Box
                   sx={{
@@ -151,13 +176,7 @@ const HiringManagerDashboardPage = () => {
                   }}
                 >
                   <Typography variant="h6">
-                    No job postings found matching "{searchTerm}"
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{ mt: 1, color: colors.black1 + "99" }}
-                  >
-                    Try adjusting your search terms or browse all postings
+                    No job postings yet. Create one to get started.
                   </Typography>
                 </Box>
               )}
