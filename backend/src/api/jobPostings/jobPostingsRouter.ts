@@ -5,7 +5,7 @@ import {
 } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
 import { generateTemporaryUrl } from "@/common/utils/awsTools";
-import Database, { JobPosting, JobTag, Staff } from "@/database/database";
+import Database, { JobPosting, JobTag, Staff, CandidateNote } from "@/database/database";
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
 import Criteria, { CriteriaType } from "@/database/models/criteria";
@@ -93,7 +93,6 @@ router.get("/invisible", authenticateJWT, requireAdmin, async (req, res) => {
     handleZodError(error, res, "Error fetching invisible job postings");
   }
 });
-
 
 // Get job posting of id
 router.get(
@@ -739,6 +738,7 @@ router.get(
     }
   }
 );
+
 // Scan database for potential top 10 candidates
 router.get(
   "/:jobPostingId/potential-candidates",
@@ -1271,6 +1271,142 @@ router.get(
       console.error("Error fetching candidate report:", error);
       res.status(500).json({
         error: "Failed to fetch candidate report",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Get candidate notes for a specific job posting and candidate
+router.get(
+  "/:jobPostingId/candidate-notes/:candidateEmail",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: { 
+          id: jobPostingId,
+          staffId: req.auth?.id 
+        }
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({ error: "Job posting not found or not authorized" });
+      }
+
+      // Find the notes for this candidate
+      const candidateNote = await CandidateNote.findOne({
+        where: {
+          jobPostingId,
+          candidateEmail: decodeURIComponent(candidateEmail)
+        }
+      });
+
+      if (!candidateNote) {
+        return res.status(404).json({ error: "No notes found for this candidate" });
+      }
+
+      res.json(candidateNote);
+    } catch (error) {
+      console.error("Error fetching candidate notes:", error);
+      res.status(500).json({
+        error: "Failed to fetch candidate notes",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Save candidate notes for a specific job posting and candidate
+router.post(
+  "/:jobPostingId/candidate-notes/:candidateEmail",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+      const { notes } = req.body;
+
+      console.log("Received save notes request:", {
+        jobPostingId,
+        candidateEmail,
+        notes,
+        body: req.body
+      });
+
+      if (!notes) {
+        console.log("Notes content is missing");
+        return res.status(400).json({ error: "Notes content is required" });
+      }
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: { 
+          id: jobPostingId,
+          staffId: req.auth?.id 
+        }
+      });
+
+      if (!jobPosting) {
+        console.log("Job posting not found or not authorized");
+        return res.status(404).json({ error: "Job posting not found or not authorized" });
+      }
+
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      console.log("Decoded email:", decodedEmail);
+
+      // Check if notes already exist for this candidate
+      let candidateNote = await CandidateNote.findOne({
+        where: {
+          jobPostingId,
+          candidateEmail: decodedEmail
+        }
+      });
+
+      console.log("Existing note found:", candidateNote ? true : false);
+
+      if (candidateNote) {
+        // Update existing note
+        console.log("Updating existing note");
+        console.log("Old notes value:", candidateNote.notes);
+        console.log("New notes value:", notes);
+        
+        // Update the model
+        candidateNote.set({
+          notes: notes,
+          lastUpdated: new Date()
+        });
+        
+        // Save the changes
+        await candidateNote.save();
+        
+        // Reload the model to ensure we have the latest data
+        await candidateNote.reload();
+        
+        console.log("Note updated successfully");
+        console.log("Updated notes value:", candidateNote.notes);
+      } else {
+        // Create new note
+        console.log("Creating new note");
+        candidateNote = await CandidateNote.create({
+          jobPostingId,
+          candidateEmail: decodedEmail,
+          notes,
+          lastUpdated: new Date()
+        });
+        console.log("Note created successfully");
+      }
+
+      console.log("Returning note:", candidateNote);
+      res.json(candidateNote);
+    } catch (error) {
+      console.error("Error saving candidate notes:", error);
+      res.status(500).json({
+        error: "Failed to save candidate notes",
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }

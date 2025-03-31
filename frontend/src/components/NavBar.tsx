@@ -13,12 +13,15 @@ import {
   Button,
   Stack,
   Tooltip,
+  Drawer,
+  Typography,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import GroupIcon from "@mui/icons-material/Group";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import WorkIcon from "@mui/icons-material/Work";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { ROUTES } from "../routes/routePaths";
@@ -29,10 +32,11 @@ import { WorkspacePremium } from "@mui/icons-material";
 import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const TopNavbar = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isHiringManager, setIsHiringManager] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -70,12 +74,16 @@ const TopNavbar = () => {
     checkAuth();
   }, [navigate, location.pathname]);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setProfileAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
   };
 
   const handleLogout = () => {
@@ -84,10 +92,15 @@ const TopNavbar = () => {
     setIsAdmin(false);
     setIsHiringManager(false);
     navigate("/login");
-    handleMenuClose();
+    handleProfileMenuClose();
   };
 
-  // Navigation items for the header
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setDrawerOpen(false);
+  };
+
+  // Navigation items for the drawer menu
   const navigationItems = [
     ...(isHiringManager ? [
       {
@@ -123,58 +136,62 @@ const TopNavbar = () => {
   return (
     <AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000", padding: "10px" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Left side: AWS Logo */}
-        <Box
-          component={Link}
-          to={
-            isHiringManager
-              ? ROUTES.hiringManager.hiringManagerDashboard
-              : isAdmin
-              ? "admin/user-management"
-              : "/applicant/job-postings"
-          }
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          <img src="/aws-icon.png" alt="AWS Logo" width={50} />
+        {/* Left side: Hamburger menu and AWS Logo */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {shouldShowAccountButton && navigationItems.length > 0 && (
+            <IconButton 
+              edge="start" 
+              color="inherit" 
+              aria-label="menu" 
+              onClick={handleDrawerToggle}
+              sx={{ 
+                mr: 2,
+                color: '#232F3E',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 153, 0, 0.1)',
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          
+          <Box
+            component={Link}
+            to={
+              isHiringManager
+                ? ROUTES.hiringManager.hiringManagerDashboard
+                : isAdmin
+                ? "admin/user-management"
+                : "/applicant/job-postings"
+            }
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <img src="/aws-icon.png" alt="AWS Logo" width={50} />
+          </Box>
         </Box>
-
-        {/* Middle: Navigation buttons */}
-        {shouldShowAccountButton && navigationItems.length > 0 && (
-          <Stack direction="row" spacing={1} sx={{ flexGrow: 0 }}>
-            {navigationItems.map((item, index) => (
-              <Tooltip key={index} title={item.label}>
-                <Button
-                  component={Link}
-                  to={item.path}
-                  variant="text"
-                  startIcon={item.icon}
-                  sx={{
-                    color: '#232F3E',
-                    fontWeight: 'medium',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 153, 0, 0.1)',
-                    },
-                    ...(location.pathname === item.path && {
-                      borderBottom: '2px solid #FF9900',
-                    }),
-                  }}
-                >
-                  {item.label}
-                </Button>
-              </Tooltip>
-            ))}
-          </Stack>
-        )}
 
         {/* Right side: Profile menu or Login button */}
         {shouldShowAccountButton ? (
           <>
-            <IconButton onClick={handleMenuOpen}>
+            <IconButton onClick={handleProfileMenuOpen}>
               <Avatar />
               <ArrowDropDownIcon sx={{ marginLeft: "5px" }} />
             </IconButton>
 
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+            <Menu 
+              anchorEl={profileAnchorEl} 
+              open={Boolean(profileAnchorEl)} 
+              onClose={handleProfileMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
               <List sx={{ width: "180px" }}>
                 <ListItemButton onClick={handleLogout}>
                   <ListItemIcon>
@@ -203,6 +220,49 @@ const TopNavbar = () => {
           )
         )}
       </Toolbar>
+
+      {/* Navigation Drawer */}
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        sx={{
+          '& .MuiDrawer-paper': { 
+            width: 240,
+            boxSizing: 'border-box',
+            backgroundColor: '#fff',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
+          <Typography variant="h6" sx={{ color: '#232F3E', fontWeight: 'bold' }}>
+            AWS Hiring Portal
+          </Typography>
+        </Box>
+        <List>
+          {navigationItems.map((item, index) => (
+            <ListItemButton 
+              key={index} 
+              onClick={() => handleNavigation(item.path)}
+              sx={{
+                color: '#232F3E',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 153, 0, 0.1)',
+                },
+                ...(location.pathname === item.path && {
+                  borderLeft: '4px solid #FF9900',
+                  bgcolor: 'rgba(255, 153, 0, 0.05)',
+                }),
+              }}
+            >
+              <ListItemIcon sx={{ color: location.pathname === item.path ? '#FF9900' : '#232F3E' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          ))}
+        </List>
+      </Drawer>
     </AppBar>
   );
 };
