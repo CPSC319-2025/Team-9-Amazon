@@ -304,6 +304,16 @@ export default function CandidateReportPage() {
             '& .MuiTabs-indicator': {
               backgroundColor: colors.orange1,
             },
+            '& .MuiTab-root:hover': {
+              color: colors.orange1,
+              opacity: 0.7,
+            },
+            '& .MuiTab-root.Mui-focusVisible': {
+              backgroundColor: `${colors.orange1}10`,
+            },
+            '& .MuiTouchRipple-root': {
+              color: colors.orange1,
+            },
           }}
         >
           <Tab icon={<PersonIcon />} iconPosition="start" label="Profile & Notes" {...a11yProps(0)} />
@@ -373,38 +383,6 @@ export default function CandidateReportPage() {
                   </>
                 )}
               </Paper>
-              
-              <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1, flex: '1 1 auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
-                  Skills Analysis
-                </Typography>
-                <Box sx={{ overflow: 'auto', flex: '1 1 auto' }}>
-                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                    Matched Skills
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
-                    {candidateData.rules.matched.map((rule, index) => (
-                      <Chip
-                        key={index}
-                        label={rule}
-                        sx={{
-                          bgcolor: `${colors.orange1}20`,
-                          color: colors.orange1,
-                          fontWeight: 500,
-                        }}
-                      />
-                    ))}
-                  </Box>
-                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
-                    Missing Skills
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {candidateData.rules.missing.map((rule, index) => (
-                      <Chip key={index} label={rule} sx={{ ...chipStyle }} />
-                    ))}
-                  </Box>
-                </Box>
-              </Paper>
             </Grid>
             <Grid item xs={12} md={4} sx={{ height: '100%' }}>
               <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -449,6 +427,58 @@ export default function CandidateReportPage() {
                       />
                     </Box>
                   ))}
+                  
+                  <Divider sx={{ my: 3 }} />
+                  
+                  <Typography variant="h6" sx={{ ...titleStyle, mb: 2 }}>
+                    Skills Analysis
+                  </Typography>
+                  
+                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                    Matched Skills
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+                    {candidateData.rules.matched.length > 0 ? (
+                      candidateData.rules.matched.map((rule, index) => (
+                        <Chip
+                          key={index}
+                          label={rule}
+                          sx={{
+                            bgcolor: `${colors.orange1}20`,
+                            color: colors.orange1,
+                            fontWeight: 500,
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ color: colors.gray2, fontStyle: 'italic' }}>
+                        No matched skills found
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  <Typography variant="body2" sx={{ color: colors.gray2, mb: 1 }}>
+                    Missing Skills
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {candidateData.rules.missing.length > 0 ? (
+                      candidateData.rules.missing.map((rule, index) => (
+                        <Chip 
+                          key={index} 
+                          label={rule} 
+                          sx={{
+                            bgcolor: `${colors.gray2}20`,
+                            color: colors.gray2,
+                            fontWeight: 500,
+                          }} 
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" sx={{ color: colors.gray2, fontStyle: 'italic' }}>
+                        No missing skills found
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               </Paper>
             </Grid>
