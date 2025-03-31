@@ -1,31 +1,29 @@
-import { Typography, Card, CardContent } from "@mui/material";
+import { Typography, Card, CardContent, Chip } from "@mui/material";
 import { cardStyle, colors } from "../../styles/commonStyles";
+import { JobPostingStatus } from "../../types/JobPosting/jobPosting";
+import { JOB_STATUS_TRANSITION } from "../../utils/jobPostingStatusTransition";
 
 interface JobCardProps {
   id?: string;
   title: string;
   description: string;
+  status: JobPostingStatus;
   onClick?: () => void;
 }
 
-export const JobCard = ({ id, title, description, onClick }: JobCardProps) => {
+export const JobCard = ({ id, title, description, status, onClick }: JobCardProps) => {
+  const chipColor = JOB_STATUS_TRANSITION[status].chipColor;
+
   return (
     <Card sx={cardStyle} onClick={onClick}>
       <CardContent sx={{ position: "relative", pb: 1 }}>
-        {id && (
-          <Typography
-            variant="caption"
-            sx={{
-              position: "absolute",
-              top: 16,
-              right: 8,
-              color: colors.black1,
-              fontSize: "1rem",
-            }}
-          >
-            #{id}
-          </Typography>
-        )}
+        <Chip
+          size="small"
+          label={status}
+          variant="outlined"
+          sx={{ position: "absolute", top: 16, right: 8, color: chipColor, borderColor: chipColor, borderRadius: "4px" }}
+        />
+
         <Typography
           variant="h5"
           component="h2"
@@ -47,6 +45,21 @@ export const JobCard = ({ id, title, description, onClick }: JobCardProps) => {
         >
           {description}
         </Typography>
+
+        {id && (
+          <Typography
+            variant="caption"
+            sx={{
+              position: "absolute",
+              bottom: 8,
+              right: 8,
+              color: colors.gray2,
+              // fontSize: "1rem",
+            }}
+          >
+            #{id}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );
