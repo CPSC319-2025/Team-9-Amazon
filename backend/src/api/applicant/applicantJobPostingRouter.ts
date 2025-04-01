@@ -11,7 +11,15 @@ const router = Router();
 router.get("/", async (req, res) => {
   try {
     const jobPostings = await JobPosting.findAll({
-      attributes: ["id", "title", "description", "responsibilities", "qualifications", "location"], 
+      where: {status: "OPEN"},
+      attributes: [
+        "id",
+        "title", 
+        "description", 
+        "responsibilities", 
+        "qualifications", 
+        "location", 
+        "createdAt"], 
       include: [
         {
           model: JobTag,
@@ -31,6 +39,7 @@ router.get("/", async (req, res) => {
         title: jobData.title,
         description: jobData.description,
         location: jobData.location,
+        posted_at: new Date(jobData.createdAt).toISOString().split("T")[0],
         qualifications: jobData.qualifications
           ? jobData.qualifications.split(",").map((q) => q.trim())
           : [],
@@ -42,7 +51,6 @@ router.get("/", async (req, res) => {
     });
 
     return res.status(StatusCodes.OK).json({ success: true, data: formattedJobPostings });
-    //return res.status(200).json({ success: true, data: jobPostings });
   } catch (error) {
     console.error("Error fetching job postings:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Error fetching job postings" });
@@ -56,9 +64,7 @@ router.get("/tags", async (req, res) => {
       order: [["name", "ASC"]], // sort alphabetically
     });
 
-    console.log("tags:", tags);
     const tagNames = tags.map(tag => tag.dataValues.name);
-    console.log("tagNames:", tagNames);
 
     return res.status(StatusCodes.OK).json({ success: true, data: tagNames });
   } catch (error) {

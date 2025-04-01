@@ -637,8 +637,9 @@ export default function JobApplication() {
               className="min-w-[50px]"
               onClick={() => {
                 setIsModalOpen(false);
-                navigate("/applicant/job-postings");
-              }}
+                if (!errorMessage) {
+                  navigate("/applicant/job-postings"); // Navigate only on success
+                }              }}
             >
               OK
             </CustomButton>
