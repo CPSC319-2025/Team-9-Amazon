@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { format, parse, isBefore, isAfter, isValid } from "date-fns";
+import { ValidationError } from "@/common/utils/errors";
 
 
 // Helper: convert MM/YYYY string into date object & validate real date
@@ -43,7 +44,18 @@ export const applicationSchema = z.object({
                     .or(z.string().nullable()),
 
                 role_description: z.string().optional(),
-                skills: z.array(z.string().min(1)).min(1, "At least one skill is required"),
+                skills: z.union([
+                    z.string(),
+                    z.array(z.string())
+                  ])
+                    .transform((val) => {
+                      const arr = Array.isArray(val) ? val : val.split(",");
+                      const cleaned = arr.map((s) => s.trim()).filter((s) => s.length > 0);
+                      if (cleaned.length === 0) {
+                        throw new ValidationError("At least one non-empty skill is required");
+                      }
+                      return cleaned;
+                    }),
             })
         )
         .optional()

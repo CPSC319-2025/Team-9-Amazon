@@ -5,7 +5,7 @@ import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
 import Database from "@/database/database";
 import { s3UploadBase64 } from "@/common/utils/awsTools";
-import { ResumeUploadError, ApplicantCreationError, DuplicateApplicationError } from "@/common/utils/errors";
+import { ResumeUploadError, ApplicantCreationError, DuplicateApplicationError, ValidationError } from "@/common/utils/errors";
 
 // Business logic (DB interactions)
 
@@ -13,29 +13,33 @@ export const submitApplication = async (data: any) => {
     const sequelize = Database.GetSequelize();
 
     try {
-    return await sequelize.transaction(async (t) => {
-        const applicant = await findOrCreateApplicant(data, t);
-        const applicantId = applicant.get("id");
-        
-        const resumeFileName = `${data.jobPostingId}-${applicantId}`;
-        try {
-        await s3UploadBase64(resumeFileName, data.resume);
-        } catch (err) {
-            throw new ResumeUploadError("Failed to upload resume to S3.");
-        }
+        return await sequelize.transaction(async (t) => {
+            const applicant = await findOrCreateApplicant(data, t);
+            const applicantId = applicant.get("id");
 
-        return await createApplication(data, applicantId, resumeFileName, t);
+            const resumeFileName = `${data.jobPostingId}-${applicantId}`;
+            try {
+                await s3UploadBase64(resumeFileName, data.resume);
+            } catch (err) {
+                throw new ResumeUploadError("Failed to upload resume to S3.");
+            }
+
+            return await createApplication(data, applicantId, resumeFileName, t);
         });
     } catch (err: any) {
         // Catch database-level unique constraint violation
-    if (err instanceof UniqueConstraintError) {
-        throw new DuplicateApplicationError();
-      }
+        if (err instanceof UniqueConstraintError) {
+            throw new DuplicateApplicationError();
+        }
+        if (err instanceof ApplicantCreationError) {
+            throw new ApplicantCreationError();
+        }
         throw err;
     }
 };
 
-const findOrCreateApplicant = async (data: any, t: any) => {
+// Exported for unit testing
+export const findOrCreateApplicant = async (data: any, t: any) => {
     let applicant = await Applicant.findOne({
         where: { email: data.email },
         transaction: t,
@@ -64,7 +68,7 @@ const findOrCreateApplicant = async (data: any, t: any) => {
         console.log("applicant:", applicant);
         console.log("applicant.id:", applicant.dataValues.id);
         throw new ApplicantCreationError();
-      }
+    }
     return applicant;
 };
 
@@ -78,10 +82,21 @@ const findOrCreateApplicant = async (data: any, t: any) => {
  * Any duplicates will trigger a SequelizeUniqueConstraintError,
  * which must be caught and converted to a DuplicateApplicationError
  * in the service layer (submitApplication).
+ * 
+ *  Exported for unit testing
  */
-const createApplication = async (data: any, applicantId: number, resumeFileName: string, t: any) => {
+export const createApplication = async (data: any, applicantId: number, resumeFileName: string, t: any) => {
+    const rawId = data.jobPostingId;
+
+    // Ensure jobPostingId is a non-empty string and numeric
+    if (typeof rawId !== "string" || !/^\d+$/.test(rawId.trim())) {
+        throw new ValidationError("Invalid jobPostingId: must be a numeric string");
+    }
+
+    const jobPostingId = parseInt(rawId.trim(), 10);
+
     return await Application.create({
-        jobPostingId: parseInt(data.jobPostingId),
+        jobPostingId,
         applicantId,
         resumePath: resumeFileName,
         experienceJson: {
@@ -91,7 +106,23 @@ const createApplication = async (data: any, applicantId: number, resumeFileName:
                     company: exp.company,
                     startDate: exp.from,
                     endDate: exp.to || null || "Present",
-                    skills: exp.skills.split(",").map((s: string) => s.trim()),
+                    skills: (() => { //handle both frontend input string[] or single string and filter out empty values
+                        const raw = exp.skills;
+
+                        const parsed = Array.isArray(raw)
+                            ? raw
+                            : typeof raw === "string"
+                                ? raw.split(",")
+                                : [];
+
+                        const clean = parsed.map((s) => s.trim()).filter((s) => s.length > 0);
+
+                        if (clean.length === 0) {
+                            throw new ValidationError("Each experience must include at least one non-empty skill.");
+                        }
+
+                        return clean;
+                    })(),
                     description: exp.role_description || "",
                 })) || [],
         },

@@ -42,7 +42,6 @@ router.get("/", async (req, res) => {
     });
 
     return res.status(StatusCodes.OK).json({ success: true, data: formattedJobPostings });
-    //return res.status(200).json({ success: true, data: jobPostings });
   } catch (error) {
     console.error("Error fetching job postings:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Error fetching job postings" });

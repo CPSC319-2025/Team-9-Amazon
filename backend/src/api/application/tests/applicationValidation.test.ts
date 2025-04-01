@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { applicationSchema, parseDate } from "../applicationValidation";
+import { ValidationError } from "@/common/utils/errors";
 
 describe("parseDate validation", () => {
     it("should parse valid MM/YYYY format", () => {
@@ -10,7 +11,7 @@ describe("parseDate validation", () => {
     it("should parse single-digit month format like 3/2020", () => {
         const date = parseDate("3/2020");
         expect(date).to.be.an.instanceOf(Date);
-      });
+    });
 
     it("should return null for invalid date strings", () => {
         expect(parseDate("2020/12")).to.be.null;
@@ -531,38 +532,94 @@ describe("applicationSchema work_experience validation", () => {
         expect(result.success).to.be.true;
     });
 
-    it("should fail if skills is empty string", () => {
-        const result = applicationSchema.safeParse({
-            ...validInput, work_experience: [{ ...validWorkExperience[0], skills: "" }]
-        });
-        expect(result.success).to.be.false;
-        expect(result.error?.issues[0].path).to.include("skills");
-    });
+    it("should throw ValidationError if skills is an empty string", () => {
+        try {
+          applicationSchema.parse({
+            ...validInput,
+            work_experience: [
+              {
+                ...validWorkExperience[0],
+                skills: "", 
+              },
+            ],
+          });
+          throw new Error("Expected ValidationError was not thrown");
+        } catch (err) {
+          expect(err).to.be.instanceOf(ValidationError);
+        }
+      });
 
-    it("should fail if skills is empty array", () => {
-        const result = applicationSchema.safeParse({
-            ...validInput, work_experience: [{ ...validWorkExperience[0], skills: [] }]
-        });
-        expect(result.success).to.be.false;
-        expect(result.error?.issues[0].path).to.include("skills");
-        expect(result.error?.issues[0].message).to.equal("At least one skill is required");
-    });
+      it("should throw ValidationError if skills is empty array", () => {
+        try {
+          applicationSchema.parse({
+            ...validInput,
+            work_experience: [
+              {
+                ...validWorkExperience[0],
+                skills: [], // triggers .transform(), results in cleaned = [], throws ValidationError
+              },
+            ],
+          });
+          throw new Error("Expected ValidationError was not thrown");
+        } catch (err) {
+          expect(err).to.be.instanceOf(ValidationError);
+        }
+      });
 
-    it("should fail if skills includes an empty string", () => {
+    it("should pass if skills includes at least one non-empty skill", () => {
         const result = applicationSchema.safeParse({
-            ...validInput, work_experience: [{ ...validWorkExperience[0], skills: ["React", ""] }]
+          ...validInput,
+          work_experience: [{
+            ...validWorkExperience[0],
+            skills: ["", "React", "   "]
+          }]
         });
-        expect(result.success).to.be.false;
-        expect(result.error?.issues[0].path).to.deep.equal(["work_experience", 0, "skills", 1]);
-        expect(result.error?.issues[0].message).to.include("at least 1 character");
-    });
+      
+        expect(result.success).to.be.true;
+      });
+      
 
-    it("should fail if skills is a string, not an array", () => {
+      it("should throw ValidationError if skill string only contains commas or spaces", () => {
+        try {
+          applicationSchema.parse({
+            ...validInput,
+            work_experience: [{
+              job_title: "Engineer",
+              company: "Company A",
+              from: "01/2023",
+              to: "01/2024",
+              skills: ", , ,",
+            }]
+          });
+          throw new Error("Expected ValidationError was not thrown");
+        } catch (err) {
+          expect(err).to.be.instanceOf(ValidationError);
+        }
+      });
+
+      it("should throw ValidationError with array of only empty strings", () => {
+        try {
+          applicationSchema.parse({
+            ...validInput,
+            work_experience: [{
+              job_title: "Engineer",
+              company: "Company A",
+              from: "01/2023",
+              to: "01/2024",
+              skills: ["", "  "]
+            }]
+          });
+          throw new Error("Expected ValidationError was not thrown");
+        } catch (err) {
+          expect(err).to.be.instanceOf(ValidationError);
+        }
+      });
+
+    it("should pass with a single skill as string", () => {
         const result = applicationSchema.safeParse({
-            ...validInput, work_experience: [{ ...validWorkExperience[0], skills: "React" as any }]
+            ...validInput, work_experience: [{ ...validWorkExperience[0], skills: "React" }]
         });
-        expect(result.success).to.be.false;
-        expect(result.error?.issues[0].message.toLowerCase()).to.include("expected array");
+        expect(result.success).to.be.true;
     });
 
     it("should fail if skills is null", () => {
@@ -570,7 +627,20 @@ describe("applicationSchema work_experience validation", () => {
             ...validInput, work_experience: [{ ...validWorkExperience[0], skills: null as any }]
         });
         expect(result.success).to.be.false;
-        expect(result.error?.issues[0].message.toLowerCase()).to.include("expected array");
+    });
+
+    it("should pass with comma-separated string of skills", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            work_experience: [{
+                job_title: "Engineer",
+                company: "Company A",
+                from: "01/2023",
+                to: "01/2024",
+                skills: "React, Node.js, GraphQL"
+            }]
+        });
+        expect(result.success).to.be.true;
     });
 
 });
@@ -650,6 +720,3 @@ describe("applicationSchema multiple work_experience entries & edge cases valida
 
 });
 
-describe("applicationSchema  validation", () => {
-
-});
