@@ -18,6 +18,7 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
@@ -25,6 +26,7 @@ import {
   titleStyle,
   paperStyle,
   chipStyle,
+  filledButtonStyle,
 } from "../../styles/commonStyles";
 import { useGetCandidateReport } from "../../queries/jobPosting";
 import { FullscreenIcon } from "lucide-react";
@@ -42,6 +44,11 @@ export default function CandidateReportPage() {
   const handleBack = () => {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
+
+  let isPdf = null
+  if (candidateData?.resume) {
+    isPdf = candidateData?.resume.fileType == 'application/pdf';
+  }
 
   if (isLoading) {
     return (
@@ -341,36 +348,49 @@ export default function CandidateReportPage() {
               >
                 Resume Preview
               </Typography>
-
-              <Tooltip title="View in fullscreen">
-                <IconButton
-                  onClick={() => {
-                    const iframe = document.getElementById(
-                      "resume-preview-iframe"
-                    );
-                    if (iframe && iframe.requestFullscreen) {
-                      iframe.requestFullscreen();
-                    }
-                  }}
-                  sx={{
-                    color: colors.blue1,
-                    "&:hover": {
-                      bgcolor: `${colors.blue1}10`,
-                    },
-                    // Ensure the button doesn't have margins affecting alignment
-                    m: 0,
-                    // Set a consistent size
-                    padding: "8px",
-                    height: "40px",
-                    width: "40px",
-                  }}
-                  aria-label="Fullscreen"
-                >
-                  <FullscreenIcon />
-                </IconButton>
-              </Tooltip>
+              {candidateData.resume && (
+                isPdf ? (
+                  <Tooltip title="View in fullscreen">
+                    <IconButton
+                      onClick={() => {
+                        const iframe = document.getElementById(
+                          "resume-preview-iframe"
+                        );
+                        if (iframe && iframe.requestFullscreen) {
+                          iframe.requestFullscreen();
+                        }
+                      }}
+                      sx={{
+                        color: colors.blue1,
+                        "&:hover": {
+                          bgcolor: `${colors.blue1}10`,
+                        },
+                        m: 0,
+                        padding: "8px",
+                        height: "40px",
+                        width: "40px",
+                      }}
+                      aria-label="Fullscreen"
+                    >
+                      <FullscreenIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{
+                      ...filledButtonStyle,
+                      backgroundColor: colors.orange1,
+                      color: colors.black1,
+                    }}
+                    onClick={()=>{window.location.href = candidateData.resume.url}}
+                  >
+                    Download Resume
+                  </Button>
+                )
+              )}
             </Box>
-            {candidateData.resume ? (
+            {candidateData?.resume ? (
               <Box
                 sx={{
                   flexGrow: 1,
@@ -380,20 +400,27 @@ export default function CandidateReportPage() {
                   overflowY: "auto",
                 }}
               >
-                <iframe
-                  id="resume-preview-iframe"
-                  src={candidateData.resume}
-                  title="Resume Preview"
-                  width="100%"
-                  height="100%"
-                  style={{
-                    border: "none",
-                    flexGrow: 1,
-                    minHeight: "550px",
-                    borderRadius: "4px",
-                  }}
-                  allowFullScreen
-                />
+                {isPdf ? 
+                  <iframe
+                    id="resume-preview-iframe"
+                    src={candidateData?.resume.url}
+                    title="Resume Preview"
+                    width="100%"
+                    height="100%"
+                    style={{
+                      border: "none",
+                      flexGrow: 1,
+                      minHeight: "550px",
+                      borderRadius: "4px",
+                    }}
+                    allowFullScreen
+                  />
+                  :
+                  <Alert severity="error">
+                    Can not display Word docs. Please convert to .pdf to see here or download the file
+                  </Alert>
+                
+                }
               </Box>
             ) : (
               <Box
