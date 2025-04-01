@@ -193,13 +193,13 @@ export default function JobApplication() {
         setValue("resume", base64String);
 
         if (file.type.includes("word")) {
-          const parsedData = await parseResume(file);
-        setValue("first_name", parsedData.firstName || "");
-        setValue("last_name", parsedData.lastName || "");
-        setValue("email", parsedData.email || "");
-        setValue("phone", parsedData.phone || "");
+        //   const parsedData = await parseResume(file);
+        // setValue("first_name", parsedData.firstName || "");
+        // setValue("last_name", parsedData.lastName || "");
+        // setValue("email", parsedData.email || "");
+        // setValue("phone", parsedData.phone || "");
 
-          // const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
+           const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
           const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
             //const formattedExperiences = parsedData.experiences.map((exp) =>
@@ -637,7 +637,9 @@ export default function JobApplication() {
               className="min-w-[50px]"
               onClick={() => {
                 setIsModalOpen(false);
-                navigate("/applicant/job-postings");
+                if (!errorMessage) {
+                  navigate("/applicant/job-postings"); // Navigate only on success
+                }
               }}
             >
               OK

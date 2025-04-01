@@ -54,7 +54,7 @@ export const useCreateApplication = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit application");
+        throw new Error(errorData.message || "Failed to submit application");
       }
 
       return response.json();
