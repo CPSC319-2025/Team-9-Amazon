@@ -36,14 +36,14 @@ export default class Applicant
   extends Model<ApplicantAttributes, ApplicantCreationAttributes>
   implements ApplicantAttributes
 {
-  id!: number;
-  email!: string;
-  firstName!: string;
-  lastName!: string;
-  phone: string | undefined;
-  linkedIn: string | undefined;
-  createdAt!: Date;
-  updatedAt!: Date;
+  declare id: number;
+  declare email: string;
+  declare firstName: string;
+  declare lastName: string;
+  declare phone: string | undefined;
+  declare linkedIn: string | undefined;
+  declare createdAt: Date;
+  declare updatedAt: Date;
 
   static initialize(sequelize: Sequelize) {
     Applicant.init(ApplicantSchema, {
