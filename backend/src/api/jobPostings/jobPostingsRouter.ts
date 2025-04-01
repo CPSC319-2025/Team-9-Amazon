@@ -4,7 +4,7 @@ import {
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
-import { s3DownloadPdfBase64 } from "@/common/utils/awsTools";
+import { generateTemporaryUrl } from "@/common/utils/awsTools";
 import Database, { JobPosting, JobTag, Staff } from "@/database/database";
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
@@ -55,13 +55,32 @@ router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
 // get all unassigned job postings
 router.get("/unassigned", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    // Query job postings for the given staffId
     const jobPostings = await JobPosting.findAll({
       where: { staffId: { [Op.is]: null } },
     }) ?? [];
     return res.json(jobPostings.map((jp) => jp.toJSON()));
   } catch (error) {
     handleZodError(error, res, "Error fetching unassigned job postings");
+  }
+});
+
+// get all job postings assigned to accounts that are not hiring managers
+router.get("/invisible", authenticateJWT, requireAdmin, async (req, res) => {
+  try {
+    const jobPostings = await JobPosting.findAll({
+      include: [
+        {
+          model: Staff,
+          as: "staff",
+          where: { isHiringManager: false }, // Filter staff who are not hiring managers
+          attributes: {exclude: ['password']}, 
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    return res.json(jobPostings.map((jp) => jp.toJSON()));
+  } catch (error) {
+    handleZodError(error, res, "Error fetching invisible job postings");
   }
 });
 
@@ -151,6 +170,10 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       { transaction: t }
     );
 
+    const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, { transaction: t });
+
+    // console.log("Created job posting:", freshJobPosting);
+
     // If tags were provided, process them.
     if (tags && Array.isArray(tags) && tags.length > 0) {
       const tagInstances = await Promise.all(
@@ -165,8 +188,8 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       );
       // Associate tags with the job posting using the defined belongsToMany relationship.
 
-      await Object.getPrototypeOf(newJobPosting).setJobTags.call(
-        newJobPosting,
+      await Object.getPrototypeOf(freshJobPosting).setJobTags.call(
+        freshJobPosting,
         tagInstances,
         { transaction: t }
       );
@@ -175,16 +198,62 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     // Commit the transaction
     await t.commit();
 
-    res.status(201).json(newJobPosting.toJSON());
+    const ret = {
+      ...newJobPosting.toJSON(),
+      id: newJobPosting.id,
+    }
+    res.status(201).json(ret);
   } catch (error) {
     await t.rollback();
-    console.error("Error creating job posting:", error);
-    res.status(500).json({
-      error: "Failed to create job posting",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
+    handleZodError(error, res, "Error creating job posting");
   }
 });
+
+// DELETE a job posting. Only the owning hiring manager can delete job posting
+router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
+  const t = await Database.GetSequelize().transaction();
+  try {
+    const { jobPostingId } = req.params;
+    const staffId = req.auth?.id;
+    const jobPosting = await JobPosting.findOne({
+      where: { id: jobPostingId },
+      include: [
+        {
+          model: Staff,
+          as: "staff",
+          attributes: ["id"],
+        },
+      ],
+      transaction: t,
+    });
+    // Try to delete
+    if (!jobPosting) {
+      await t.rollback()
+      return res.status(404).json({ error: "Job posting not found" });
+    }
+    if (!staffId || jobPosting.dataValues.staffId !== staffId) {
+      await t.rollback()
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    await Criteria.destroy({
+      where: { jobPostingId },
+      transaction: t,
+    });
+    await jobPosting.destroy({transaction: t});
+    await t.commit();
+
+    
+    res.json({
+      "message": "Job posting deleted successfully",
+      jobPosting
+    });
+  } catch (error) {
+    await t.rollback();
+    handleZodError(error, res, "Error deleting job posting");
+  }
+});
+
 
 export interface JobPostingEditRequest {
   title?: string;
@@ -344,6 +413,7 @@ router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, r
     handleZodError(error, res, "Error assigning job posting");
   }
 });
+
 
 // Get all local criteria for a specific job posting
 router.get(
@@ -1117,35 +1187,18 @@ router.get(
       });
 
       let resume = null
+
       try {
-        // Extract just the filename from the full path
+          // Extract just the filename from the full path
         const resumeFileName = path.basename(applicationForResume?.dataValues.resumePath || '');
 
-        // Uncomment for testing
-        // const resumeFileName = '5_126'
-        
-        // Use your existing utility function to download the file as base64
-        resume = await s3DownloadPdfBase64(resumeFileName);
-        
-        // If you want to include the data URI prefix for immediate browser rendering
-        // (especially useful for PDFs in the frontend)
-        const fileExt = path.extname(resumeFileName).toLowerCase();
-        let mimeType = 'application/pdf'; // Default for PDFs
-        
-        // Determine MIME type based on file extension
-        if (fileExt === '.doc') {
-          mimeType = 'application/msword';
-        } else if (fileExt === '.docx') {
-          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        }
-        
-        // Add data URI prefix
-        resume = `data:${mimeType};base64,${resume}`;
+        resume = await generateTemporaryUrl(resumeFileName)
+
       } catch (s3Error) {
         console.error("Error retrieving resume from S3:", s3Error);
         // Continue without resume content
       }
-
+    
       const candidateReport = {
         name: `${applicantData?.dataValues.firstName || ''} ${applicantData?.dataValues.lastName || ''}`,
         role: currentRole,

@@ -638,9 +638,10 @@ export default function JobApplication() {
               onClick={() => {
                 setIsModalOpen(false);
                 if (!errorMessage) {
+                  if (!errorMessage) {
                   navigate("/applicant/job-postings"); // Navigate only on success
-                }
-              }}
+                } // Navigate only on success
+                }              }}
             >
               OK
             </CustomButton>

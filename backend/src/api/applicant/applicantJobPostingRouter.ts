@@ -64,9 +64,7 @@ router.get("/tags", async (req, res) => {
       order: [["name", "ASC"]], // sort alphabetically
     });
 
-    console.log("tags:", tags);
     const tagNames = tags.map(tag => tag.dataValues.name);
-    console.log("tagNames:", tagNames);
 
     return res.status(StatusCodes.OK).json({ success: true, data: tagNames });
   } catch (error) {

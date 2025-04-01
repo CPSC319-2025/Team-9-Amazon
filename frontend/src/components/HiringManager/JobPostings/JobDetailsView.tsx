@@ -14,9 +14,9 @@ import {
   filledButtonStyle,
   outlinedButtonStyle,
 } from "../../../styles/commonStyles";
-import CustomSnackbar from "../../Common/SnackBar";
 import ConfirmDialog from "../../Common/ConfirmDialog";
 import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
+import { useSnackbar } from "notistack";
 
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
@@ -44,11 +44,8 @@ const JobDetailsView = ({
   }, [jobPosting]);
 
   // Snackbar
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "info" | "error" | "warning" | undefined
-  >("success");
+  const { enqueueSnackbar } = useSnackbar();
+
 
   // Confirm Dialogue
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -69,9 +66,10 @@ const JobDetailsView = ({
 
   const handleSave = () => {
     onSave(editedJob);
-    setSnackbarMessage("Job Posting Saved!");
-    setSnackbarSeverity("success");
-    setOpenSnackbar(true);
+    
+    // setSnackbarMessage("Job Posting Saved!");
+    // setSnackbarSeverity("success");
+    // setOpenSnackbar(true);
     setEditMode(null);
   };
 
@@ -88,10 +86,6 @@ const JobDetailsView = ({
     }
   };
 
-  const handleSnackbarClose = () => {
-    setOpenSnackbar(false);
-  };
-
   // Confirm Dialogue
   const handleConfirmCancel = () => {
     setEditedJob({ ...jobPosting });
@@ -99,9 +93,7 @@ const JobDetailsView = ({
     setConfirmDialogOpen(false);
 
     // Show Snackbar
-    setSnackbarMessage("Job Posting Cancelled!");
-    setSnackbarSeverity("warning");
-    setOpenSnackbar(true);
+    enqueueSnackbar("Changes Discarded!", {variant: "warning"});
 
     onCancel();
   };
@@ -232,21 +224,13 @@ const JobDetailsView = ({
             </Stack>
           )}
 
-          {/* Snack Bar */}
-          {editable && (
-            <CustomSnackbar
-              open={openSnackbar}
-              message={snackbarMessage}
-              severity={snackbarSeverity}
-              onClose={handleSnackbarClose}
-            />
-          )}
-
           {/* Confirmation Dialog */}
           <ConfirmDialog
             open={confirmDialogOpen}
-            title="Cancel Changes?"
+            title="Discard Changes?"
             message="Are you sure you want to discard all changes?"
+            cancelText="Keep Editing"
+            confirmText="Discard Changes"
             onConfirm={handleConfirmCancel}
             onCancel={() => {
               setConfirmDialogOpen(false);

@@ -160,11 +160,13 @@ export default class Application
     Application.belongsTo(JobPosting, {
       foreignKey: "jobPostingId",
       as: "jobPosting",
+      onDelete: "CASCADE",
     });
 
     Application.belongsTo(Applicant, {
       foreignKey: "applicantId",
       as: "applicant",
+      onDelete: "CASCADE"
     });
   }
 }

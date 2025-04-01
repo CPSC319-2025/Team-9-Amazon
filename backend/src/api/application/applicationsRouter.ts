@@ -10,6 +10,7 @@ import { ResumeUploadError, ApplicantCreationError, DuplicateApplicationError, V
 const router = Router();
 
 router.post("/", async (req, res) => {
+  const t = await Database.GetSequelize().transaction();
   try {
     console.log("Received application submission:", req.body);
     // Parse & validate req body

@@ -25,7 +25,8 @@ import { transformJobPosting, transformJobPostings } from "../utils/transformJob
 // Query keys
 export const jobPostingKeys = {
   all: ["jobPosting"] as const,
-  unassigned: ["jobPosting", "unassigned"] as const, // Extends from "all"
+  unassigned: ["jobPosting", "unassigned"] as const,
+  invisible: ["jobPosting", "invisible"] as const,
   detail: (jobPostingId: string) =>
     [...jobPostingKeys.all, jobPostingId] as const, // Extends from "all"
 };
@@ -59,6 +60,24 @@ export const useGetUnassignedJobPostings = (): UseQueryResult<JobPosting[], ApiE
     queryKey: jobPostingKeys.unassigned,
     queryFn: async () => {
       const url = apiUrls.jobPostings.unassigned;
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData);
+      }
+      const jobPostings = await response.json()
+      return jobPostings;
+    },
+    retry: 1,
+  });
+};
+
+export const useGetInvisibleJobPostings = (): UseQueryResult<JobPosting[], ApiError> => {
+  return useQuery({
+    queryKey: jobPostingKeys.invisible,
+    queryFn: async () => {
+      const url = apiUrls.jobPostings.invisible;
       const response = await fetchWithAuth(url);
 
       if (!response.ok) {
@@ -177,6 +196,7 @@ export const assignJobPosting = (jobPostingId: string) => {
     onSuccess: () => {
       // Invalidate the job posting detail query to refresh data after edit.
       queryClient.invalidateQueries({ queryKey: jobPostingKeys.unassigned });
+      queryClient.invalidateQueries({ queryKey: jobPostingKeys.invisible });
     },
   });
 }
@@ -433,7 +453,10 @@ interface CandidateReportResponse {
     matched: string[];
     missing: string[];
   };
-  resume: string
+  resume: {
+    url: string;
+    fileType: string;
+  }
 }
 
 // Get job reports

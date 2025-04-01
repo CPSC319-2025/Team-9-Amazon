@@ -1,4 +1,10 @@
-import { useQuery, UseQueryResult, useMutation, UseMutationResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  UseQueryResult,
+  useMutation,
+  UseMutationResult,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { ApiError } from "../representations/error";
 //import { fetchWithAuth } from "../api/apiUtils";
 import { apiUrls } from "../api/apiUrls";
@@ -9,6 +15,7 @@ import { fetchWithAuth } from "../api/apiUtils";
 export const skillKeys = {
   all: ["skills"] as const,
   detail: (id: number) => [...skillKeys.all, id] as const,
+  lists: () => [...skillKeys.all, "list"] as const,
 };
 
 // Types
@@ -26,10 +33,7 @@ export interface UpdateSkillRequest {
 }
 
 // Get skills list
-export const useGetSkills = (): UseQueryResult<
-  Skill[],
-  ApiError
-> => {
+export const useGetSkills = (): UseQueryResult<Skill[], ApiError> => {
   return useQuery({
     queryKey: skillKeys.all,
     queryFn: async () => {
@@ -47,10 +51,9 @@ export const useGetSkills = (): UseQueryResult<
 };
 
 // Get a specific skill
-export const useGetSkill = (skillId: number): UseQueryResult<
-  Skill,
-  ApiError
-> => {
+export const useGetSkill = (
+  skillId: number
+): UseQueryResult<Skill, ApiError> => {
   return useQuery({
     queryKey: skillKeys.detail(skillId),
     queryFn: async () => {
@@ -98,20 +101,21 @@ export const useCreateSkill = (): UseMutationResult<
 };
 
 // Update an existing skill
-export const useUpdateSkill = (skillId: number): UseMutationResult<
-  Skill,
-  ApiError,
-  UpdateSkillRequest
-> => {
+export const useUpdateSkill = (
+  skillId: number
+): UseMutationResult<Skill, ApiError, UpdateSkillRequest> => {
   return useMutation({
     mutationFn: async (updatedSkill: UpdateSkillRequest) => {
-      const response = await fetchWithAuth(`${apiUrls.getSkillsUrl}${skillId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedSkill),
-      });
+      const response = await fetchWithAuth(
+        `${apiUrls.getSkillsUrl}${skillId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedSkill),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -127,17 +131,18 @@ export const useUpdateSkill = (skillId: number): UseMutationResult<
   });
 };
 
-// Delete a skill
-export const useDeleteSkill = (): UseMutationResult<
-  void,
-  ApiError,
-  number
-> => {
+// Delete skill
+export const useDeleteSkill = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (skillId: number) => {
-      const response = await fetchWithAuth(`${apiUrls.getSkillsUrl}${skillId}`, {
-        method: "DELETE",
-      });
+      const response = await fetchWithAuth(
+        `${apiUrls.getSkillsUrl}${skillId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -145,7 +150,28 @@ export const useDeleteSkill = (): UseMutationResult<
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: skillKeys.all });
+      queryClient.invalidateQueries({ queryKey: skillKeys.lists() });
+    },
+  });
+};
+
+// Check if skill is referenced
+export const useCheckSkillReferences = () => {
+  return useMutation({
+    mutationFn: async (skillId: number) => {
+      const url = apiUrls.checkSkillReferencesUrl.replace(
+        ":skillId",
+        skillId.toString()
+      );
+
+      const response = await fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw ApiError.fromResponse(errorData, response);
+      }
+
+      return response.json();
     },
   });
 };

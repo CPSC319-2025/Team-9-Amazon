@@ -182,6 +182,7 @@ export default class Criteria
     Criteria.belongsTo(JobPosting, {
       foreignKey: "jobPostingId",
       as: "jobPosting",
+      onDelete: "CASCADE",
     });
   }
 }

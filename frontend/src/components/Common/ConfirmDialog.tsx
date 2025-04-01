@@ -4,11 +4,21 @@ interface ConfirmDialogProps {
   open: boolean;
   title?: string;
   message: string;
+  cancelText?: string;
+  confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ open, title = "Confirm Action", message, onConfirm, onCancel }) => {
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ 
+  open, 
+  title = "Confirm Action", 
+  message, 
+  onConfirm, 
+  onCancel, 
+  cancelText = "Cancel",
+  confirmText = "Confirm"
+}) => {
   return (
     <Dialog open={open} onClose={onCancel}>
       <DialogTitle>{title}</DialogTitle>
@@ -17,10 +27,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ open, title = "Confirm Ac
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} color="info">
-          Cancel
+          {cancelText || "Cancel"}
         </Button>
         <Button onClick={onConfirm} color="primary" variant="contained">
-          Confirm
+          {confirmText || "Confirm"}
         </Button>
       </DialogActions>
     </Dialog>

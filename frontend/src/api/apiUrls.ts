@@ -21,6 +21,7 @@ export const apiUrls = {
   getJobPostingPotentialCandidatesUrl:
     jobPostingsUrl + "/:jobPostingId/potential-candidates",
   getSkillsUrl: skillsUrl + "/",
+  checkSkillReferencesUrl: skillsUrl + "/:skillId/check-references",
   loginUrl: `${apiUrl}/login/`,
   getGlobalCriteriaUrl: criteriaUrl + "/",
   jobPostings: {
@@ -29,7 +30,9 @@ export const apiUrls = {
     createJobPosting: jobPostingsUrl,
     all: jobPostingsUrl,
     unassigned: `${jobPostingsUrl}/unassigned`,
-    assign: (jobPostingId: string) => `${jobPostingsUrl}/assign/${jobPostingId}`
+    invisible: `${jobPostingsUrl}/invisible`,
+    assign: (jobPostingId: string) =>
+      `${jobPostingsUrl}/assign/${jobPostingId}`,
   },
   accounts: {
     base: `${adminUrl}/accounts`,
@@ -43,6 +46,6 @@ export const apiUrls = {
     update: `${criteriaUrl}/:criteria_id`,
   },
   getJobReportsUrl: jobPostingsUrl + "/:jobPostingId/reports",
-  getCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
-
+  getCandidateReportUrl:
+    jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
 };

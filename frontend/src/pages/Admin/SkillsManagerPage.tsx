@@ -1,33 +1,67 @@
 import { AddCircleOutlined, DeleteOutlined, Edit } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField } from "@mui/material";
-import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColDef,
+  GridRowId,
+  GridToolbar,
+} from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import CustomSnackbar from "../../components/Common/SnackBar";
 import { colors, titleStyle } from "../../styles/commonStyles";
-import { Skill, useCreateSkill, useDeleteSkill, useGetSkills, useUpdateSkill } from "../../queries/skill";
+import {
+  Skill,
+  useCheckSkillReferences,
+  useCreateSkill,
+  useDeleteSkill,
+  useGetSkills,
+  useUpdateSkill,
+} from "../../queries/skill";
 
 const SkillsManagerPage = () => {
-  const { data: skills, isLoading, isError, error: skillsFetchError } = useGetSkills();
-  
+  const {
+    data: skills,
+    isLoading,
+    isError,
+    error: skillsFetchError,
+  } = useGetSkills();
+
   // Modal states
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  
+  const [openDeleteConfirmModal, setOpenDeleteConfirmModal] = useState(false);
+
   // Form data
   const [skillName, setSkillName] = useState("");
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [deleteSkillId, setDeleteSkillId] = useState<number | null>(null);
+  const [criteriaCount, setCriteriaCount] = useState<number>(0);
 
   // Snackbar states
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "info" | "error" | "warning" | undefined>("success");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "info" | "error" | "warning" | undefined
+  >("success");
 
   // Mutations
   const createSkillMutation = useCreateSkill();
   const updateSkillMutation = useUpdateSkill(selectedSkill?.skillId || 0);
   const deleteSkillMutation = useDeleteSkill();
+  const checkSkillReferences = useCheckSkillReferences();
 
   useEffect(() => {
     if (isError) {
@@ -45,10 +79,16 @@ const SkillsManagerPage = () => {
       handleCloseModal();
     } else if (createSkillMutation.isError) {
       setSnackbarOpen(true);
-      setSnackbarMessage(createSkillMutation.error?.message ?? "Failed to create skill");
+      setSnackbarMessage(
+        createSkillMutation.error?.message ?? "Failed to create skill"
+      );
       setSnackbarSeverity("error");
     }
-  }, [createSkillMutation.isSuccess, createSkillMutation.isError, createSkillMutation.error]);
+  }, [
+    createSkillMutation.isSuccess,
+    createSkillMutation.isError,
+    createSkillMutation.error,
+  ]);
 
   useEffect(() => {
     if (updateSkillMutation.isSuccess) {
@@ -58,10 +98,16 @@ const SkillsManagerPage = () => {
       handleCloseModal();
     } else if (updateSkillMutation.isError) {
       setSnackbarOpen(true);
-      setSnackbarMessage(updateSkillMutation.error?.message ?? "Failed to update skill");
+      setSnackbarMessage(
+        updateSkillMutation.error?.message ?? "Failed to update skill"
+      );
       setSnackbarSeverity("error");
     }
-  }, [updateSkillMutation.isSuccess, updateSkillMutation.isError, updateSkillMutation.error]);
+  }, [
+    updateSkillMutation.isSuccess,
+    updateSkillMutation.isError,
+    updateSkillMutation.error,
+  ]);
 
   useEffect(() => {
     if (deleteSkillMutation.isSuccess) {
@@ -71,18 +117,26 @@ const SkillsManagerPage = () => {
       handleCloseModal();
     } else if (deleteSkillMutation.isError) {
       setSnackbarOpen(true);
-      setSnackbarMessage(deleteSkillMutation.error?.message ?? "Failed to delete skill");
+      setSnackbarMessage(
+        deleteSkillMutation.error?.message ?? "Failed to delete skill"
+      );
       setSnackbarSeverity("error");
     }
-  }, [deleteSkillMutation.isSuccess, deleteSkillMutation.isError, deleteSkillMutation.error]);
+  }, [
+    deleteSkillMutation.isSuccess,
+    deleteSkillMutation.isError,
+    deleteSkillMutation.error,
+  ]);
 
   const handleCloseModal = () => {
     setOpenCreateModal(false);
     setOpenEditModal(false);
     setOpenDeleteModal(false);
+    setOpenDeleteConfirmModal(false);
     setSkillName("");
     setSelectedSkill(null);
     setDeleteSkillId(null);
+    setCriteriaCount(0);
   };
 
   const handleCreateClick = () => {
@@ -90,7 +144,7 @@ const SkillsManagerPage = () => {
   };
 
   const handleEditClick = (id: GridRowId) => () => {
-    const skill = skills?.find(s => s.skillId === id);
+    const skill = skills?.find((s) => s.skillId === id);
     if (skill) {
       setSelectedSkill(skill);
       setSkillName(skill.name);
@@ -98,9 +152,22 @@ const SkillsManagerPage = () => {
     }
   };
 
-  const handleDeleteClick = (id: GridRowId) => () => {
-    setDeleteSkillId(Number(id));
-    setOpenDeleteModal(true);
+  const handleDeleteClick = (id: GridRowId) => async () => {
+    try {
+      const result = await checkSkillReferences.mutateAsync(Number(id));
+      setDeleteSkillId(Number(id));
+
+      if (result.isReferenced) {
+        setCriteriaCount(result.criteriaCount);
+        setOpenDeleteConfirmModal(true);
+      } else {
+        setOpenDeleteModal(true);
+      }
+    } catch (error) {
+      setSnackbarOpen(true);
+      setSnackbarMessage("Failed to check skill references");
+      setSnackbarSeverity("error");
+    }
   };
 
   const handleCreateSkill = () => {
@@ -127,7 +194,7 @@ const SkillsManagerPage = () => {
     {
       field: "actions",
       type: "actions",
-      headerName: 'Actions',
+      headerName: "Actions",
       width: 100,
       cellClassName: "actions",
       getActions: ({ id }) => {
@@ -152,12 +219,15 @@ const SkillsManagerPage = () => {
   return (
     <>
       <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" padding="10px">
-          <Box sx={{ ...titleStyle, fontVariant: "h4" }}>
-            Skills Management
-          </Box>
-          <IconButton 
-            aria-label="Add a Skill" 
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          padding="10px"
+        >
+          <Box sx={{ ...titleStyle, fontVariant: "h4" }}>Skills Management</Box>
+          <IconButton
+            aria-label="Add a Skill"
             onClick={handleCreateClick}
             sx={{ color: colors.blue1 }}
           >
@@ -201,9 +271,9 @@ const SkillsManagerPage = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button 
-              onClick={handleCreateSkill} 
-              variant="contained" 
+            <Button
+              onClick={handleCreateSkill}
+              variant="contained"
               disabled={!skillName.trim() || createSkillMutation.isPending}
             >
               {createSkillMutation.isPending ? "Creating..." : "Create"}
@@ -228,9 +298,9 @@ const SkillsManagerPage = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button 
-              onClick={handleUpdateSkill} 
-              variant="contained" 
+            <Button
+              onClick={handleUpdateSkill}
+              variant="contained"
               disabled={!skillName.trim() || updateSkillMutation.isPending}
             >
               {updateSkillMutation.isPending ? "Updating..." : "Update"}
@@ -238,18 +308,44 @@ const SkillsManagerPage = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation Modal */}
-        <Dialog open={openDeleteModal} onClose={handleCloseModal}>
-          <DialogTitle>Delete Skill</DialogTitle>
+        {/* Delete Confirmation Modal - For Referenced Skills */}
+        <Dialog open={openDeleteConfirmModal} onClose={handleCloseModal}>
+          <DialogTitle>Warning: Skill is Referenced</DialogTitle>
           <DialogContent>
-            Are you sure you want to delete this skill? This action cannot be undone.
+            <Typography>
+              This skill is currently referenced in {criteriaCount} criteria.
+              Deleting it will remove all criteria rules related to this skill.
+              Are you sure you want to proceed?
+            </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button 
-              onClick={handleDeleteSkill} 
-              variant="contained" 
-              color="error" 
+            <Button
+              onClick={() => {
+                setOpenDeleteConfirmModal(false);
+                setOpenDeleteModal(true);
+              }}
+              variant="contained"
+              color="error"
+            >
+              Proceed to Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Final Delete Confirmation Modal */}
+        <Dialog open={openDeleteModal} onClose={handleCloseModal}>
+          <DialogTitle>Delete Skill</DialogTitle>
+          <DialogContent>
+            Are you sure you want to delete this skill? This action cannot be
+            undone.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Cancel</Button>
+            <Button
+              onClick={handleDeleteSkill}
+              variant="contained"
+              color="error"
               disabled={deleteSkillMutation.isPending}
             >
               {deleteSkillMutation.isPending ? "Deleting..." : "Delete"}
