@@ -47,7 +47,7 @@ import {
   chipStyle,
   filledButtonStyle,
 } from "../../styles/commonStyles";
-import { useGetCandidateReport } from "../../queries/jobPosting";
+import { useGetCandidateReport, useGetApplicationsSummary } from "../../queries/jobPosting";
 import { useGetCandidateNotes, useSaveCandidateNotes } from "../../queries/candidateNotes";
 
 // Mock interview questions data
@@ -130,6 +130,11 @@ export default function CandidateReportPage() {
     isLoading,
     error,
   } = useGetCandidateReport(jobPostingId!, candidateEmail!);
+
+  // Get application summary to access totalPossibleScore
+  const {
+    data: summaryData,
+  } = useGetApplicationsSummary(jobPostingId!);
 
   // Load candidate notes using React Query
   const {
@@ -264,7 +269,7 @@ export default function CandidateReportPage() {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <LinearProgress
             variant="determinate"
-            value={candidateData.matchScore}
+            value={summaryData?.totalPossibleScore ? (candidateData.matchScore / summaryData.totalPossibleScore) * 100 : candidateData.matchScore}
             sx={{
               width: 100,
               height: 8,
@@ -281,7 +286,9 @@ export default function CandidateReportPage() {
             variant="body1"
             sx={{ color: colors.orange1, fontWeight: 500 }}
           >
-            {candidateData.matchScore}%
+            {summaryData?.totalPossibleScore 
+              ? `${Math.round((candidateData.matchScore / summaryData.totalPossibleScore) * 100)}%` 
+              : `${candidateData.matchScore}%`}
           </Typography>
         </Box>
       </Box>
