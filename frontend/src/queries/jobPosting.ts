@@ -453,7 +453,10 @@ interface CandidateReportResponse {
     matched: string[];
     missing: string[];
   };
-  resume: string
+  resume: {
+    url: string;
+    fileType: string;
+  }
 }
 
 // Get job reports

@@ -4,7 +4,7 @@ import {
   requireHiringManager,
 } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
-import { s3DownloadPdfBase64 } from "@/common/utils/awsTools";
+import { generateTemporaryUrl } from "@/common/utils/awsTools";
 import Database, { JobPosting, JobTag, Staff } from "@/database/database";
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
@@ -1187,35 +1187,18 @@ router.get(
       });
 
       let resume = null
+
       try {
-        // Extract just the filename from the full path
+          // Extract just the filename from the full path
         const resumeFileName = path.basename(applicationForResume?.dataValues.resumePath || '');
 
-        // Uncomment for testing
-        // const resumeFileName = '5_126'
-        
-        // Use your existing utility function to download the file as base64
-        resume = await s3DownloadPdfBase64(resumeFileName);
-        
-        // If you want to include the data URI prefix for immediate browser rendering
-        // (especially useful for PDFs in the frontend)
-        const fileExt = path.extname(resumeFileName).toLowerCase();
-        let mimeType = 'application/pdf'; // Default for PDFs
-        
-        // Determine MIME type based on file extension
-        if (fileExt === '.doc') {
-          mimeType = 'application/msword';
-        } else if (fileExt === '.docx') {
-          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        }
-        
-        // Add data URI prefix
-        resume = `data:${mimeType};base64,${resume}`;
+        resume = await generateTemporaryUrl(resumeFileName)
+
       } catch (s3Error) {
         console.error("Error retrieving resume from S3:", s3Error);
         // Continue without resume content
       }
-
+    
       const candidateReport = {
         name: `${applicantData?.dataValues.firstName || ''} ${applicantData?.dataValues.lastName || ''}`,
         role: currentRole,
