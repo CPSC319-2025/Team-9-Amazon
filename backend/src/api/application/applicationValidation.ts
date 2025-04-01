@@ -5,14 +5,18 @@ import { ValidationError } from "@/common/utils/errors";
 
 // Helper: convert MM/YYYY string into date object & validate real date
 export const parseDate = (dateStr: string) => {
+    const trimmed = dateStr.trim();
     const formatRegex = /^\d{1,2}\/\d{4}$/;
-    if (!formatRegex.test(dateStr)) return null;
+    if (!formatRegex.test(trimmed)) return null;
 
-    const [monthStr, yearStr] = dateStr.split("/");
-
-    const month = monthStr.padStart(2, "0"); // e.g., "3" => "03"
-    const normalized = `${month}/${yearStr}`;
-    const parsedDate = parse(normalized, "MM/yyyy", new Date() );
+    const [monthStr, yearStr] = trimmed.split("/");
+    const month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10);
+  
+    if (month < 1 || month > 12) return null;
+  
+    const normalized = `${month.toString().padStart(2, "0")}/${yearStr}`;
+    const parsedDate = parse(normalized, "MM/yyyy", new Date());
     return isValid(parsedDate) ? parsedDate : null;
 };
 
@@ -35,26 +39,26 @@ export const applicationSchema = z.object({
                 company: z.string().min(1, "Company is required"),
                 location: z.string().optional(),
 
-                from: z.string()
-                    .regex(/^\d{2}\/\d{4}$/, "Start date must be in MM/YYYY format"),
-
+                from: z.string(),
                 to: z.string()
-                    .regex(/^\d{2}\/\d{4}$/, "End date must be in MM/YYYY format")
-                    .or(z.literal("Present"))
-                    .or(z.string().nullable()),
+                    .trim()
+                    .transform((val) =>
+                        val.toLowerCase() === "present" ? "Present" : val
+                    )
+                    .or(z.literal(null)),
 
                 role_description: z.string().optional(),
                 skills: z.union([
                     z.string(),
                     z.array(z.string())
-                  ])
+                ])
                     .transform((val) => {
-                      const arr = Array.isArray(val) ? val : val.split(",");
-                      const cleaned = arr.map((s) => s.trim()).filter((s) => s.length > 0);
-                      if (cleaned.length === 0) {
-                        throw new ValidationError("At least one non-empty skill is required");
-                      }
-                      return cleaned;
+                        const arr = Array.isArray(val) ? val : val.split(",");
+                        const cleaned = arr.map((s) => s.trim()).filter((s) => s.length > 0);
+                        if (cleaned.length === 0) {
+                            throw new ValidationError("At least one non-empty skill is required");
+                        }
+                        return cleaned;
                     }),
             })
         )
@@ -66,7 +70,7 @@ export const applicationSchema = z.object({
                 if (!parsedFrom) {
                     ctx.addIssue({
                         code: "custom",
-                        message: "Start date must be valid date in MM/YYYY format",
+                        message: `"${exp.from}" is not valid. Use a real month and year in MM/YYYY format.`,
                         path: [`work_experience.${index}.from`],
                     });
                     return;
@@ -75,17 +79,19 @@ export const applicationSchema = z.object({
                 if (!isBefore(parsedFrom, new Date())) {
                     ctx.addIssue({
                         code: "custom",
-                        message: "Start date must be in the past or current month",
+                        message: `"${exp.from}" cannot be a future date. Please enter a start date in the past or current month.`,
                         path: [`work_experience.${index}.from`],
                     });
                 }
                 // check not-null to(date) is valid date and after start
-                if (exp.to !== "Present" && exp.to !== null) {
+                if (exp.to !== null &&
+                    typeof exp.to === "string" &&
+                    exp.to.toLowerCase() !== "present") {
                     const parsedTo = parseDate(exp.to);
                     if (!parsedTo) {
                         ctx.addIssue({
                             code: "custom",
-                            message: "End date must be valid date in MM/YYYY format",
+                            message: `"${exp.to}" is not a valid end date. Please enter a date in MM/YYYY format or leave the field blank if the job is ongoing...`,
                             path: [`work_experience.${index}.to`],
                         });
                         return;
@@ -93,7 +99,14 @@ export const applicationSchema = z.object({
                     if (!isAfter(parsedTo, parsedFrom)) {
                         ctx.addIssue({
                             code: "custom",
-                            message: "End date must be after start date",
+                            message: `End date "${exp.to}" should come after the start date "${exp.from}"`,
+                            path: [`work_experience.${index}.to`],
+                        });
+                    }
+                    if (!isBefore(parsedTo, new Date())) {
+                        ctx.addIssue({
+                            code: "custom",
+                            message: `"${exp.to}" can’t be a future date. Use a past or current date, or leave it blank for ongoing positions.`,
                             path: [`work_experience.${index}.to`],
                         });
                     }

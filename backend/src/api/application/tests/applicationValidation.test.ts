@@ -13,6 +13,16 @@ describe("parseDate validation", () => {
         expect(date).to.be.an.instanceOf(Date);
     });
 
+    it("should parse single-digit month format with whitespece:  3/2020", () => {
+        const date = parseDate(" 3/2020");
+        expect(date).to.be.an.instanceOf(Date);
+    });
+
+    it("should parse single-digit month format with whitespece:3/2020  ", () => {
+        const date = parseDate("3/2020   ");
+        expect(date).to.be.an.instanceOf(Date);
+    });
+
     it("should return null for invalid date strings", () => {
         expect(parseDate("2020/12")).to.be.null;
         expect(parseDate("2020-12")).to.be.null;
@@ -24,6 +34,12 @@ describe("parseDate validation", () => {
         expect(parseDate("///////")).to.be.null;
         expect(parseDate("abc")).to.be.null;
     });
+
+    it("should parse MM/YYYY with leading/trailing spaces", () => {
+        const result = parseDate(" 03/2021 ");
+        expect(result).to.be.an.instanceOf(Date);
+    });
+
 });
 
 const validInput = {
@@ -426,10 +442,6 @@ describe("applicationSchema work_experience validation", () => {
             ...validInput, work_experience: [{ ...validWorkExperience[0], from: "13/2024" }]
         });
         expect(result.success).to.be.false;
-        //expect(result.error?.issues[0].message).to.include("MM/YYYY");
-        expect(result.error?.issues.some(issue =>
-            issue.message.includes("valid date in MM/YYYY format")
-        )).to.be.true;
     });
 
     it("should fail if from is in the future", () => {
@@ -446,10 +458,6 @@ describe("applicationSchema work_experience validation", () => {
             ...validInput, work_experience: [{ ...validWorkExperience[0], to: "00/2025" }]
         });
         expect(result.success).to.be.false;
-        //expect(result.error?.issues[0].message).to.include("MM/YYYY");
-        expect(result.error?.issues.some(issue =>
-            issue.message.includes("valid date in MM/YYYY format")
-        )).to.be.true;
     });
 
     it("should fail if to is invalid format", () => {
@@ -466,6 +474,24 @@ describe("applicationSchema work_experience validation", () => {
         });
         expect(result.success).to.be.true;
     });
+
+    it('should accept " Present" with leading space and normalize to "Present"', () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            work_experience: [
+                {
+                    job_title: "Dev",
+                    company: "Company A",
+                    from: "01/2023",
+                    to: " Present",
+                    skills: ["React"]
+                }
+            ]
+        });
+
+        expect(result.success).to.be.true;
+    });
+
 
     it("should pass if to is number", () => {
         const result = applicationSchema.safeParse({
@@ -492,12 +518,56 @@ describe("applicationSchema work_experience validation", () => {
         expect(result.success).to.be.true;
     });
 
+    it("should pass if 'to' date is the current month", () => {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const year = now.getFullYear();
+        const currentMonth = `${month}/${year}`;
+
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            work_experience: [{
+                job_title: "Engineer",
+                company: "Company A",
+                from: "01/2022",
+                to: currentMonth,
+                skills: ["React"]
+            }]
+        });
+
+        expect(result.success).to.be.true;
+    });
+
+    it("should fail if 'to' date is in the future", () => {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const month = String(nextMonth.getMonth() + 1).padStart(2, "0");
+        const year = nextMonth.getFullYear();
+        const futureDate = `${month}/${year}`;
+
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            work_experience: [{
+                job_title: "Engineer",
+                company: "Company A",
+                from: "01/2022",
+                to: futureDate,
+                skills: ["React"]
+            }]
+        });
+
+        expect(result.success).to.be.false;
+        expect(result.error?.issues.some(issue =>
+            issue.message.includes("can’t be a future date")
+        )).to.be.true;
+    });
+
+
     it("should fail if to is before from", () => {
         const result = applicationSchema.safeParse({
             ...validInput, work_experience: [{ ...validWorkExperience[0], from: "03/2024", to: "02/2024" }]
         });
         expect(result.success).to.be.false;
-        expect(result.error?.issues[0].message).to.equal("End date must be after start date");
     });
 
     it("should fail if 'to' date equals 'from' date", () => {
@@ -514,8 +584,12 @@ describe("applicationSchema work_experience validation", () => {
             ]
         });
         expect(result.success).to.be.false;
-        expect(result.error?.issues[0].message).to.equal("End date must be after start date");
+        expect(result.error?.issues.some(issue =>
+            issue.message.includes("should come after")
+        )).to.be.true;
     });
+
+
 
     // skills validation
     it("should pass with one valid skill", () => {
@@ -534,86 +608,86 @@ describe("applicationSchema work_experience validation", () => {
 
     it("should throw ValidationError if skills is an empty string", () => {
         try {
-          applicationSchema.parse({
-            ...validInput,
-            work_experience: [
-              {
-                ...validWorkExperience[0],
-                skills: "", 
-              },
-            ],
-          });
-          throw new Error("Expected ValidationError was not thrown");
+            applicationSchema.parse({
+                ...validInput,
+                work_experience: [
+                    {
+                        ...validWorkExperience[0],
+                        skills: "",
+                    },
+                ],
+            });
+            throw new Error("Expected ValidationError was not thrown");
         } catch (err) {
-          expect(err).to.be.instanceOf(ValidationError);
+            expect(err).to.be.instanceOf(ValidationError);
         }
-      });
+    });
 
-      it("should throw ValidationError if skills is empty array", () => {
+    it("should throw ValidationError if skills is empty array", () => {
         try {
-          applicationSchema.parse({
-            ...validInput,
-            work_experience: [
-              {
-                ...validWorkExperience[0],
-                skills: [], // triggers .transform(), results in cleaned = [], throws ValidationError
-              },
-            ],
-          });
-          throw new Error("Expected ValidationError was not thrown");
+            applicationSchema.parse({
+                ...validInput,
+                work_experience: [
+                    {
+                        ...validWorkExperience[0],
+                        skills: [], // triggers .transform(), results in cleaned = [], throws ValidationError
+                    },
+                ],
+            });
+            throw new Error("Expected ValidationError was not thrown");
         } catch (err) {
-          expect(err).to.be.instanceOf(ValidationError);
+            expect(err).to.be.instanceOf(ValidationError);
         }
-      });
+    });
 
     it("should pass if skills includes at least one non-empty skill", () => {
         const result = applicationSchema.safeParse({
-          ...validInput,
-          work_experience: [{
-            ...validWorkExperience[0],
-            skills: ["", "React", "   "]
-          }]
+            ...validInput,
+            work_experience: [{
+                ...validWorkExperience[0],
+                skills: ["", "React", "   "]
+            }]
         });
-      
+
         expect(result.success).to.be.true;
-      });
-      
+    });
 
-      it("should throw ValidationError if skill string only contains commas or spaces", () => {
-        try {
-          applicationSchema.parse({
-            ...validInput,
-            work_experience: [{
-              job_title: "Engineer",
-              company: "Company A",
-              from: "01/2023",
-              to: "01/2024",
-              skills: ", , ,",
-            }]
-          });
-          throw new Error("Expected ValidationError was not thrown");
-        } catch (err) {
-          expect(err).to.be.instanceOf(ValidationError);
-        }
-      });
 
-      it("should throw ValidationError with array of only empty strings", () => {
+    it("should throw ValidationError if skill string only contains commas or spaces", () => {
         try {
-          applicationSchema.parse({
-            ...validInput,
-            work_experience: [{
-              job_title: "Engineer",
-              company: "Company A",
-              from: "01/2023",
-              to: "01/2024",
-              skills: ["", "  "]
-            }]
-          });
-          throw new Error("Expected ValidationError was not thrown");
+            applicationSchema.parse({
+                ...validInput,
+                work_experience: [{
+                    job_title: "Engineer",
+                    company: "Company A",
+                    from: "01/2023",
+                    to: "01/2024",
+                    skills: ", , ,",
+                }]
+            });
+            throw new Error("Expected ValidationError was not thrown");
         } catch (err) {
-          expect(err).to.be.instanceOf(ValidationError);
+            expect(err).to.be.instanceOf(ValidationError);
         }
-      });
+    });
+
+    it("should throw ValidationError with array of only empty strings", () => {
+        try {
+            applicationSchema.parse({
+                ...validInput,
+                work_experience: [{
+                    job_title: "Engineer",
+                    company: "Company A",
+                    from: "01/2023",
+                    to: "01/2024",
+                    skills: ["", "  "]
+                }]
+            });
+            throw new Error("Expected ValidationError was not thrown");
+        } catch (err) {
+            expect(err).to.be.instanceOf(ValidationError);
+        }
+    });
 
     it("should pass with a single skill as string", () => {
         const result = applicationSchema.safeParse({

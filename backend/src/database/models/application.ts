@@ -97,7 +97,7 @@ export const ApplicationSchema = {
             }
           });
           if (!exp.description || typeof exp.description !== "string") {
-            throw new Error("Each experience must have a description (string)");
+            throw new Error("Each experience must have a description.");
           }
         });
       },
