@@ -11,7 +11,15 @@ const router = Router();
 router.get("/", async (req, res) => {
   try {
     const jobPostings = await JobPosting.findAll({
-      attributes: ["id", "title", "description", "responsibilities", "qualifications", "location"], 
+      where: {status: "OPEN"},
+      attributes: [
+        "id",
+        "title", 
+        "description", 
+        "responsibilities", 
+        "qualifications", 
+        "location", 
+        "createdAt"], 
       include: [
         {
           model: JobTag,
@@ -31,6 +39,7 @@ router.get("/", async (req, res) => {
         title: jobData.title,
         description: jobData.description,
         location: jobData.location,
+        posted_at: new Date(jobData.createdAt).toISOString().split("T")[0],
         qualifications: jobData.qualifications
           ? jobData.qualifications.split(",").map((q) => q.trim())
           : [],
