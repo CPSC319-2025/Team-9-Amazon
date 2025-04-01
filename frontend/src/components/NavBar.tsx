@@ -13,7 +13,6 @@ import {
   Button,
   Stack,
   Tooltip,
-  Drawer,
   Typography,
 } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
@@ -33,10 +32,10 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const TopNavbar = () => {
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isHiringManager, setIsHiringManager] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -82,8 +81,12 @@ const TopNavbar = () => {
     setProfileAnchorEl(null);
   };
 
-  const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -97,10 +100,10 @@ const TopNavbar = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setDrawerOpen(false);
+    handleMenuClose();
   };
 
-  // Navigation items for the drawer menu
+  // Navigation items for the menu
   const navigationItems = [
     ...(isHiringManager ? [
       {
@@ -136,24 +139,64 @@ const TopNavbar = () => {
   return (
     <AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000", padding: "10px" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Left side: Hamburger menu and AWS Logo */}
+        {/* Left side: Burger menu and AWS Logo */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {shouldShowAccountButton && navigationItems.length > 0 && (
-            <IconButton 
-              edge="start" 
-              color="inherit" 
-              aria-label="menu" 
-              onClick={handleDrawerToggle}
-              sx={{ 
-                mr: 2,
-                color: '#232F3E',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 153, 0, 0.1)',
-                },
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
+            <>
+              <IconButton 
+                edge="start" 
+                color="inherit" 
+                aria-label="menu" 
+                onClick={handleMenuOpen}
+                sx={{ 
+                  mr: 2,
+                  color: '#232F3E',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 153, 0, 0.1)',
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+
+              <Menu 
+                anchorEl={menuAnchorEl} 
+                open={Boolean(menuAnchorEl)} 
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+              >
+                <List sx={{ width: "180px" }}>
+                  {navigationItems.map((item, index) => (
+                    <ListItemButton 
+                      key={index} 
+                      onClick={() => handleNavigation(item.path)}
+                      sx={{
+                        color: '#232F3E',
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 153, 0, 0.1)',
+                        },
+                        ...(location.pathname === item.path && {
+                          borderLeft: '4px solid #FF9900',
+                          bgcolor: 'rgba(255, 153, 0, 0.05)',
+                        }),
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: location.pathname === item.path ? '#FF9900' : '#232F3E' }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={item.label} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Menu>
+            </>
           )}
           
           <Box
@@ -220,49 +263,6 @@ const TopNavbar = () => {
           )
         )}
       </Toolbar>
-
-      {/* Navigation Drawer */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={handleDrawerToggle}
-        sx={{
-          '& .MuiDrawer-paper': { 
-            width: 240,
-            boxSizing: 'border-box',
-            backgroundColor: '#fff',
-          },
-        }}
-      >
-        <Box sx={{ p: 2, borderBottom: '1px solid rgba(0, 0, 0, 0.12)' }}>
-          <Typography variant="h6" sx={{ color: '#232F3E', fontWeight: 'bold' }}>
-            AWS Hiring Portal
-          </Typography>
-        </Box>
-        <List>
-          {navigationItems.map((item, index) => (
-            <ListItemButton 
-              key={index} 
-              onClick={() => handleNavigation(item.path)}
-              sx={{
-                color: '#232F3E',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 153, 0, 0.1)',
-                },
-                ...(location.pathname === item.path && {
-                  borderLeft: '4px solid #FF9900',
-                  bgcolor: 'rgba(255, 153, 0, 0.05)',
-                }),
-              }}
-            >
-              <ListItemIcon sx={{ color: location.pathname === item.path ? '#FF9900' : '#232F3E' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          ))}
-        </List>
-      </Drawer>
     </AppBar>
   );
 };
