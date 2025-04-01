@@ -170,6 +170,10 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       { transaction: t }
     );
 
+    const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, { transaction: t });
+
+    // console.log("Created job posting:", freshJobPosting);
+
     // If tags were provided, process them.
     if (tags && Array.isArray(tags) && tags.length > 0) {
       const tagInstances = await Promise.all(
@@ -184,8 +188,8 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       );
       // Associate tags with the job posting using the defined belongsToMany relationship.
 
-      await Object.getPrototypeOf(newJobPosting).setJobTags.call(
-        newJobPosting,
+      await Object.getPrototypeOf(freshJobPosting).setJobTags.call(
+        freshJobPosting,
         tagInstances,
         { transaction: t }
       );
