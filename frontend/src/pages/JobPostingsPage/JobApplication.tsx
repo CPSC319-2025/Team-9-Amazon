@@ -4,7 +4,7 @@ import {
   useSearchParams,
   useNavigate,
 } from "react-router";
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,7 @@ const applicationSchema = z.object({
       company: z.string().min(1, "Company is required"),
       from: z.string().min(1, "Start date is required"),
       to: z.string().optional().nullable(),  
-      role_description: z.string().optional(),
+      role_description: z.string().min(1, "Job description is required"),
       skills: z.array(z.string()).min(1, "At least one skill is required"),
     })
   )
@@ -83,7 +83,7 @@ export default function JobApplication() {
   const [job, setJob] = useState({ jobPostingId, title: jobTitle });
 
   const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-  const [isSuccessModalOpen, setisSuccessModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [showWorkExperience, setShowWorkExperience] = useState(false);
@@ -108,6 +108,9 @@ export default function JobApplication() {
   }>({});
   const navigate = useNavigate();
   const [isParsing, setIsParsing] = useState(false);
+  const [searchTerms, setSearchTerms] = useState<{
+    [key: number]: string;
+  }>({});
 
   type WorkExperienceEntry = {
     job_title: string;
@@ -235,6 +238,77 @@ export default function JobApplication() {
     });
   };
 
+  const filterSkills = (index: number, skills: any[]) => {
+    if (!searchTerms[index] || searchTerms[index].trim() === "") {
+      return skills;
+    }
+
+    const searchTerm = searchTerms[index].toLowerCase();
+    return skills.filter((skill) =>
+      skill.name.toLowerCase().includes(searchTerm)
+    );
+  };
+
+  // Function to find the first missing required field
+const validateForm = (data: ApplicationFormData): string | null => {
+  // Check personal information first
+  if (!data.first_name || data.first_name.trim() === "") return "First Name";
+  if (!data.last_name || data.last_name.trim() === "") return "Last Name";
+  if (!data.email || data.email.trim() === "") return "Email";
+  if (!data.phone || data.phone.trim() === "") return "Phone";
+  if (!data.resume || data.resume.trim() === "") return "Resume";
+
+  // Check work experience entries
+  if (!data.work_experience || data.work_experience.length === 0) {
+    return "Work Experience (at least one entry required)";
+  } else {
+    for (let index = 0; index < data.work_experience.length; index++) {
+      const exp = data.work_experience[index];
+
+      if (!exp.job_title || exp.job_title.trim() === "")
+        return `Job Title (Work Experience #${index + 1})`;
+
+      if (!exp.company || exp.company.trim() === "")
+        return `Company (Work Experience #${index + 1})`;
+
+      if (!exp.from || exp.from.trim() === "")
+        return `Start Date (Work Experience #${index + 1})`;
+
+      if (!exp.skills || exp.skills.length === 0)
+        return `Skills (Work Experience #${index + 1})`;
+
+      if (exp.role_description?.trim() === "")
+        return `Description (Work Experience #${index + 1})`;
+    }
+  }
+
+  // Check education experience entries
+  if (!data.education_experience || data.education_experience.length === 0) {
+    return "Education Experience (at least one entry required)";
+  } else {
+    for (let index = 0; index < data.education_experience.length; index++) {
+      const edu = data.education_experience[index];
+
+      if (!edu.school || edu.school.trim() === "")
+        return `School (Education #${index + 1})`;
+
+      if (!edu.degree || edu.degree.trim() === "")
+        return `Degree (Education #${index + 1})`;
+
+      if (!edu.field_of_study || edu.field_of_study.trim() === "")
+        return `Field of Study (Education #${index + 1})`;
+
+      if (!edu.from || edu.from.trim() === "")
+        return `Start Date (Education #${index + 1})`;
+
+      // Optional field: to — no validation needed
+    }
+  }
+
+  return null; // All fields are valid
+};
+
+
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -263,6 +337,9 @@ export default function JobApplication() {
         setValue("resume", base64String);
   
         if (file.type.includes("word")) {
+          // Set parsing state to true before starting the parsing process
+          setIsParsing(true);
+
           const parsedData = await parseResume(file);
   
           // Set basic info
@@ -307,7 +384,20 @@ export default function JobApplication() {
                 ? [exp.skills]
                 : []
             );
+
+            // Update selected skills state to match form values
+            setSelectedSkills((prev) => ({
+              ...prev,
+              [index]: Array.isArray(exp.skills)
+                ? exp.skills.flat()
+                : exp.skills
+                ? [exp.skills]
+                : [],
+            }));
           });
+
+          // Set parsing state to false after the parsing process is complete
+          setIsParsing(false);
   
           // --- Handle Education Experience ---
           const formattedEducation = (parsedData.education ?? []).map(
@@ -342,20 +432,43 @@ export default function JobApplication() {
         }
       } catch (error) {
         console.error("Error processing resume:", error);
+        // Make sure to set parsing state to false in case of an error
+        setIsParsing(false);
         setErrorMessage(
           `Failed to process resume. ${error} Please try again or fill in the details manually.`
         );
         setIsErrorModalOpen(true);
-      } finally {
-        setIsParsing(false); 
       }
     }
+
+    // Reset the file input value so the same file can be uploaded again
+    event.target.value = "";
+  };
+
+  // Improved resetResume function to replace the inline function in the "delete" button onClick
+  const resetResume = () => {
+    setFileName("");
+    setValue("resume", "");
+    setShowWorkExperience(false);
+    setWorkExperience([]);
+    setSelectedSkills({});
+
+    // Reset all form fields
+    setValue("first_name", "");
+    setValue("last_name", "");
+    setValue("email", "");
+    setValue("phone", "");
+    setValue("work_experience", []);
+
+    // Clear any error states
+    applicationForm.clearErrors();
   };
 
   const onSubmit = async (data: ApplicationFormData) => {
     console.log("SUBMIT TRIGGERED");
     try {
       setIsSubmitting(true);
+
       const applicationPayload = {
         ...data,
         jobPostingId: jobPostingId || "",
@@ -365,10 +478,10 @@ export default function JobApplication() {
         })),
         education_experience: data.education_experience || [],
       };
-  
+
       const result = await createApplication.mutateAsync(applicationPayload);
       setErrorMessage(null);
-      setisSuccessModalOpen(true);
+      setIsSuccessModalOpen(true);
     } catch (error) {
       console.error("Error submitting application:", JSON.stringify(error));
       setErrorMessage(
@@ -377,10 +490,28 @@ export default function JobApplication() {
           : "An unexpected error occurred. Please try again."
       );
       setIsErrorModalOpen(true);
-      // Don't reset any form state or UI state here - fields will retain their values
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const submitForm = () => {
+    // Get the current form values directly
+    const formData = applicationForm.getValues();
+
+    // Run your custom validation first
+    const missingField = validateForm(formData);
+    console.log("missing", missingField);
+
+    if (missingField) {
+      // If validation fails, show error and stop
+      setErrorMessage(`Please complete the required field: ${missingField}`);
+      setIsErrorModalOpen(true);
+      return;
+    }
+
+    // If validation passes, then process and submit the form data
+    onSubmit(formData);
   };
 
   useEffect(() => {
@@ -423,11 +554,33 @@ export default function JobApplication() {
   }, [openDropdowns]);
 
   return (
-    <div className="flex flex-col items-center min-h-screen">
-      {(isSubmitting || isParsing) && <CircularProgressLoader />}
+    <div className="flex flex-col items-center min-h-screen pb-12">
+      {isSubmitting && <CircularProgressLoader />}
 
-      <div className="flex flex-row items-center justify-between gap-16 mb-8 mt-4">
-        <div></div>
+      <div className="flex flex-row items-center justify-between w-full max-w-lg mb-8 mt-4">
+        <div>
+          <button
+            type="button"
+            onClick={() => navigate("/applicant/job-postings")}
+            className="flex items-center text-[#146eb4] hover:text-[#0d4b7a] transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back
+          </button>
+        </div>
         <h1 className="text-2xl font-bold text-[#146eb4]">{job?.title}</h1>
         <p className="text-lg">{`#${job?.jobPostingId}`}</p>
       </div>
@@ -455,6 +608,14 @@ export default function JobApplication() {
             onChange={handleFileUpload}
             className="hidden"
           />
+          {isParsing && (
+            <div className="mt-4 flex flex-col items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF9900]"></div>
+              <p className="text-sm text-gray-600 mt-2">
+                Parsing your resume...
+              </p>
+            </div>
+          )}
           {fileName && (
             <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
               <div className="flex items-center gap-3">
@@ -478,12 +639,7 @@ export default function JobApplication() {
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setFileName("");
-                  setValue("resume", "");
-                  setShowWorkExperience(false);
-                  setWorkExperience([]);
-                }}
+                onClick={resetResume}
                 className="text-gray-500 hover:text-red-500 p-1 hover:bg-red-50 rounded-full transition-colors"
               >
                 <svg
@@ -622,59 +778,95 @@ export default function JobApplication() {
                     </button>
 
                     {/* Dropdown Menu (Scrollable Checkboxes) */}
-                    {openDropdowns[index] && (
-                      <div className="absolute w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-y-auto z-10">
-                        {skillsLoading ? (
-                          <p className="p-2">Loading skills...</p>
-                        ) : skillsError ? (
-                          <p className="p-2 text-red-500">
-                            Error fetching skills
-                          </p>
-                        ) : (
-                          <div className="p-2">
-                            {skills?.map((skill) => (
-                              <label
-                                key={skill.skillId}
-                                className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  value={skill.name}
-                                  checked={
-                                    selectedSkills[index]?.includes(
-                                      skill.name
-                                    ) || false
-                                  }
-                                  onChange={(e) => {
-                                    const updatedSkills: string[] = e.target
-                                      .checked
-                                      ? [
-                                          ...(selectedSkills[index] || []),
-                                          skill.name,
-                                        ]
-                                      : (selectedSkills[index] || []).filter(
-                                          (s) => s !== skill.name
-                                        );
-
-                                    setSelectedSkills((prev) => ({
-                                      ...prev,
-                                      [index]: updatedSkills,
-                                    }));
-
-                                    setValue(
-                                      `work_experience.${index}.skills`,
-                                      updatedSkills as string[]
-                                    );
-                                  }}
-                                  className="rounded text-blue-500 focus:ring-2 focus:ring-blue-400"
-                                />
-                                {skill.name}
-                              </label>
-                            ))}
+                    <div
+                      className="relative"
+                      ref={(el) => {
+                        dropdownRefs.current[index] = el;
+                      }}
+                    >
+                      {/* Modified Dropdown Menu with Search */}
+                      {openDropdowns[index] && (
+                        <div className="absolute w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-10">
+                          {/* Search Input */}
+                          <div className="p-2 border-b">
+                            <input
+                              type="text"
+                              placeholder="Search skills..."
+                              value={searchTerms[index] || ""}
+                              onChange={(e) => {
+                                setSearchTerms((prev) => ({
+                                  ...prev,
+                                  [index]: e.target.value,
+                                }));
+                              }}
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              // Stop propagation to prevent dropdown from closing
+                              onClick={(e) => e.stopPropagation()}
+                            />
                           </div>
-                        )}
-                      </div>
-                    )}
+
+                          {/* Skills List */}
+                          <div className="max-h-40 overflow-y-auto">
+                            {skillsLoading ? (
+                              <p className="p-2">Loading skills...</p>
+                            ) : skillsError ? (
+                              <p className="p-2 text-red-500">
+                                Error fetching skills
+                              </p>
+                            ) : (
+                              <div className="p-2">
+                                {skills &&
+                                filterSkills(index, skills).length > 0 ? (
+                                  filterSkills(index, skills).map((skill) => (
+                                    <label
+                                      key={skill.skillId}
+                                      className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        value={skill.name}
+                                        checked={
+                                          selectedSkills[index]?.includes(
+                                            skill.name
+                                          ) || false
+                                        }
+                                        onChange={(e) => {
+                                          const updatedSkills = e.target.checked
+                                            ? [
+                                                ...(selectedSkills[index] ||
+                                                  []),
+                                                skill.name,
+                                              ]
+                                            : (
+                                                selectedSkills[index] || []
+                                              ).filter((s) => s !== skill.name);
+
+                                          setSelectedSkills((prev) => ({
+                                            ...prev,
+                                            [index]: updatedSkills,
+                                          }));
+
+                                          setValue(
+                                            `work_experience.${index}.skills`,
+                                            updatedSkills
+                                          );
+                                        }}
+                                        className="rounded text-blue-500 focus:ring-2 focus:ring-blue-400"
+                                      />
+                                      {skill.name}
+                                    </label>
+                                  ))
+                                ) : (
+                                  <p className="p-2 text-gray-500">
+                                    No matching skills found
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Display Selected Skills */}
@@ -791,7 +983,7 @@ export default function JobApplication() {
 
         <div className="flex justify-end">
           <CustomButton
-            onClick={handleSubmit(onSubmit)}
+            onClick={submitForm}
             variant="filled"
             disabled={isSubmitting}
           >
@@ -802,7 +994,7 @@ export default function JobApplication() {
 
       <Modal
         open={isSuccessModalOpen}
-        onClose={() => setisSuccessModalOpen(false)}
+        onClose={() => setIsSuccessModalOpen(false)}
         aria-labelledby="application-modal"
       >
         <Box
@@ -851,10 +1043,9 @@ export default function JobApplication() {
               variant="filled"
               className="min-w-[50px]"
               onClick={() => {
-                setIsModalOpen(false);
-                if (!errorMessage) {
-                  navigate("/applicant/job-postings"); // Navigate only on success
-                }              }}
+                setIsSuccessModalOpen(false);
+                navigate("/applicant/job-postings"); // Navigate only on success
+              }}
             >
               OK
             </CustomButton>
