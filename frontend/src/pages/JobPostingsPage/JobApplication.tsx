@@ -40,17 +40,25 @@ const applicationSchema = z.object({
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
-    .array(
-      z.object({
-        job_title: z.string().min(1, "Job Title is required"),
-        company: z.string().min(1, "Company is required"),
-        from: z.string().min(1, "Start date is required"),
-        to: z.string().optional().nullable(),
-        role_description: z.string().min(1, "Job description is required"),
-        skills: z.array(z.string()).min(1, "At least one skill is required"),
-      })
-    )
-    .min(1, "At least one work experience is required"),
+  .array(
+    z.object({
+      job_title: z.string().min(1, "Job Title is required"),
+      company: z.string().min(1, "Company is required"),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional().nullable(),  
+      role_description: z.string().min(1, "Job description is required"),
+      skills: z.array(z.string()).min(1, "At least one skill is required"),
+    })
+  )
+  .min(1, "At least one work experience is required"),
+  education_experience: z.array(
+    z.object({
+      school: z.string().min(1, "School or University is required"),
+      degree: z.string().min(1, "Degree is required"),
+      field_of_study: z.string().optional(),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional(),
+    })),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -79,6 +87,7 @@ export default function JobApplication() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [showWorkExperience, setShowWorkExperience] = useState(false);
+  const [showEducationExperience, setShowEducationExperience] = useState(false);
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -121,9 +130,20 @@ export default function JobApplication() {
     skills?: string | string[];
   }
 
+  type EducationEntry = {
+    school: string;
+    degree: string;
+    field_of_study?: string;
+    from: string;
+    to?: string;
+  };
+
+
   const [workExperience, setWorkExperience] = useState<WorkExperienceEntry[]>(
     []
   );
+
+  const [educationExperience, setEducationExperience] = useState<EducationEntry[]>([]);
 
   const applicationForm = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -171,6 +191,36 @@ export default function JobApplication() {
     setValue("work_experience", updatedWorkExperience);
   };
 
+  const addEducationExperience = () => {
+    setEducationExperience((prev) => [
+      ...prev,
+      {
+        school: "",
+        degree: "",
+        field_of_study: "",
+        from: "",
+        to: "",
+      },
+    ]);
+  };
+  
+  const removeEducationExperience = (index: number) => {
+    // Update local state
+    setEducationExperience((prev) => prev.filter((_, i) => i !== index));
+  
+    // Get current form values
+    const currentEducationExperience =
+      applicationForm.getValues("education_experience") || [];
+  
+    // Remove the selected education entry
+    const updatedEducationExperience = currentEducationExperience.filter(
+      (_, i) => i !== index
+    );
+  
+    // Update form state
+    setValue("education_experience", updatedEducationExperience);
+  };
+
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -200,50 +250,64 @@ export default function JobApplication() {
   };
 
   // Function to find the first missing required field
-  const validateForm = (data: ApplicationFormData): string | null => {
-    console.log("got here");
-    // Check personal information first
-    if (!data.first_name || data.first_name.trim() === "") return "First Name";
+const validateForm = (data: ApplicationFormData): string | null => {
+  // Check personal information first
+  if (!data.first_name || data.first_name.trim() === "") return "First Name";
+  if (!data.last_name || data.last_name.trim() === "") return "Last Name";
+  if (!data.email || data.email.trim() === "") return "Email";
+  if (!data.phone || data.phone.trim() === "") return "Phone";
+  if (!data.resume || data.resume.trim() === "") return "Resume";
 
-    if (!data.last_name || data.last_name.trim() === "") return "Last Name";
+  // Check work experience entries
+  if (!data.work_experience || data.work_experience.length === 0) {
+    return "Work Experience (at least one entry required)";
+  } else {
+    for (let index = 0; index < data.work_experience.length; index++) {
+      const exp = data.work_experience[index];
 
-    if (!data.email || data.email.trim() === "") return "Email";
+      if (!exp.job_title || exp.job_title.trim() === "")
+        return `Job Title (Work Experience #${index + 1})`;
 
-    if (!data.phone || data.phone.trim() === "") return "Phone";
+      if (!exp.company || exp.company.trim() === "")
+        return `Company (Work Experience #${index + 1})`;
 
-    if (!data.resume || data.resume.trim() === "") return "Resume";
+      if (!exp.from || exp.from.trim() === "")
+        return `Start Date (Work Experience #${index + 1})`;
 
-    // Check work experience entries
-    if (!data.work_experience || data.work_experience.length === 0) {
-      return "Work Experience (at least one entry required)";
-    } else {
-      // Check each work experience entry
+      if (!exp.skills || exp.skills.length === 0)
+        return `Skills (Work Experience #${index + 1})`;
 
-      for (let index = 0; index < data.work_experience.length; index++) {
-        const exp = data.work_experience[index];
-
-        if (!exp.job_title || exp.job_title.trim() === "")
-          return `Job Title (Work Experience #${index + 1})`;
-
-        if (!exp.company || exp.company.trim() === "")
-          return `Company (Work Experience #${index + 1})`;
-
-        if (!exp.from || exp.from.trim() === "")
-          return `Start Date (Work Experience #${index + 1})`;
-
-        // Check skills - each work experience needs at least one skill
-        if (!exp.skills || exp.skills.length === 0) {
-          return `Skills (Work Experience #${index + 1})`;
-        }
-
-        if (exp.role_description?.trim() === "") {
-          return `Description (Work Experience #${index + 1})`;
-        }
-      }
+      if (exp.role_description?.trim() === "")
+        return `Description (Work Experience #${index + 1})`;
     }
+  }
 
-    return null; // All fields are valid
-  };
+  // Check education experience entries
+  if (!data.education_experience || data.education_experience.length === 0) {
+    return "Education Experience (at least one entry required)";
+  } else {
+    for (let index = 0; index < data.education_experience.length; index++) {
+      const edu = data.education_experience[index];
+
+      if (!edu.school || edu.school.trim() === "")
+        return `School (Education #${index + 1})`;
+
+      if (!edu.degree || edu.degree.trim() === "")
+        return `Degree (Education #${index + 1})`;
+
+      if (!edu.field_of_study || edu.field_of_study.trim() === "")
+        return `Field of Study (Education #${index + 1})`;
+
+      if (!edu.from || edu.from.trim() === "")
+        return `Start Date (Education #${index + 1})`;
+
+      // Optional field: to — no validation needed
+    }
+  }
+
+  return null; // All fields are valid
+};
+
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -261,25 +325,30 @@ export default function JobApplication() {
         });
         return;
       }
-
+  
       try {
+        setIsParsing(true);
         applicationForm.clearErrors("resume");
         setFileName(file.name);
         setShowWorkExperience(true);
-
+        setShowEducationExperience(true);
+  
         const base64String = await convertFileToBase64(file);
         setValue("resume", base64String);
-
+  
         if (file.type.includes("word")) {
           // Set parsing state to true before starting the parsing process
           setIsParsing(true);
 
           const parsedData = await parseResume(file);
+  
+          // Set basic info
           setValue("first_name", parsedData.firstName || "");
           setValue("last_name", parsedData.lastName || "");
           setValue("email", parsedData.email || "");
           setValue("phone", parsedData.phone || "");
-
+  
+          // --- Handle Work Experience ---
           const formattedExperiences = (parsedData.experiences ?? []).map(
             (exp: ExperienceEntry) => ({
               job_title: exp.title,
@@ -294,13 +363,10 @@ export default function JobApplication() {
                 : [],
             })
           );
-
+  
           setWorkExperience(formattedExperiences);
-
-          // Set work experience form values
           setValue("work_experience", formattedExperiences);
-
-          // Update each work experience field individually
+  
           formattedExperiences.forEach((exp, index) => {
             setValue(`work_experience.${index}.job_title`, exp.job_title);
             setValue(`work_experience.${index}.company`, exp.company);
@@ -332,6 +398,37 @@ export default function JobApplication() {
 
           // Set parsing state to false after the parsing process is complete
           setIsParsing(false);
+  
+          // --- Handle Education Experience ---
+          const formattedEducation = (parsedData.education ?? []).map(
+            (edu: {
+              school?: string;
+              degree?: string;
+              fieldOfStudy?: string;
+              startDate?: string;
+              endDate?: string;
+            }) => ({
+              school: edu.school || "",
+              degree: edu.degree || "",
+              field_of_study: edu.fieldOfStudy || "",
+              from: edu.startDate || "",
+              to: edu.endDate || "",
+            })
+          );
+  
+          setEducationExperience(formattedEducation);
+          setValue("education_experience", formattedEducation);
+  
+          formattedEducation.forEach((edu, index) => {
+            setValue(`education_experience.${index}.school`, edu.school);
+            setValue(`education_experience.${index}.degree`, edu.degree);
+            setValue(
+              `education_experience.${index}.field_of_study`,
+              edu.field_of_study || ""
+            );
+            setValue(`education_experience.${index}.from`, edu.from);
+            setValue(`education_experience.${index}.to`, edu.to || "");
+          });
         }
       } catch (error) {
         console.error("Error processing resume:", error);
@@ -368,6 +465,7 @@ export default function JobApplication() {
   };
 
   const onSubmit = async (data: ApplicationFormData) => {
+    console.log("SUBMIT TRIGGERED");
     try {
       setIsSubmitting(true);
 
@@ -378,6 +476,7 @@ export default function JobApplication() {
           ...exp,
           skills: exp.skills?.join(", ") || "",
         })),
+        education_experience: data.education_experience || [],
       };
 
       const result = await createApplication.mutateAsync(applicationPayload);
@@ -819,6 +918,65 @@ export default function JobApplication() {
             ))}
             <CustomButton onClick={addWorkExperience}>
               Add Work Experience
+            </CustomButton>
+          </>
+        )}
+
+        {showEducationExperience && (
+          <>
+            <h3 className="text-lg font-semibold">Education Experience</h3>
+            {educationExperience.map((_, index) => (
+              <div
+                key={index}
+                className="relative border p-4 pt-8 space-y-2 bg-gray-50 rounded-lg shadow-md"
+              >
+                <button
+                  type="button"
+                  onClick={() => removeEducationExperience(index)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
+
+                <CustomFormTextField
+                  label="School or University"
+                  name={`education_experience.${index}.school`}
+                  placeholder="University of British Columbia"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Degree"
+                  name={`education_experience.${index}.degree`}
+                  placeholder="Bachelor of Science"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Field of Study"
+                  name={`education_experience.${index}.field_of_study`}
+                  placeholder="Computer Science"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Start Date"
+                  name={`education_experience.${index}.from`}
+                  placeholder="MM/YYYY"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="End Date"
+                  name={`education_experience.${index}.to`}
+                  placeholder="MM/YYYY or leave blank if ongoing"
+                  register={register}
+                  errors={errors}
+                />
+              </div>
+            ))}
+            <CustomButton onClick={addEducationExperience}>
+              Add Education Experience
             </CustomButton>
           </>
         )}
