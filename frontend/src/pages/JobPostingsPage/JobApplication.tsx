@@ -217,7 +217,7 @@ export default function JobApplication() {
           setValue("email", parsedData.email || "");
           setValue("phone", parsedData.phone || "");
 
-          // const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
+           //const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
           const formattedExperiences = (parsedData.experiences ?? []).map(
             (exp: ExperienceEntry) => ({
@@ -708,9 +708,10 @@ export default function JobApplication() {
               variant="filled"
               className="min-w-[50px]"
               onClick={() => {
-                setisSuccessModalOpen(false);
-                navigate("/applicant/job-postings");
-              }}
+                setIsModalOpen(false);
+                if (!errorMessage) {
+                  navigate("/applicant/job-postings"); // Navigate only on success
+                }              }}
             >
               OK
             </CustomButton>

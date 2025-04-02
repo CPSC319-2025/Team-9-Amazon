@@ -1,108 +1,72 @@
 import { Router } from "express";
-import Applicant from "@/database/models/applicant";
-import Application from "@/database/models/application";
-import { z } from "zod";
-import Database from "@/database/database";
-import { format } from "date-fns";
-import { s3UploadBase64 } from "@/common/utils/awsTools";
-import { handleZodError } from "@/common/middleware/errorHandler";
+import { ZodError } from "zod";
+import { StatusCodes } from "http-status-codes";
+
+import { applicationSchema } from "./applicationValidation";
+import { submitApplication } from "./applicationService";
+import { ResumeUploadError, ApplicantCreationError, DuplicateApplicationError, ValidationError } from "@/common/utils/errors";
+import { ValidationError as SequelizeValidationError } from "sequelize";
+
+
 
 const router = Router();
 
-// Validation schema for the request body
-const applicationSchema = z.object({
-  first_name: z.string().min(2).max(50),
-  last_name: z.string().min(2).max(50),
-  email: z.string().email(),
-  phone: z.string().min(10).max(15),
-  personal_links: z.string().optional(),
-  resume: z.string().min(1),
-  jobPostingId: z.string(),
-  work_experience: z
-    .array(
-      z.object({
-        job_title: z.string().min(1),
-        company: z.string().min(1),
-        location: z.string().optional(),
-        from: z.string().min(1),
-        to: z.string().optional().nullable(),
-        role_description: z.string().optional(),
-        skills: z.string().min(1),
-      })
-    )
-    .optional(),
-});
-
 router.post("/", async (req, res) => {
-  const t = await Database.GetSequelize().transaction();
   try {
     console.log("Received application submission:", req.body);
+    // Parse & validate req body
     const data = applicationSchema.parse(req.body);
-    let applicant = await Applicant.findOne({
-      where: { email: data.email },
-      transaction: t,
-    });
-    // Check for existing applicant
-    if (applicant) {
-      await applicant.update({
-          firstName: data.first_name,
-          lastName: data.last_name,
-          phone: data.phone,
-          linkedIn: data.personal_links,
-        },
-        { transaction: t }
-      );
-    } else {
-      applicant = await Applicant.create({
-          email: data.email,
-          firstName: data.first_name,
-          lastName: data.last_name,
-          phone: data.phone,
-          linkedIn: data.personal_links,
-        },
-        { transaction: t }
-      );
-    }
-    // Check for existing application
-    const applicantId = applicant.get("id");
-    const existingApplication = await Application.findOne({
-      where: {
-        applicantId: applicantId,
-        jobPostingId: parseInt(data.jobPostingId),
-      },
-      transaction: t,
-    });
-    if (existingApplication) {
-      throw new Error("You have already applied for this position");
-    }
-    // Create application
-    const resumeFileName = `${data.jobPostingId}_${applicantId}`;
-    await s3UploadBase64(resumeFileName, data.resume);
-    await Application.create({
-      jobPostingId: parseInt(data.jobPostingId),
-      applicantId: applicantId,
-      resumePath: resumeFileName,
-      experienceJson: {
-        experiences:
-          data.work_experience?.map((exp) => ({
-            title: exp.job_title,
-            company: exp.company,
-            startDate: exp.from,
-            endDate: exp.to || format(new Date(), "MM/yyyy"),
-            skills: exp.skills.split(",").map((s) => s.trim()),
-            description: exp.role_description || "",
-          })) || [],
-      },
-    },
-    { transaction: t });
 
-    // Commit transaction
-    await t.commit();
-    res.status(201).json("Successfully created application");
+    // Business logic
+    await submitApplication(data);
+
+    res.status(StatusCodes.CREATED).json({
+      message: "Application submitted successfully"
+    });
+
   } catch (error) {
-    console.log(error)
-    await t.rollback();
-    handleZodError(error, res, "Failed to create application");
+
+    if (error instanceof ZodError) {
+      const messages = error.errors.map((e) => e.message);
+      return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+        message: `Validation Error:\n${messages.join("\n")}`,
+
+      });
+    }
+
+    if (error instanceof ApplicantCreationError) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof ResumeUploadError) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof ValidationError) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof DuplicateApplicationError) {
+      return res.status(StatusCodes.CONFLICT).json({
+        message: error.message,
+      });
+    }
+
+    if (error instanceof SequelizeValidationError) {
+      const messages = error.errors.map((e) => e.message).join("; ");
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: `Database Validation Error: ${messages}`,
+      });
+    }
+
+    console.error("Unhandled error in applications:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Unhandled error" });
   }
 });
 
