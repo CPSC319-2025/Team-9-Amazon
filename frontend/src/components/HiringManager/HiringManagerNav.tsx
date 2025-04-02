@@ -66,8 +66,8 @@ const HiringManagerNav = ({
         variant: "success",
       });
     } catch (error) {
-      enqueueSnackbar(`Failed to change job status`, { variant: "error" });
-      console.error("Failed to edit job status:", error);
+      enqueueSnackbar(`Failed to change job status: ${error}`, { variant: "error" });
+      // console.error("Failed to edit job status:", error);
     }
   };
 
@@ -80,38 +80,13 @@ const HiringManagerNav = ({
     return (
       <CircularProgressLoader
         variant="indeterminate"
-        text="Loading job posting ..."
+        text="Loading ..."
       />
     );
   }
 
   if (error) {
-    if (error.code === 404) {
-      return (
-        <HttpErrorDisplay
-          statusCode={error.code}
-          message="Job postings not found"
-          details="Error loading job postings. Please try again later."
-        />
-      );
-    }
-    if (error.code === 403) {
-      return (
-        <HttpErrorDisplay
-          statusCode={error.code}
-          message="Forbidden"
-          details="You are not authorized to access this resource."
-        />
-      );
-    }
-
-    return (
-      <HttpErrorDisplay
-        statusCode={error.code || -1}
-        message="Error"
-        details={error.message}
-      />
-    );
+    // enqueueSnackbar(`Error ${error.code}: ${error.message}`, { variant: "error" });
   }
 
   return (

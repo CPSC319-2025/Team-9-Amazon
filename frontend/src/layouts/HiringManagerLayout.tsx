@@ -36,7 +36,6 @@ const HiringManagerLayout = () => {
         message="Forbidden"
         details="You are not authorized to access this resource." />);
     }
-
     
     return (
       <HttpErrorDisplay 

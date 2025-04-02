@@ -110,6 +110,12 @@ router.get(
         return res.status(404).json({ error: "Job posting not found" });
       }
 
+      // validate staffID as valid hiring manager
+      const staffId = req.auth?.id;
+      if (!staffId || jobPosting.get("staffId") !== staffId) {
+        return res.status(403).json({ error: "You are not authorized to view this job posting" });
+      }
+
       res.json(jobPosting);
     } catch (error) {
       res.status(500).json({
@@ -280,78 +286,115 @@ router.put(
     try {
       const { jobPostingId } = req.params;
 
-    // Find the existing job posting
-    const jobPosting = await JobPosting.findOne({
-      where: { id: jobPostingId },
-    });
-    
-    if (!jobPosting) {
-      return res.status(404).json({ error: "Job posting not found" });
-    }
+      // Find the existing job posting
+      const jobPosting = await JobPosting.findOne({
+        where: { id: jobPostingId },
+      });
 
-    // check the user is authorized to update this job posting
-    const userId = req.auth?.id;
-    if (!userId || jobPosting.get("staffId") !== userId) {
-      return res.status(403).json({ error: "You are not authorized to update this job posting" });
-    }
+      if (!jobPosting) {
+        return res.status(404).json({ error: "Job posting not found" });
+      }
 
-    // Start a transaction for atomic updates.
-    t = await Database.GetSequelize().transaction();
+      // check the user is authorized to update this job posting
+      const userId = req.auth?.id;
+      if (!userId || jobPosting.get("staffId") !== userId) {
+        return res.status(403).json({ error: "You are not authorized to update this job posting" });
+      }
 
-    // Extract allowed fields from request body using JobPostingEditRequest
-    const {
-      title,
-      subtitle,
-      description,
-      responsibilities,
-      qualifications,
-      location,
-      status,
-      tags, // array of tag names
-    } = req.body as JobPostingEditRequest;
+      // Start a transaction for atomic updates.
+      t = await Database.GetSequelize().transaction();
 
-    const updates: JobPostingEditRequest = {};
+      // Extract allowed fields from request body using JobPostingEditRequest
+      const {
+        title,
+        subtitle,
+        description,
+        responsibilities,
+        qualifications,
+        location,
+        status,
+        tags, // array of tag names
+      } = req.body as JobPostingEditRequest;
 
-    // validations
-    if (title !== undefined) {
-      const trimmedTitle = typeof title === "string" ? title.trim() : title;
-      if (trimmedTitle) {
-        updates.title = trimmedTitle;
+      const updates: JobPostingEditRequest = {};
+
+      // validations
+      if (title !== undefined) {
+        const trimmedTitle = typeof title === "string" ? title.trim() : title;
+        if (trimmedTitle) {
+          updates.title = trimmedTitle;
+        }
       }
-    }
-    if (subtitle !== undefined) {
-      const trimmedSubtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
-      if (trimmedSubtitle) {
-        updates.subtitle = trimmedSubtitle;
+      if (subtitle !== undefined) {
+        const trimmedSubtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
+        if (trimmedSubtitle) {
+          updates.subtitle = trimmedSubtitle;
+        }
       }
-    }
-    if (description !== undefined) {
-      const trimmedDescription = typeof description === "string" ? description.trim() : description;
-      if (trimmedDescription) {
-        updates.description = trimmedDescription;
+      if (description !== undefined) {
+        const trimmedDescription = typeof description === "string" ? description.trim() : description;
+        if (trimmedDescription) {
+          updates.description = trimmedDescription;
+        }
       }
-    }
-    if (responsibilities !== undefined) {
-      const trimmedResp = typeof responsibilities === "string" ? responsibilities.trim() : responsibilities;
-      if (trimmedResp) {
-        updates.responsibilities = trimmedResp;
+      if (responsibilities !== undefined) {
+        const trimmedResp = typeof responsibilities === "string" ? responsibilities.trim() : responsibilities;
+        if (trimmedResp) {
+          updates.responsibilities = trimmedResp;
+        }
       }
-    }
-    if (qualifications !== undefined) {
-      const trimmedQual = typeof qualifications === "string" ? qualifications.trim() : qualifications;
-      if (trimmedQual) {
-        updates.qualifications = trimmedQual;
+      if (qualifications !== undefined) {
+        const trimmedQual = typeof qualifications === "string" ? qualifications.trim() : qualifications;
+        if (trimmedQual) {
+          updates.qualifications = trimmedQual;
+        }
       }
-    }
-    if (location !== undefined) {
-      const trimmedLocation = typeof location === "string" ? location.trim() : location;
-      if (trimmedLocation) {
-        updates.location = trimmedLocation;
+      if (location !== undefined) {
+        const trimmedLocation = typeof location === "string" ? location.trim() : location;
+        if (trimmedLocation) {
+          updates.location = trimmedLocation;
+        }
       }
-    }
-    if (status !== undefined) {
-      updates.status = status;
-    }
+
+      const previousStatus: JobPostingStatus = jobPosting.get("status");
+      
+      // status validation
+      if (status !== undefined && status !== previousStatus) {
+        // check transitions
+        if (previousStatus === JobPostingStatus.DRAFT && status !== JobPostingStatus.OPEN) {
+          await t.rollback();
+          return res.status(400).json({ error: "Invalid status transition" });
+        }
+
+        if (previousStatus === JobPostingStatus.DRAFT && status == JobPostingStatus.OPEN) {
+          // check if there are criteria for this job posting
+          const criteria = await Criteria.findAll({
+            where: { jobPostingId },
+            transaction: t,
+          });
+
+          if (!criteria || !criteria.length) {
+            await t.rollback();
+            return res.status(400).json({
+              error: "Cannot publish a job posting without any criteria",
+            });
+          }
+        }
+
+        // only allows OPEN to CLOSED transition
+        if (previousStatus === JobPostingStatus.OPEN && status !== JobPostingStatus.CLOSED) {
+          await t.rollback();
+          return res.status(400).json({ error: "Invalid status transition" });
+        }
+
+        // only allows CLOSED to OPEN transition
+        if (previousStatus === JobPostingStatus.CLOSED && status !== JobPostingStatus.OPEN) {
+          await t.rollback();
+          return res.status(400).json({ error: "Invalid status transition" });
+        }
+
+        updates.status = status;
+      }
 
       jobPosting.set(updates);
       await jobPosting.save({ transaction: t });
@@ -406,7 +449,7 @@ router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, r
       return res.status(404).json({ error: "Job posting not found" });
     }
     const { staffId } = req.body as JobPostingAssignRequest;
-    await jobPosting.update({staffId})
+    await jobPosting.update({ staffId })
 
     res.json(jobPosting.toJSON());
   } catch (error) {
@@ -1075,7 +1118,7 @@ router.get(
       for (const criterion of criteria) {
         let criterionScore = 0;
         const applicantSkills = new Set();
-        
+
         // Extract applicant skills from experiences
         if (application.experienceJson && application.experienceJson.experiences) {
           application.experienceJson.experiences.forEach(exp => {
@@ -1084,28 +1127,28 @@ router.get(
             }
           });
         }
-        
+
         // Calculate criterion score based on matched skills
         if (criterion.criteriaJson && criterion.criteriaJson.rules) {
           let rulePoints = 0;
-          
+
           for (const rule of criterion.criteriaJson.rules) {
             if (applicantSkills.has(rule.skill.toLowerCase())) {
               // Award points based on the rule's configuration
               rulePoints += rule.maxPoints;
             }
           }
-          
+
           // Calculate score as a percentage of maximum possible points
-          criterionScore = criterion.criteriaMaxScore > 0 
-            ? (rulePoints / criterion.criteriaMaxScore) * 100 
+          criterionScore = criterion.criteriaMaxScore > 0
+            ? (rulePoints / criterion.criteriaMaxScore) * 100
             : 0;
         }
-        
+
         // Add to total scores
         totalScore += criterionScore;
         maxPossibleScore += 100; // Each criterion has a max score of 100%
-        
+
         // Add to criteria array
         criteriaScores.push({
           name: criterion.name,
@@ -1117,7 +1160,7 @@ router.get(
       // Process rules for matching and missing
       const matchedRules: string[] = [];
       const missingRules: string[] = [];
-      
+
       // Extract applicant skills once
       const applicantSkills = new Set();
       if (application.experienceJson && application.experienceJson.experiences) {
@@ -1127,13 +1170,13 @@ router.get(
           }
         });
       }
-      
+
       // Determine matched and missing rules
       for (const criterion of criteria) {
         if (criterion.criteriaJson && criterion.criteriaJson.rules) {
           for (const rule of criterion.criteriaJson.rules) {
             const ruleText = rule.skill;
-            
+
             if (applicantSkills.has(ruleText.toLowerCase())) {
               if (!matchedRules.includes(ruleText)) {
                 matchedRules.push(ruleText);
@@ -1149,30 +1192,30 @@ router.get(
 
       // Determine current role from latest experience
       let currentRole = "Applicant";
-      if (application.experienceJson && 
-          application.experienceJson.experiences && 
-          application.experienceJson.experiences.length > 0) {
-            // Sort experiences by start date (newest first)
-            const sortedExperiences = [
-              ...application.experienceJson.experiences,
-            ].sort((a, b) => {
-              // Convert MM/YYYY to Date objects for comparison
-              const [aMonth, aYear] = a.startDate.split("/");
-              const [bMonth, bYear] = b.startDate.split("/");
-              return (
-                new Date(parseInt(bYear), parseInt(bMonth) - 1).getTime() -
-                new Date(parseInt(aYear), parseInt(aMonth) - 1).getTime()
-              );
-            });
+      if (application.experienceJson &&
+        application.experienceJson.experiences &&
+        application.experienceJson.experiences.length > 0) {
+        // Sort experiences by start date (newest first)
+        const sortedExperiences = [
+          ...application.experienceJson.experiences,
+        ].sort((a, b) => {
+          // Convert MM/YYYY to Date objects for comparison
+          const [aMonth, aYear] = a.startDate.split("/");
+          const [bMonth, bYear] = b.startDate.split("/");
+          return (
+            new Date(parseInt(bYear), parseInt(bMonth) - 1).getTime() -
+            new Date(parseInt(aYear), parseInt(aMonth) - 1).getTime()
+          );
+        });
 
-            // Use the most recent experience title as current role if available
-            if (sortedExperiences[0] && sortedExperiences[0].title) {
-              currentRole = sortedExperiences[0].title;
-            }
-          }
+        // Use the most recent experience title as current role if available
+        if (sortedExperiences[0] && sortedExperiences[0].title) {
+          currentRole = sortedExperiences[0].title;
+        }
+      }
 
       const personalLinks = [];
-      
+
       if (applicantData?.linkedIn) {
         personalLinks.push(applicantData.linkedIn);
       }
