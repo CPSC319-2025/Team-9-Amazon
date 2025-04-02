@@ -388,7 +388,7 @@ const EvaluationMetricsPage = () => {
             <Typography
               variant="h5"
               component="h2"
-              sx={{ mb: 3, color: colors.black1 }}
+              sx={{ color: colors.black1 }}
             >
               Available Criteria
             </Typography>

@@ -8,6 +8,7 @@ import { JobPostingCreationRequest } from "../../types/JobPosting/api/jobPosting
 import { JobPosting } from "../../types/JobPosting/jobPosting";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
 import HttpErrorDisplay from "../../components/Common/Errors/HttpErrorDisplay";
+import { useSnackbar } from "notistack";
 
 const convertToCreationRequest = (
   job: JobPosting
@@ -23,7 +24,8 @@ const convertToCreationRequest = (
 
 const CreateJobPostingPage = () => {
   const navigate = useNavigate();
-
+  const { enqueueSnackbar } = useSnackbar();
+  
   const { mutateAsync: createJobPosting, error, isPending } = useCreateJobPosting();
 
   const handleCreateJob = async (newJob: JobPosting) => {
@@ -31,9 +33,11 @@ const CreateJobPostingPage = () => {
       console.log("Creating job posting:", newJob);
       const payload = convertToCreationRequest(newJob);
       const createdJob = await createJobPosting(payload);
+      enqueueSnackbar("Job Posting Saved!", {variant: "success"});
       console.log("Created job posting:", createdJob);
-      navigate(ROUTES.hiringManager.hiringManagerDashboard);
+      navigate(ROUTES.hiringManager.evaluationMetrics(createdJob.id)); // Redirect to evaluation metrics page
     } catch (err) {
+      enqueueSnackbar("Failed to create job posting", {variant: "error"});
       console.error("Failed to create job posting:", err);
     }
   };

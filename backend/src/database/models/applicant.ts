@@ -3,13 +3,17 @@ import Application from "./application";
 import {ApplicantTableName } from "./tableNames";
 
 interface ApplicantAttributes {
-  id: number | undefined;
+  id: number;
   email: string;
   firstName: string;
   lastName: string;
   phone: string | undefined;
   linkedIn: string | undefined;
+  createdAt: Date;
+  updatedAt: Date;
 }
+export interface ApplicantCreationAttributes
+  extends Omit<ApplicantAttributes, "id" | "createdAt" | "updatedAt"> {}
 export const ApplicantSchema = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   email: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -29,15 +33,17 @@ export const ApplicantSchema = {
   },
 };
 export default class Applicant
-  extends Model<ApplicantAttributes>
+  extends Model<ApplicantAttributes, ApplicantCreationAttributes>
   implements ApplicantAttributes
 {
-  id!: number;
-  email!: string;
-  firstName!: string;
-  lastName!: string;
-  phone: string | undefined;
-  linkedIn: string | undefined;
+  declare id: number;
+  declare email: string;
+  declare firstName: string;
+  declare lastName: string;
+  declare phone: string | undefined;
+  declare linkedIn: string | undefined;
+  declare createdAt: Date;
+  declare updatedAt: Date;
 
   static initialize(sequelize: Sequelize) {
     Applicant.init(ApplicantSchema, {

@@ -1,5 +1,10 @@
-import { useOutletContext, useParams, useSearchParams, useNavigate} from "react-router";
-import { useState, useEffect, useRef } from "react";
+import {
+  useOutletContext,
+  useParams,
+  useSearchParams,
+  useNavigate,
+} from "react-router";
+import { useState, useEffect, useRef, use, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +15,7 @@ import CircularProgressLoader from "../../components/Common/Loaders/CircularProg
 import { parseResume } from "../../services/resumeParser";
 import { useCreateApplication } from "../../queries/application";
 import { useGetSkills } from "../../queries/skill";
+import ApplicationErrorModal from "./applicationErrorModal";
 
 type ContextType = {
   setHeaderTitle: (title: string) => void;
@@ -34,17 +40,17 @@ const applicationSchema = z.object({
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
-  .array(
-    z.object({
-      job_title: z.string().min(1, "Job Title is required"),
-      company: z.string().min(1, "Company is required"),
-      from: z.string().min(1, "Start date is required"),
-      to: z.string().optional().nullable(),  
-      role_description: z.string().optional(),
-      skills: z.array(z.string()).min(1, "At least one skill is required"),
-    })
-  )
-  .min(1, "At least one work experience is required"),
+    .array(
+      z.object({
+        job_title: z.string().min(1, "Job Title is required"),
+        company: z.string().min(1, "Company is required"),
+        from: z.string().min(1, "Start date is required"),
+        to: z.string().optional().nullable(),
+        role_description: z.string().optional(),
+        skills: z.array(z.string()).min(1, "At least one skill is required"),
+      })
+    )
+    .min(1, "At least one work experience is required"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -69,18 +75,28 @@ export default function JobApplication() {
   const [job, setJob] = useState({ jobPostingId, title: jobTitle });
 
   const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSuccessModalOpen, setisSuccessModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showWorkExperience, setShowWorkExperience] = useState(false);
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const createApplication = useCreateApplication();
 
-  const { data: skills, isLoading: skillsLoading, error: skillsError } = useGetSkills();
-  const [selectedSkills, setSelectedSkills] = useState<{ [key: number]: string[] }>({});
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: number]: boolean }>({});
+  const {
+    data: skills,
+    isLoading: skillsLoading,
+    error: skillsError,
+  } = useGetSkills();
+  const [selectedSkills, setSelectedSkills] = useState<{
+    [key: number]: string[];
+  }>({});
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: number]: boolean;
+  }>({});
   const navigate = useNavigate();
   const [isParsing, setIsParsing] = useState(false);
 
@@ -109,7 +125,7 @@ export default function JobApplication() {
   const applicationForm = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      work_experience: [], 
+      work_experience: [],
     },
   });
 
@@ -137,16 +153,19 @@ export default function JobApplication() {
 
   const removeWorkExperience = (index: number) => {
     // Update local state
-  setWorkExperience((prev) => prev.filter((_, i) => i !== index));
+    setWorkExperience((prev) => prev.filter((_, i) => i !== index));
 
-  // Get current form values
-  const currentWorkExperience = applicationForm.getValues("work_experience") || [];
+    // Get current form values
+    const currentWorkExperience =
+      applicationForm.getValues("work_experience") || [];
 
-  // Remove the selected work experience entry
-  const updatedWorkExperience = currentWorkExperience.filter((_, i) => i !== index);
+    // Remove the selected work experience entry
+    const updatedWorkExperience = currentWorkExperience.filter(
+      (_, i) => i !== index
+    );
 
-  // Update form state
-  setValue("work_experience", updatedWorkExperience);
+    // Update form state
+    setValue("work_experience", updatedWorkExperience);
   };
 
   const convertFileToBase64 = (file: File): Promise<string> => {
@@ -178,8 +197,7 @@ export default function JobApplication() {
       ) {
         applicationForm.setError("resume", {
           type: "manual",
-          message:
-            "Please upload only Word documents (.doc, .docx)",
+          message: "Please upload only Word documents (.doc, .docx)",
         });
         return;
       }
@@ -194,24 +212,28 @@ export default function JobApplication() {
 
         if (file.type.includes("word")) {
           const parsedData = await parseResume(file);
-        setValue("first_name", parsedData.firstName || "");
-        setValue("last_name", parsedData.lastName || "");
-        setValue("email", parsedData.email || "");
-        setValue("phone", parsedData.phone || "");
+          setValue("first_name", parsedData.firstName || "");
+          setValue("last_name", parsedData.lastName || "");
+          setValue("email", parsedData.email || "");
+          setValue("phone", parsedData.phone || "");
 
-          // const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
+           //const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
 
-          const formattedExperiences = (parsedData.experiences ?? []).map((exp: ExperienceEntry) =>  ({
-            //const formattedExperiences = parsedData.experiences.map((exp) =>
-            job_title: exp.title,
-            company: exp.company,
-            from: exp.startDate,
-            to: exp.endDate,
-            role_description: exp.description,
-            skills: Array.isArray(exp.skills) 
-            ? exp.skills.flat()  
-            : exp.skills ? [exp.skills] : [],
-          }));
+          const formattedExperiences = (parsedData.experiences ?? []).map(
+            (exp: ExperienceEntry) => ({
+              //const formattedExperiences = parsedData.experiences.map((exp) =>
+              job_title: exp.title,
+              company: exp.company,
+              from: exp.startDate,
+              to: exp.endDate,
+              role_description: exp.description,
+              skills: Array.isArray(exp.skills)
+                ? exp.skills.flat()
+                : exp.skills
+                ? [exp.skills]
+                : [],
+            })
+          );
 
           setWorkExperience(formattedExperiences);
 
@@ -228,15 +250,22 @@ export default function JobApplication() {
               `work_experience.${index}.role_description`,
               exp.role_description || ""
             );
-            setValue(`work_experience.${index}.skills`, Array.isArray(exp.skills) ? exp.skills.flat() : exp.skills ? [exp.skills] : []);
-
+            setValue(
+              `work_experience.${index}.skills`,
+              Array.isArray(exp.skills)
+                ? exp.skills.flat()
+                : exp.skills
+                ? [exp.skills]
+                : []
+            );
           });
         }
       } catch (error) {
         console.error("Error processing resume:", error);
         setErrorMessage(
-          "Failed to process resume. Please try again or fill in the details manually."
+          `Failed to process resume. ${error} Please try again or fill in the details manually.`
         );
+        setIsErrorModalOpen(true);
       }
     }
   };
@@ -252,18 +281,19 @@ export default function JobApplication() {
           skills: exp.skills?.join(", ") || "",
         })),
       };
-
+  
       const result = await createApplication.mutateAsync(applicationPayload);
       setErrorMessage(null);
-      setIsModalOpen(true);
+      setisSuccessModalOpen(true);
     } catch (error) {
-      console.error("Error submitting application:", error);
+      console.error("Error submitting application:", JSON.stringify(error));
       setErrorMessage(
         error instanceof Error
           ? error.message
           : "An unexpected error occurred. Please try again."
       );
-      setIsModalOpen(true);
+      setIsErrorModalOpen(true);
+      // Don't reset any form state or UI state here - fields will retain their values
     } finally {
       setIsSubmitting(false);
     }
@@ -286,10 +316,14 @@ export default function JobApplication() {
     // Handle clicks outside of dropdowns
     function handleClickOutside(event: MouseEvent) {
       Object.entries(dropdownRefs.current).forEach(([index, ref]) => {
-        if (ref && !ref.contains(event.target as Node) && openDropdowns[parseInt(index)]) {
-          setOpenDropdowns(prev => ({
+        if (
+          ref &&
+          !ref.contains(event.target as Node) &&
+          openDropdowns[parseInt(index)]
+        ) {
+          setOpenDropdowns((prev) => ({
             ...prev,
-            [parseInt(index)]: false
+            [parseInt(index)]: false,
           }));
         }
       });
@@ -297,7 +331,7 @@ export default function JobApplication() {
 
     // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     // Clean up
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -314,7 +348,10 @@ export default function JobApplication() {
         <p className="text-lg">{`#${job?.jobPostingId}`}</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg space-y-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-lg space-y-4"
+      >
         <div className="flex flex-col items-center gap-1 text-center">
           <label
             htmlFor="file-upload"
@@ -327,7 +364,13 @@ export default function JobApplication() {
           >
             Upload Resume to Auto Parse
           </label>
-          <input id="file-upload" type="file" accept=".doc,.docx" onChange={handleFileUpload} className="hidden" />
+          <input
+            id="file-upload"
+            type="file"
+            accept=".doc,.docx"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
           {fileName && (
             <div className="flex items-center justify-between border-2 border-dashed border-gray-300 p-4 rounded-lg mt-2 hover:border-[#FF9900] transition-colors">
               <div className="flex items-center gap-3">
@@ -422,7 +465,6 @@ export default function JobApplication() {
           errors={errors}
         />
 
-
         {showWorkExperience && (
           <>
             <h3 className="text-lg font-semibold">Work Experience</h3>
@@ -466,12 +508,14 @@ export default function JobApplication() {
                   register={register}
                   placeholder="MM/YYYY (leave blank if role hasn't terminated)"
                 />
-                
+
                 <div className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-700 mb-1">Skills *</label>
+                  <label className="text-sm font-medium text-gray-700 mb-1">
+                    Skills *
+                  </label>
 
                   {/* Dropdown Button */}
-                  <div 
+                  <div
                     className="relative"
                     ref={(el) => {
                       dropdownRefs.current[index] = el;
@@ -480,14 +524,16 @@ export default function JobApplication() {
                     <button
                       type="button"
                       onClick={() => {
-                        setOpenDropdowns(prev => ({
+                        setOpenDropdowns((prev) => ({
                           ...prev,
-                          [index]: !prev[index]
+                          [index]: !prev[index],
                         }));
                       }}
                       className="border border-gray-300 rounded-md p-2 w-full bg-white text-gray-700 flex justify-between items-center"
                     >
-                      {selectedSkills[index]?.length > 0 ? selectedSkills[index].join(", ") : "Select Skills"}
+                      {selectedSkills[index]?.length > 0
+                        ? selectedSkills[index].join(", ")
+                        : "Select Skills"}
                       <span className="ml-2">▼</span>
                     </button>
 
@@ -497,23 +543,44 @@ export default function JobApplication() {
                         {skillsLoading ? (
                           <p className="p-2">Loading skills...</p>
                         ) : skillsError ? (
-                          <p className="p-2 text-red-500">Error fetching skills</p>
+                          <p className="p-2 text-red-500">
+                            Error fetching skills
+                          </p>
                         ) : (
                           <div className="p-2">
                             {skills?.map((skill) => (
-                              <label key={skill.skillId} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer">
+                              <label
+                                key={skill.skillId}
+                                className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                              >
                                 <input
                                   type="checkbox"
                                   value={skill.name}
-                                  checked={selectedSkills[index]?.includes(skill.name) || false}
+                                  checked={
+                                    selectedSkills[index]?.includes(
+                                      skill.name
+                                    ) || false
+                                  }
                                   onChange={(e) => {
-                                    const updatedSkills: string[] = e.target.checked
-                                      ? [...(selectedSkills[index] || []), skill.name] 
-                                      : (selectedSkills[index] || []).filter((s) => s !== skill.name); 
+                                    const updatedSkills: string[] = e.target
+                                      .checked
+                                      ? [
+                                          ...(selectedSkills[index] || []),
+                                          skill.name,
+                                        ]
+                                      : (selectedSkills[index] || []).filter(
+                                          (s) => s !== skill.name
+                                        );
 
-                                    setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
-                                    
-                                    setValue(`work_experience.${index}.skills`, updatedSkills as string[]);
+                                    setSelectedSkills((prev) => ({
+                                      ...prev,
+                                      [index]: updatedSkills,
+                                    }));
+
+                                    setValue(
+                                      `work_experience.${index}.skills`,
+                                      updatedSkills as string[]
+                                    );
                                   }}
                                   className="rounded text-blue-500 focus:ring-2 focus:ring-blue-400"
                                 />
@@ -530,16 +597,27 @@ export default function JobApplication() {
                   {selectedSkills[index]?.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedSkills[index].map((skill, i) => (
-                        <div key={i} className="bg-gray-200 px-3 py-1 rounded-md flex items-center gap-2">
+                        <div
+                          key={i}
+                          className="bg-gray-200 px-3 py-1 rounded-md flex items-center gap-2"
+                        >
                           <span>{skill}</span>
                           <button
                             type="button"
                             className="text-red-500 hover:text-red-700"
                             onClick={() => {
-                              const updatedSkills: string[] = selectedSkills[index].filter((s) => s !== skill);
+                              const updatedSkills: string[] = selectedSkills[
+                                index
+                              ].filter((s) => s !== skill);
 
-                              setSelectedSkills((prev) => ({ ...prev, [index]: updatedSkills }));
-                              setValue(`work_experience.${index}.skills`, updatedSkills as string[]);
+                              setSelectedSkills((prev) => ({
+                                ...prev,
+                                [index]: updatedSkills,
+                              }));
+                              setValue(
+                                `work_experience.${index}.skills`,
+                                updatedSkills as string[]
+                              );
                             }}
                           >
                             ✕
@@ -549,7 +627,7 @@ export default function JobApplication() {
                     </div>
                   )}
                 </div>
-                
+
                 <textarea
                   {...register(`work_experience.${index}.role_description`)}
                   placeholder="Describe your responsibilities and achievements *"
@@ -580,8 +658,8 @@ export default function JobApplication() {
       </form>
 
       <Modal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        open={isSuccessModalOpen}
+        onClose={() => setisSuccessModalOpen(false)}
         aria-labelledby="application-modal"
       >
         <Box
@@ -604,12 +682,7 @@ export default function JobApplication() {
             maxHeight: "90vh",
           }}
         >
-          {errorMessage ? (
-            <div className="flex flex-col gap-2 items-center">
-              <h2 className="text-xl text-red-600">Application Failed</h2>
-              <p>{errorMessage}</p>
-            </div>
-          ) : (<div>
+          <div>
             <div className="flex flex-col gap-2 items-center">
               <h2 className="text-xl">Application Submitted for</h2>
               <h2 className="text-xl">{job?.title}</h2>
@@ -630,21 +703,26 @@ export default function JobApplication() {
               </p>
             </div>
           </div>
-          )}
           <div className="flex justify-end">
             <CustomButton
               variant="filled"
               className="min-w-[50px]"
               onClick={() => {
                 setIsModalOpen(false);
-                navigate("/applicant/job-postings");
-              }}
+                if (!errorMessage) {
+                  navigate("/applicant/job-postings"); // Navigate only on success
+                }              }}
             >
               OK
             </CustomButton>
           </div>
         </Box>
       </Modal>
+      <ApplicationErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 }

@@ -97,7 +97,7 @@ export const ApplicationSchema = {
             }
           });
           if (!exp.description || typeof exp.description !== "string") {
-            throw new Error("Each experience must have a description (string)");
+            throw new Error("Each experience must have a description.");
           }
         });
       },
@@ -160,11 +160,13 @@ export default class Application
     Application.belongsTo(JobPosting, {
       foreignKey: "jobPostingId",
       as: "jobPosting",
+      onDelete: "CASCADE",
     });
 
     Application.belongsTo(Applicant, {
       foreignKey: "applicantId",
       as: "applicant",
+      onDelete: "CASCADE"
     });
   }
 }

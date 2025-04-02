@@ -1,4 +1,4 @@
-import { signToken } from "@/common/middleware/auth";
+import { signStaffToken, signToken } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
 import Staff from "@/database/models/staff";
 import { Router } from "express";
@@ -37,12 +37,7 @@ router.post("/", async (req, res) => {
     }
 
     // Generate JWT token
-    const token = signToken({
-      id: staff.id,
-      email: staff.email,
-      isHiringManager: staff.isHiringManager,
-      isAdmin: staff.isAdmin,
-    })
+    const token = signStaffToken(staff);
 
     res.json({
       token,
