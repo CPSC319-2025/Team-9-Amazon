@@ -135,7 +135,6 @@ export default function JobPostings() {
     <div className="flex flex-col gap-4 m-8">
       {/* Header and Sort Controls */}
       <div className="flex justify-between items-center w-full mb-2">
-        <h1 className="text-2xl font-bold text-[#146eb4]">Job Postings</h1>
         <FormControl size="small">
           <InputLabel id="sort-label">Sort By</InputLabel>
           <Select
