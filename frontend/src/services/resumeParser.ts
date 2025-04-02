@@ -1,6 +1,11 @@
 import mammoth from "mammoth";
 import OpenAI from "openai";
+import * as pdfjsLib from "pdfjs-dist";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
@@ -32,11 +37,59 @@ interface ParsedResume {
   education: Education[];
 }
 
+async function extractTextFromFile(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+
+  if (file.type === "application/pdf") {
+    try {
+      // Convert ArrayBuffer to Uint8Array for PDF.js
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      // Load the PDF document
+      const loadingTask = pdfjsLib.getDocument({
+        data: uint8Array,
+        useWorkerFetch: false,
+        isEvalSupported: false,
+        useSystemFonts: true,
+      });
+
+      const pdf = await loadingTask.promise;
+      let fullText = "";
+
+      // Extract text from all pages
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ");
+        fullText += pageText + "\n";
+      }
+
+      return fullText.trim();
+    } catch (error) {
+      console.error("Error extracting text from PDF:", error);
+      throw new Error("Failed to extract text from PDF file");
+    }
+  } else {
+    // For Word documents
+    try {
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    } catch (error) {
+      console.error("Error extracting text from Word document:", error);
+      throw new Error("Failed to extract text from Word document");
+    }
+  }
+}
+
 export async function parseResume(file: File): Promise<ParsedResume> {
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    const text = result.value;
+    const text = await extractTextFromFile(file);
+
+    if (!text || text.trim().length === 0) {
+      throw new Error("No text content found in the document");
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -91,7 +144,9 @@ Rules to Follow:
       ],
     });
 
-    const parsedData = JSON.parse(completion.choices[0].message.content || "{}");
+    const parsedData = JSON.parse(
+      completion.choices[0].message.content || "{}"
+    );
 
     // Validate email and phone
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
