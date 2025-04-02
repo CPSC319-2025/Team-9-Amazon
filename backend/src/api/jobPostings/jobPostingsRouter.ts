@@ -360,11 +360,9 @@ router.put(
       
       // status validation
       if (status !== undefined && status !== previousStatus) {
-        updates.status = status;
-
-
         // check transitions
         if (previousStatus === JobPostingStatus.DRAFT && status !== JobPostingStatus.OPEN) {
+          await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
 
@@ -372,9 +370,11 @@ router.put(
           // check if there are criteria for this job posting
           const criteria = await Criteria.findAll({
             where: { jobPostingId },
+            transaction: t,
           });
 
-          if (!criteria.length) {
+          if (!criteria || !criteria.length) {
+            await t.rollback();
             return res.status(400).json({
               error: "Cannot publish a job posting without any criteria",
             });
@@ -383,15 +383,18 @@ router.put(
 
         // only allows OPEN to CLOSED transition
         if (previousStatus === JobPostingStatus.OPEN && status !== JobPostingStatus.CLOSED) {
+          await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
 
         // only allows CLOSED to OPEN transition
         if (previousStatus === JobPostingStatus.CLOSED && status !== JobPostingStatus.OPEN) {
+          await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
-      }
 
+        updates.status = status;
+      }
 
       jobPosting.set(updates);
       await jobPosting.save({ transaction: t });

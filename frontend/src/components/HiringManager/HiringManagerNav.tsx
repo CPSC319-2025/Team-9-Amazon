@@ -86,7 +86,7 @@ const HiringManagerNav = ({
   }
 
   if (error) {
-    enqueueSnackbar(`Error ${error.code}: ${error.message}`, { variant: "error" });
+    // enqueueSnackbar(`Error ${error.code}: ${error.message}`, { variant: "error" });
   }
 
   return (
