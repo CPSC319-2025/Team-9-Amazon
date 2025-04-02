@@ -87,6 +87,11 @@ export async function parseResume(file: File): Promise<ParsedResume> {
     return parsedData;
   } catch (error) {
     console.error("Error parsing resume:", error);
-    throw new Error("Failed to parse resume");
+    
+    if (error instanceof Error) {
+      throw new Error(`Resume parsing failed: ${error.message}`);
+    } else {
+      throw new Error(`Resume parsing failed: ${String(error)}`);
+    }
   }
 }
