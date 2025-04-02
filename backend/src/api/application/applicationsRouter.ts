@@ -100,6 +100,7 @@ router.post("/", async (req, res) => {
     await t.commit();
     res.status(201).json("Successfully created application");
   } catch (error) {
+    console.log(error)
     await t.rollback();
     handleZodError(error, res, "Failed to create application");
   }
