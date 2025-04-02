@@ -356,12 +356,12 @@ router.put(
         }
       }
 
+      const previousStatus: JobPostingStatus = jobPosting.get("status");
       
       // status validation
-      if (status !== undefined) {
+      if (status !== undefined && status !== previousStatus) {
         updates.status = status;
 
-        const previousStatus: JobPostingStatus = jobPosting.get("status");
 
         // check transitions
         if (previousStatus === JobPostingStatus.DRAFT && status !== JobPostingStatus.OPEN) {
@@ -376,7 +376,7 @@ router.put(
 
           if (!criteria.length) {
             return res.status(400).json({
-              error: "Cannot open job posting without criteria",
+              error: "Cannot publish a job posting without any criteria",
             });
           }
         }
