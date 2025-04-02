@@ -4,7 +4,7 @@ import {
   useSearchParams,
   useNavigate,
 } from "react-router";
-import { useState, useEffect, useRef, use, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,17 +40,25 @@ const applicationSchema = z.object({
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
-    .array(
-      z.object({
-        job_title: z.string().min(1, "Job Title is required"),
-        company: z.string().min(1, "Company is required"),
-        from: z.string().min(1, "Start date is required"),
-        to: z.string().optional().nullable(),
-        role_description: z.string().optional(),
-        skills: z.array(z.string()).min(1, "At least one skill is required"),
-      })
-    )
-    .min(1, "At least one work experience is required"),
+  .array(
+    z.object({
+      job_title: z.string().min(1, "Job Title is required"),
+      company: z.string().min(1, "Company is required"),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional().nullable(),  
+      role_description: z.string().optional(),
+      skills: z.array(z.string()).min(1, "At least one skill is required"),
+    })
+  )
+  .min(1, "At least one work experience is required"),
+  education_experience: z.array(
+    z.object({
+      school: z.string().min(1, "School or University is required"),
+      degree: z.string().min(1, "Degree is required"),
+      field_of_study: z.string().optional(),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional(),
+    })),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
@@ -79,6 +87,7 @@ export default function JobApplication() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileName, setFileName] = useState<string>("");
   const [showWorkExperience, setShowWorkExperience] = useState(false);
+  const [showEducationExperience, setShowEducationExperience] = useState(false);
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -118,9 +127,20 @@ export default function JobApplication() {
     skills?: string | string[];
   }
 
+  type EducationEntry = {
+    school: string;
+    degree: string;
+    field_of_study?: string;
+    from: string;
+    to?: string;
+  };
+
+
   const [workExperience, setWorkExperience] = useState<WorkExperienceEntry[]>(
     []
   );
+
+  const [educationExperience, setEducationExperience] = useState<EducationEntry[]>([]);
 
   const applicationForm = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
@@ -168,6 +188,36 @@ export default function JobApplication() {
     setValue("work_experience", updatedWorkExperience);
   };
 
+  const addEducationExperience = () => {
+    setEducationExperience((prev) => [
+      ...prev,
+      {
+        school: "",
+        degree: "",
+        field_of_study: "",
+        from: "",
+        to: "",
+      },
+    ]);
+  };
+  
+  const removeEducationExperience = (index: number) => {
+    // Update local state
+    setEducationExperience((prev) => prev.filter((_, i) => i !== index));
+  
+    // Get current form values
+    const currentEducationExperience =
+      applicationForm.getValues("education_experience") || [];
+  
+    // Remove the selected education entry
+    const updatedEducationExperience = currentEducationExperience.filter(
+      (_, i) => i !== index
+    );
+  
+    // Update form state
+    setValue("education_experience", updatedEducationExperience);
+  };
+
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -201,27 +251,29 @@ export default function JobApplication() {
         });
         return;
       }
-
+  
       try {
+        setIsParsing(true);
         applicationForm.clearErrors("resume");
         setFileName(file.name);
         setShowWorkExperience(true);
-
+        setShowEducationExperience(true);
+  
         const base64String = await convertFileToBase64(file);
         setValue("resume", base64String);
-
+  
         if (file.type.includes("word")) {
           const parsedData = await parseResume(file);
+  
+          // Set basic info
           setValue("first_name", parsedData.firstName || "");
           setValue("last_name", parsedData.lastName || "");
           setValue("email", parsedData.email || "");
           setValue("phone", parsedData.phone || "");
-
-           //const parsedData: { experiences?: ExperienceEntry[] } = JSON.parse("{}"); //comment out for resumeParser
-
+  
+          // --- Handle Work Experience ---
           const formattedExperiences = (parsedData.experiences ?? []).map(
             (exp: ExperienceEntry) => ({
-              //const formattedExperiences = parsedData.experiences.map((exp) =>
               job_title: exp.title,
               company: exp.company,
               from: exp.startDate,
@@ -234,13 +286,10 @@ export default function JobApplication() {
                 : [],
             })
           );
-
+  
           setWorkExperience(formattedExperiences);
-
-          // Set work experience form values
           setValue("work_experience", formattedExperiences);
-
-          // Update each work experience field individually
+  
           formattedExperiences.forEach((exp, index) => {
             setValue(`work_experience.${index}.job_title`, exp.job_title);
             setValue(`work_experience.${index}.company`, exp.company);
@@ -259,6 +308,37 @@ export default function JobApplication() {
                 : []
             );
           });
+  
+          // --- Handle Education Experience ---
+          const formattedEducation = (parsedData.education ?? []).map(
+            (edu: {
+              school?: string;
+              degree?: string;
+              fieldOfStudy?: string;
+              startDate?: string;
+              endDate?: string;
+            }) => ({
+              school: edu.school || "",
+              degree: edu.degree || "",
+              field_of_study: edu.fieldOfStudy || "",
+              from: edu.startDate || "",
+              to: edu.endDate || "",
+            })
+          );
+  
+          setEducationExperience(formattedEducation);
+          setValue("education_experience", formattedEducation);
+  
+          formattedEducation.forEach((edu, index) => {
+            setValue(`education_experience.${index}.school`, edu.school);
+            setValue(`education_experience.${index}.degree`, edu.degree);
+            setValue(
+              `education_experience.${index}.field_of_study`,
+              edu.field_of_study || ""
+            );
+            setValue(`education_experience.${index}.from`, edu.from);
+            setValue(`education_experience.${index}.to`, edu.to || "");
+          });
         }
       } catch (error) {
         console.error("Error processing resume:", error);
@@ -266,11 +346,14 @@ export default function JobApplication() {
           `Failed to process resume. ${error} Please try again or fill in the details manually.`
         );
         setIsErrorModalOpen(true);
+      } finally {
+        setIsParsing(false); 
       }
     }
   };
 
   const onSubmit = async (data: ApplicationFormData) => {
+    console.log("SUBMIT TRIGGERED");
     try {
       setIsSubmitting(true);
       const applicationPayload = {
@@ -280,6 +363,7 @@ export default function JobApplication() {
           ...exp,
           skills: exp.skills?.join(", ") || "",
         })),
+        education_experience: data.education_experience || [],
       };
   
       const result = await createApplication.mutateAsync(applicationPayload);
@@ -340,7 +424,7 @@ export default function JobApplication() {
 
   return (
     <div className="flex flex-col items-center min-h-screen">
-      {isSubmitting && <CircularProgressLoader />}
+      {(isSubmitting || isParsing) && <CircularProgressLoader />}
 
       <div className="flex flex-row items-center justify-between gap-16 mb-8 mt-4">
         <div></div>
@@ -642,6 +726,65 @@ export default function JobApplication() {
             ))}
             <CustomButton onClick={addWorkExperience}>
               Add Work Experience
+            </CustomButton>
+          </>
+        )}
+
+        {showEducationExperience && (
+          <>
+            <h3 className="text-lg font-semibold">Education Experience</h3>
+            {educationExperience.map((_, index) => (
+              <div
+                key={index}
+                className="relative border p-4 pt-8 space-y-2 bg-gray-50 rounded-lg shadow-md"
+              >
+                <button
+                  type="button"
+                  onClick={() => removeEducationExperience(index)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
+
+                <CustomFormTextField
+                  label="School or University"
+                  name={`education_experience.${index}.school`}
+                  placeholder="University of British Columbia"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Degree"
+                  name={`education_experience.${index}.degree`}
+                  placeholder="Bachelor of Science"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Field of Study"
+                  name={`education_experience.${index}.field_of_study`}
+                  placeholder="Computer Science"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="Start Date"
+                  name={`education_experience.${index}.from`}
+                  placeholder="MM/YYYY"
+                  register={register}
+                  errors={errors}
+                />
+                <CustomFormTextField
+                  label="End Date"
+                  name={`education_experience.${index}.to`}
+                  placeholder="MM/YYYY or leave blank if ongoing"
+                  register={register}
+                  errors={errors}
+                />
+              </div>
+            ))}
+            <CustomButton onClick={addEducationExperience}>
+              Add Education Experience
             </CustomButton>
           </>
         )}
