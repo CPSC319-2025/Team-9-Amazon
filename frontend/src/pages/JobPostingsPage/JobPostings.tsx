@@ -5,6 +5,10 @@ import {
   IconButton,
   FormControlLabel,
   Checkbox,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import JobPost from "../../components/Common/JobPost";
@@ -21,8 +25,6 @@ type ContextType = {
 
 export default function JobPostings() {
   const { setHeaderTitle, setShowSearchBar } = useOutletContext<ContextType>();
-  // setHeaderTitle("Job Postings");
-  // setShowSearchBar(true);
   useEffect(() => {
     setHeaderTitle("Job Postings");
     setShowSearchBar(true);
@@ -33,15 +35,12 @@ export default function JobPostings() {
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  //const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  //const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // State for job type filter
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
-  // Fetch job positings from backend when the page loads
+  // Fetch job postings from backend when the page loads
   useEffect(() => {
     const fetchJobPostings = async () => {
       try {
@@ -84,11 +83,6 @@ export default function JobPostings() {
     fetchJobTypes();
   }, []);
 
-  /*const handleJobClick = (job: Job) => {
-    setSelectedJob(job);
-    setIsModalOpen(true);
-  };*/
-
   const handleJobClick = (job: Job) => {
     navigate(`details/${job.id}`);
   };
@@ -102,96 +96,115 @@ export default function JobPostings() {
     );
   };
 
-  // Filtered job postings
-  const filteredJobs = jobPostings.filter((job) => {
-    const searchTermLower = searchTerm.toLowerCase();
-    const locationLower = location.toLowerCase();
+  const handleSortChange = (event: any) => {
+    setSortOrder(event.target.value);
+  };
 
-    // Job type filtering logic
-    // const jobTypeMatch =
-    //   selectedJobTypes.length === 0 || selectedJobTypes.includes(job.job_type);
-    const jobTypeMatch =
-      selectedJobTypes.length === 0 ||
-      job.tags?.some((tag: string) => selectedJobTypes.includes(tag));
+  // Filtered and sorted job postings
+  const filteredJobs = jobPostings
+    .filter((job) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const locationLower = location.toLowerCase();
 
+      const jobTypeMatch =
+        selectedJobTypes.length === 0 ||
+        job.tags?.some((tag: string) => selectedJobTypes.includes(tag));
 
-    return (
-      jobTypeMatch &&
-      (job.id.toString().includes(searchTermLower) ||
-        job.code.toLowerCase().includes(searchTermLower) ||
-        job.title.toLowerCase().includes(searchTermLower) ||
-        job.description.toLowerCase().includes(searchTermLower) ||
-        //job.job_type.toLowerCase().includes(searchTermLower) ||
-        //job.department.toLowerCase().includes(searchTermLower) ||
-        job.qualifications.some((qual) =>
-          qual.toLowerCase().includes(searchTermLower)
-        ) ||
-        job.responsibilities.some((resp) =>
-          resp.toLowerCase().includes(searchTermLower)
-        )) &&
-      job.location.toLowerCase().includes(locationLower)
-    );
-  });
+      return (
+        jobTypeMatch &&
+        (job.id.toString().includes(searchTermLower) ||
+          job.code.toLowerCase().includes(searchTermLower) ||
+          job.title.toLowerCase().includes(searchTermLower) ||
+          job.description.toLowerCase().includes(searchTermLower) ||
+          job.qualifications.some((qual) =>
+            qual.toLowerCase().includes(searchTermLower)
+          ) ||
+          job.responsibilities.some((resp) =>
+            resp.toLowerCase().includes(searchTermLower)
+          )) &&
+        job.location.toLowerCase().includes(locationLower)
+      );
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.posted_at).getTime();
+      const dateB = new Date(b.posted_at).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
 
   return (
-    <div className="flex gap-8 m-8">
-      {/* Sidebar for Filters */}
-      <aside
-        //className="w-[250px] h-[300px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
-        className="w-[250px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
-        style={{
-          minWidth: "250px",
-          maxWidth: "250px",
-          minHeight: "300px",
-          maxHeight: "80vh",
-          overflowY: "auto",
-          //maxHeight: "300px",
-          //overflow: "hidden",
-        }}
-      >
-        <h3 className="font-bold text-lg mb-4">Filter By:</h3>
+    <div className="flex flex-col gap-4 m-8">
+      {/* Header and Sort Controls */}
+      <div className="flex justify-between items-center w-full mb-2">
+        <h1 className="text-2xl font-bold text-[#146eb4]">Job Postings</h1>
+        <FormControl size="small">
+          <InputLabel id="sort-label">Sort By</InputLabel>
+          <Select
+            labelId="sort-label"
+            value={sortOrder}
+            onChange={handleSortChange}
+            label="Sort By"
+          >
+            <MenuItem value="newest">Newest First</MenuItem>
+            <MenuItem value="oldest">Oldest First</MenuItem>
+          </Select>
+        </FormControl>
+      </div>
 
-        {/* Job Type Filter */}
-        <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Tags</h4>
-        <div className="flex flex-col gap-2">
-          {jobTypes.map((type) => (
-            <FormControlLabel
-              key={type}
-              control={
-                <Checkbox
-                  checked={selectedJobTypes.includes(type)}
-                  onChange={() => handleJobTypeChange(type)}
-                />
-              }
-              label={type}
-            />
-          ))}
+      <div className="flex gap-8">
+        {/* Sidebar for Filters */}
+        <aside
+          className="w-[250px] bg-white p-4 rounded-lg shadow-md flex flex-col justify-start"
+          style={{
+            minWidth: "250px",
+            maxWidth: "250px",
+            minHeight: "300px",
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }}
+        >
+          <h3 className="font-bold text-lg mb-4">Filter By:</h3>
+
+          {/* Job Type Filter */}
+          <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Tags</h4>
+          <div className="flex flex-col gap-2 mb-4">
+            {jobTypes.map((type) => (
+              <FormControlLabel
+                key={type}
+                control={
+                  <Checkbox
+                    checked={selectedJobTypes.includes(type)}
+                    onChange={() => handleJobTypeChange(type)}
+                  />
+                }
+                label={type}
+              />
+            ))}
+          </div>
+        </aside>
+
+        {/* Job Listings */}
+        <div className="flex flex-wrap gap-8 justify-center flex-grow">
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => (
+              <JobPost
+                key={job.id}
+                job={job}
+                onLearnMore={() =>
+                  navigate(`/applicant/job-postings/details/${job.id}`, {
+                    state: { job },
+                  })
+                }
+                onApply={() =>
+                  navigate(`apply/${job.id}?title=${encodeURIComponent(job.title)}`)
+                }
+              />
+            ))
+          ) : (
+            <p className="text-gray-600 text-lg font-semibold mt-4">
+              No job postings match your search criteria.
+            </p>
+          )}
         </div>
-      </aside>
-
-      {/* Job Listings */}
-      <div className="flex flex-wrap gap-8 justify-center flex-grow">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => (
-            <JobPost
-              key={job.id}
-              job={job}
-              //onLearnMore={() => navigate(`/applicant/job-postings/details/${job.id}`)}
-              onLearnMore={() =>
-                navigate(`/applicant/job-postings/details/${job.id}`, { state: { job } })
-              }              
-              onApply={() =>
-                navigate(
-                  `apply/${job.id}?title=${encodeURIComponent(job.title)}`
-                )
-              }
-            />
-          ))
-        ) : (
-          <p className="text-gray-600 text-lg font-semibold mt-4">
-            No job postings match your search criteria.
-          </p>
-        )}
       </div>
 
       {/* Job Details Modal */}
