@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import JobPosting from "./jobPosting";
 import { ApplicationScoring } from "@/services/applicationScoring";
-import { CriteriaTableName } from "./tableNames";
+import { CriteriaTableName, JobPostingTableName } from "./tableNames";
 export enum CriteriaType {
   global = "global",
   local = "local",
@@ -85,7 +85,7 @@ export const CriteriaSchema = {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
-      model: "job_postings",
+      model: JobPostingTableName,
       key: "id",
     },
   },
