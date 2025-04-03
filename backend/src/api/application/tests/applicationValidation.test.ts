@@ -794,3 +794,146 @@ describe("applicationSchema multiple work_experience entries & edge cases valida
 
 });
 
+
+describe("applicationSchema education_experience validation", () => {
+    const baseEdu = {
+        school: "UBC",
+        degree: "BSc",
+        field_of_study: "Computer Science",
+        from: "03/2022",
+        to: "03/2024",
+    };
+
+    it("should pass with valid education_experience", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [baseEdu],
+        });
+        expect(result.success).to.be.true;
+    });
+
+    it("should pass if education_experience is omitted (optional)", () => {
+        const result = applicationSchema.safeParse(validInput);
+        expect(result.success).to.be.true;
+    });
+
+    it("should fail if school is empty", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, school: "" }],
+        });
+        expect(result.success).to.be.false;
+        expect(result.error?.issues[0].message).to.equal("School or University is required");
+    });
+
+    it("should fail if degree is empty", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, degree: "" }],
+        });
+        expect(result.success).to.be.false;
+        expect(result.error?.issues[0].message).to.equal("Degree is required");
+    });
+
+    it("should fail if 'from' date is invalid", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, from: "2020-01" }],
+        });
+        expect(result.success).to.be.false;
+        const issue = result.error?.issues[0];
+        expect(issue?.path.join(".")).to.equal("education_experience.0.from");
+        expect(issue?.message.toLowerCase()).to.include("not a valid start date");    });
+
+    it("should fail if 'to' date is invalid format", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, to: "Jan 2022" }],
+        });
+        expect(result.success).to.be.false;
+        const issue = result.error?.issues[0];
+        expect(issue?.path.join(".")).to.equal("education_experience.0.to");
+        expect(issue?.message.toLowerCase()).to.include("valid end date");    });
+
+    it("should fail if 'to' date is before 'from' date", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, to: "01/2019" }],
+        });
+        expect(result.success).to.be.false;
+        expect(result.error?.issues[0].message).to.include("should be after");
+    });
+
+    it("should pass with valid MM/YYYY dates", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu }],
+        });
+        expect(result.success).to.be.true;
+    });
+
+    it("should pass if 'to' date is omitted (ongoing)", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{ ...baseEdu, to: undefined }],
+        });
+        expect(result.success).to.be.true;
+    });
+
+    it("should trim strings in 'school', 'degree', and 'field_of_study'", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [{
+                ...baseEdu,
+                school: "  UBC ",
+                degree: " BSc ",
+                field_of_study: "  CS  ",
+            }]
+        });
+
+        expect(result.success).to.be.true;
+        if (result.success) {
+            const parsed = result.data.education_experience?.[0];
+            expect(parsed?.school).to.equal("UBC");
+            expect(parsed?.degree).to.equal("BSc");
+            expect(parsed?.field_of_study).to.equal("CS");
+        }
+    });
+
+    it("should allow multiple education entries", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [
+                baseEdu,
+                {
+                    school: "MIT",
+                    degree: "MS",
+                    field_of_study: "AI",
+                    from: "02/2022",
+                    to: "03/2024",
+                }
+            ]
+        });
+
+        expect(result.success).to.be.true;
+    });
+
+    it("should fail if any entry is invalid in multiple entries", () => {
+        const result = applicationSchema.safeParse({
+            ...validInput,
+            education_experience: [
+                baseEdu,
+                {
+                    school: "", // invalid
+                    degree: "MS",
+                    field_of_study: "AI",
+                    from: "02/2022",
+                    to: "03/2024",
+                }
+            ]
+        });
+
+        expect(result.success).to.be.false;
+        expect(result.error?.issues[0].path).to.deep.equal(["education_experience", 1, "school"]);
+    });
+});

@@ -27,7 +27,7 @@ export const StaffSchema = {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
+    unique: 'unique_email',
     validate: {
       isEmail: true,
     },
