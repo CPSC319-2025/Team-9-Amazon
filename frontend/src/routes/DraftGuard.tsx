@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import React, { JSX, useEffect } from "react";
 import { Navigate, useOutletContext, useParams } from "react-router";
 import { useSnackbar } from "notistack";
 
@@ -21,6 +21,17 @@ export const DraftGuard: React.FC<DraftGuardProps> = ({ children }) => {
     const { jobPosting } = useOutletContext<OutletContext>();
     const { jobPostingId } = useParams<{ jobPostingId: string }>();
 
+    useEffect(() => {
+      if (
+        jobPosting.status === JobPostingStatus.DRAFT
+      ) {
+        enqueueSnackbar(
+          "You cannot access this page while the job posting is in DRAFT status.",
+          { variant: "error" }
+        );
+      }
+    }, [jobPosting, enqueueSnackbar]);
+
     // Check if jobPosting is null or undefined
     if (!jobPosting) {
         return (
@@ -30,9 +41,6 @@ export const DraftGuard: React.FC<DraftGuardProps> = ({ children }) => {
 
     // If the job posting is in DRAFT status, protect the route.
     if (jobPosting.status === JobPostingStatus.DRAFT) {
-        enqueueSnackbar(
-            "You cannot access this page while the job posting is in DRAFT status.",
-            { variant: "error" });
           
         return (
             <Navigate
