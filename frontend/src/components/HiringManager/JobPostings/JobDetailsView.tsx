@@ -17,7 +17,7 @@ import {
 import ConfirmDialog from "../../Common/ConfirmDialog";
 import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
 import { useSnackbar } from "notistack";
-
+import { useBlocker, useBrowserBlocker } from "../UnsavedChangesBlocker";
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
   mode: JobDetailsMode;
@@ -38,6 +38,8 @@ const JobDetailsView = ({
   const [editedJob, setEditedJob] = useState<JobPosting>({ ...jobPosting });
   const [editMode, setEditMode] = useState<EditMode | null>(null);
 
+  const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
+
   // Synchronize local state when the context jobPosting changes. (for edit mode)
   useEffect(() => {
     setEditedJob({ ...jobPosting });
@@ -55,6 +57,7 @@ const JobDetailsView = ({
   // Handle input changes
   const handleChange = (field: keyof JobPosting, value: string) => {
     setEditedJob((prev) => ({ ...prev, [field]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const handleChangeStringArray = (
@@ -62,9 +65,11 @@ const JobDetailsView = ({
     value: string[]
   ) => {
     setEditedJob((prev) => ({ ...prev, [field]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const handleSave = () => {
+    setHasUnsavedChanges(false);
     onSave(editedJob);
     
     // setSnackbarMessage("Job Posting Saved!");
@@ -75,6 +80,7 @@ const JobDetailsView = ({
 
   const handleCancel = () => {
     setConfirmDialogOpen(true);
+    setHasUnsavedChanges(false);
     setEditMode(null);
   };
 
@@ -98,6 +104,17 @@ const JobDetailsView = ({
     onCancel();
   };
 
+  // Block navigation if there are unsaved changes
+  useBlocker(() =>
+      hasUnsavedChanges
+        ? window.confirm(
+            "You have unsaved changes. Are you sure you want to leave this page?"
+          )
+        : true,
+      hasUnsavedChanges
+    );
+  useBrowserBlocker(() => hasUnsavedChanges, hasUnsavedChanges);
+  
   return (
     <Box sx={{ padding: "40px", maxWidth: "1200px", margin: "auto" }}>
 
@@ -233,6 +250,7 @@ const JobDetailsView = ({
             confirmText="Discard Changes"
             onConfirm={handleConfirmCancel}
             onCancel={() => {
+              setHasUnsavedChanges(true);
               setConfirmDialogOpen(false);
             }}
           />
