@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   Box,
   Container,
@@ -14,6 +14,7 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Tooltip
 } from "@mui/material";
 import {
   colors,
@@ -37,6 +38,7 @@ import {
 import { useGetGlobalCriteria } from "../../queries/criteria";
 import { useParams } from "react-router";
 import { EditRuleDialog } from "../../components/HiringManager/Evaluation/EditRuleDialog";
+import { useBlocker, useBrowserBlocker } from "../../components/HiringManager/UnsavedChangesBlocker";
 
 const EvaluationMetricsPage = () => {
   const { jobPostingId } = useParams();
@@ -78,6 +80,16 @@ const EvaluationMetricsPage = () => {
   const deleteCriteriaMutation = useDeleteJobPostingCriteria(
     jobPostingId || ""
   );
+
+  useBlocker(() =>
+    hasUnsavedChanges
+      ? window.confirm(
+          "You have unsaved changes. Are you sure you want to leave this page?"
+        )
+      : true,
+    hasUnsavedChanges
+  );
+  useBrowserBlocker(() => hasUnsavedChanges, hasUnsavedChanges);
 
   useEffect(() => {
     if (criteriaData) {
@@ -434,6 +446,14 @@ const EvaluationMetricsPage = () => {
                   </Typography>
                 )}
               </List>
+              <Tooltip
+                title={
+                  selectedCriteria.length === 0
+                    ? "Select criteria before adding"
+                    : ""
+                }
+              >
+              <span>
               <Button
                 fullWidth
                 variant="contained"
@@ -443,6 +463,8 @@ const EvaluationMetricsPage = () => {
               >
                 Add Selected Criteria
               </Button>
+              </span>
+              </Tooltip>
             </Paper>
           </Grid>
         </Grid>
