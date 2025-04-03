@@ -15,7 +15,6 @@ import { fetchWithAuth } from "../api/apiUtils";
 export const skillKeys = {
   all: ["skills"] as const,
   detail: (id: number) => [...skillKeys.all, id] as const,
-  lists: () => [...skillKeys.all, "list"] as const,
 };
 
 // Types
@@ -150,7 +149,7 @@ export const useDeleteSkill = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: skillKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: skillKeys.all });
     },
   });
 };
