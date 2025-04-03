@@ -1,17 +1,16 @@
-import { Box, Typography, Tabs, Tab } from "@mui/material";
+import { Box, Typography, Tabs, Tab, Tooltip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 
 import { ROUTES } from "../../routes/routePaths";
-import { JobPosting } from "../../types/JobPosting/jobPosting";
+import { JobPosting, JobPostingStatus } from "../../types/JobPosting/jobPosting";
 import JobStatusChip from "./JobStatusChip";
 import ChangeStatusButton from "./ChangeStatusButton";
 import { JobPostingEditRequest } from "../../types/JobPosting/api/jobPosting";
 import { JOB_STATUS_TRANSITION } from "../../utils/jobPostingStatusTransition";
 import { useEditJobPosting } from "../../queries/jobPosting";
 import CircularProgressLoader from "../Common/Loaders/CircularProgressLoader";
-import HttpErrorDisplay from "../Common/Errors/HttpErrorDisplay";
 
 interface HiringManagerNavProps {
   jobPostingId: string;
@@ -89,6 +88,14 @@ const HiringManagerNav = ({
     // enqueueSnackbar(`Error ${error.code}: ${error.message}`, { variant: "error" });
   }
 
+  const isDraft = jobPosting.status === JobPostingStatus.DRAFT;
+
+  const applicationsDisabledMessage =
+    "Applications are unavailable while the job posting is in draft status.";
+  const reportsDisabledMessage =
+    "Reports are unavailable while the job posting is in draft status.";
+
+
   return (
     <Box
       sx={{
@@ -146,14 +153,38 @@ const HiringManagerNav = ({
           label="Evaluation Metrics"
           value={ROUTES.hiringManager.evaluationMetrics(jobPostingId!)}
         />
-        <Tab
-          label="Applications"
-          value={ROUTES.hiringManager.applications(jobPostingId!)}
-        />
-        <Tab
-          label="Reports"
-          value={ROUTES.hiringManager.reports(jobPostingId!)}
-        />
+        {isDraft ? (
+          <Tooltip title={applicationsDisabledMessage} arrow>
+            <span>
+              <Tab
+                label="Applications"
+                value={ROUTES.hiringManager.applications(jobPostingId!)}
+                disabled
+              />
+            </span>
+          </Tooltip>
+        ) : (
+          <Tab
+            label="Applications"
+            value={ROUTES.hiringManager.applications(jobPostingId!)}
+          />
+        )}
+        {isDraft ? (
+          <Tooltip title={reportsDisabledMessage} arrow>
+            <span>
+              <Tab
+                label="Reports"
+                value={ROUTES.hiringManager.reports(jobPostingId!)}
+                disabled
+              />
+            </span>
+          </Tooltip>
+        ) : (
+          <Tab
+            label="Reports"
+            value={ROUTES.hiringManager.reports(jobPostingId!)}
+          />
+        )}
       </Tabs>
     </Box>
   );

@@ -23,6 +23,7 @@ import SkillsManagerPage from "../pages/Admin/SkillsManagerPage";
 import RoleProtectedRoute from "./RoleProtectedRoute";
 import JobDetailsApplicant from "../pages/JobPostingsPage/jobDetailsApplication";
 import AssignJobPostingsPage from "../pages/Admin/AssignJobPostings";
+import { DraftGuard } from "./DraftGuard";
 
 const AppWithConditionalNavbar = () => {
   const location = useLocation();
@@ -73,15 +74,27 @@ const AppWithConditionalNavbar = () => {
           />
           <Route
             path={ROUTES.hiringManager.applications(":jobPostingId")}
-            element={<JobPostingApplicationsPage />}
+            element={
+              <DraftGuard>
+                <JobPostingApplicationsPage />
+              </DraftGuard>
+            }
           />
           <Route
             path={ROUTES.hiringManager.reports(":jobPostingId")}
-            element={<JobReportsPage />}
+            element={
+              <DraftGuard>
+                <JobReportsPage />
+              </DraftGuard>
+            }
           />
           <Route
             path="candidate-report/:candidateEmail"
-            element={<CandidateReportPage />}
+            element={
+              <DraftGuard>
+                <CandidateReportPage />
+              </DraftGuard>
+            }
           />
         </Route>
 
