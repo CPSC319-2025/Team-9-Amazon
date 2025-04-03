@@ -1,4 +1,3 @@
-// frontend/src/components/Guards/DraftGuard.tsx
 import React, { JSX } from "react";
 import { Navigate, useOutletContext, useParams } from "react-router";
 import { useSnackbar } from "notistack";
