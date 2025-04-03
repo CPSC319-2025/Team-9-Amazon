@@ -40,17 +40,17 @@ const applicationSchema = z.object({
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
-    .array(
-      z.object({
-        job_title: z.string().min(1, "Job Title is required"),
-        company: z.string().min(1, "Company is required"),
-        from: z.string().min(1, "Start date is required"),
-        to: z.string().optional().nullable(),
-        role_description: z.string().min(1, "Job description is required"),
-        skills: z.array(z.string()).min(1, "At least one skill is required"),
-      })
-    )
-    .min(1, "At least one work experience is required"),
+  .array(
+    z.object({
+      job_title: z.string().min(1, "Job Title is required"),
+      company: z.string().min(1, "Company is required"),
+      from: z.string().min(1, "Start date is required"),
+      to: z.string().optional().nullable(),  
+      role_description: z.string().optional(),
+      skills: z.array(z.string()).min(1, "At least one skill is required"),
+    })
+  )
+  .min(1, "At least one work experience is required"),
   education_experience: z.array(
     z.object({
       school: z.string().min(1, "School or University is required"),
