@@ -126,5 +126,15 @@ export const createApplication = async (data: any, applicantId: number, resumeFi
                     description: exp.role_description || "",
                 })) || [],
         },
+        educationJson: {
+            education:
+                data.education_experience?.map((edu: any) => ({
+                    school: edu.school,
+                    degree: edu.degree,
+                    field_of_study: edu.field_of_study || "",
+                    from: edu.from,
+                    to: edu.to || null,
+                })) || [],
+        },
     }, { transaction: t });
 };

@@ -20,7 +20,7 @@ export const SkillSchema = {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
+    unique: 'skills_name',
     validate: {
       notEmpty: true,
     },

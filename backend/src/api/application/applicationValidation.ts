@@ -12,9 +12,9 @@ export const parseDate = (dateStr: string) => {
     const [monthStr, yearStr] = trimmed.split("/");
     const month = parseInt(monthStr, 10);
     const year = parseInt(yearStr, 10);
-  
+
     if (month < 1 || month > 12) return null;
-  
+
     const normalized = `${month.toString().padStart(2, "0")}/${yearStr}`;
     const parsedDate = parse(normalized, "MM/yyyy", new Date());
     return isValid(parsedDate) ? parsedDate : null;
@@ -22,12 +22,12 @@ export const parseDate = (dateStr: string) => {
 
 // Request body validation schema
 export const applicationSchema = z.object({
-    first_name: z.string().min(2).max(50),
-    last_name: z.string().min(2).max(50),
-    email: z.string().email(),
-    phone: z.string().min(10).max(15),
-    personal_links: z.string().optional(),
-    resume: z.string().min(1),
+    first_name: z.string().trim().min(2).max(50),
+    last_name: z.string().trim().min(2).max(50),
+    email: z.string().trim().email(),
+    phone: z.string().trim().min(10).max(15),
+    personal_links: z.string().trim().optional(),
+    resume: z.string().trim().min(1),
     jobPostingId: z.string().min(1, "Job posting ID is required")
         .refine((val) => /^\d+$/.test(val.trim()), {
             message: "Job posting Id must be a numeric string"
@@ -35,11 +35,11 @@ export const applicationSchema = z.object({
     work_experience: z
         .array(
             z.object({
-                job_title: z.string().min(1, "Job title is required"),
-                company: z.string().min(1, "Company is required"),
-                location: z.string().optional(),
+                job_title: z.string().trim().min(1, "Job title is required"),
+                company: z.string().trim().min(1, "Company is required"),
+                location: z.string().trim().optional(),
 
-                from: z.string(),
+                from: z.string().trim(),
                 to: z.string()
                     .trim()
                     .transform((val) =>
@@ -47,7 +47,7 @@ export const applicationSchema = z.object({
                     )
                     .or(z.literal(null)),
 
-                role_description: z.string().optional(),
+                role_description: z.string().trim().optional(),
                 skills: z.union([
                     z.string(),
                     z.array(z.string())
@@ -109,6 +109,63 @@ export const applicationSchema = z.object({
                             message: `"${exp.to}" can’t be a future date. Use a past or current date, or leave it blank for ongoing positions.`,
                             path: [`work_experience.${index}.to`],
                         });
+                    }
+                }
+            });
+        }),
+    education_experience: z
+        .array(
+            z.object({
+                school: z.string().trim().min(1, "School or University is required"),
+                degree: z.string().trim().min(1, "Degree is required"),
+                field_of_study: z.string().trim().optional(),
+
+                from: z.string().trim().min(1, "Start date is required"),
+                to: z.string().trim().optional(),
+            })
+        )
+        .optional()
+        .superRefine((eduList, ctx) => {
+            eduList?.forEach((edu, index) => {
+                const parsedFrom = parseDate(edu.from);
+                if (!parsedFrom) {
+                    ctx.addIssue({
+                        code: "custom",
+                        message: `"${edu.from}" is not a valid start date. Use MM/YYYY format.`,
+                        path: [index, "from"],
+                    });
+                } else if (!isBefore(parsedFrom, new Date())) {
+                    ctx.addIssue({
+                        code: "custom",
+                        message: `"${edu.from}" cannot be a future date. Please enter a start date in the past or current month.`,
+                        path: [index, "from"],
+                    });
+                }
+
+                if (edu.to && typeof edu.to === "string") {
+                    const parsedTo = parseDate(edu.to);
+                    if (!parsedTo) {
+                        ctx.addIssue({
+                            code: "custom",
+                            message: `"${edu.to}" is not a valid end date. Use MM/YYYY format or leave blank if ongoing.`,
+                            path: [index, "to"],
+                        });
+                    } else {
+                        if (parsedFrom && !isAfter(parsedTo, parsedFrom)) {
+                            ctx.addIssue({
+                                code: "custom",
+                                message: `End date "${edu.to}" should be after start date "${edu.from}".`,
+                                path: [index, "to"],
+                            });
+                        }
+        
+                        if (!isBefore(parsedTo, new Date())) {
+                            ctx.addIssue({
+                                code: "custom",
+                                message: `"${edu.to}" can’t be a future date. Use a past or current date, or leave it blank if ongoing.`,
+                                path: [index, "to"],
+                            });
+                        }
                     }
                 }
             });

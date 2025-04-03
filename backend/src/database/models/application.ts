@@ -16,12 +16,25 @@ interface ExperienceJSON {
   experiences: Experience[];
 }
 
+interface Education {
+  school: string;
+  degree: string;
+  field_of_study: string;
+  from: string;
+  to: string;
+}
+
+interface EducationJSON {
+  education: Education[];
+} 
+
 interface ApplicationAttributes {
   jobPostingId: number;
   applicantId: number;
   resumePath: string;
   score: number | undefined;
   experienceJson: ExperienceJSON;
+  educationJson: EducationJSON;
   applicant?: Applicant;
 }
 
@@ -103,6 +116,40 @@ export const ApplicationSchema = {
       },
     },
   },
+  educationJson: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: { education: [] },
+    validate: {
+      isValidEduJSON(value: any) {
+        if (!value.education || !Array.isArray(value.education)) {
+          throw new Error("Education must be an array of valid entries");
+        }
+  
+        value.education.forEach((edu: any) => {
+          if (!edu.school || typeof edu.school !== "string") {
+            throw new Error("Each education entry must include a valid school name");
+          }
+  
+          if (!edu.degree || typeof edu.degree !== "string") {
+            throw new Error("Each education entry must include a valid degree");
+          }
+  
+          if (edu.field_of_study && typeof edu.field_of_study !== "string") {
+            throw new Error("Field of study must be a string if provided");
+          }
+  
+          if (!edu.from || typeof edu.from !== "string") {
+            throw new Error("Each education entry must include a valid start date");
+          }
+  
+          if (edu.to && typeof edu.to !== "string") {
+            throw new Error("End date must be a string if provided");
+          }
+        });
+      }
+    }
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -124,6 +171,7 @@ export default class Application
   declare resumePath: string;
   declare score: number | undefined;
   declare experienceJson: ExperienceJSON;
+  declare educationJson: EducationJSON;
   declare createdAt: Date;
   declare updatedAt: Date;
 
