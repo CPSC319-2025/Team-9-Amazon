@@ -1,12 +1,13 @@
 export interface ApplicationSummary {
   applicantId: number;
   jobPostingId: number;
-  score: number;
   applicant: {
     firstName: string;
     lastName: string;
     email: string;
   };
+  score: number;
+  manualScore?: number;
 }
 
 export interface ApplicationsSummaryResponse {

@@ -14,6 +14,8 @@ import { colors } from "../../../styles/commonStyles";
 import { useNavigate, useParams } from "react-router";
 import { ROUTES } from "../../../routes/routePaths";
 import { ApplicationSummary } from "../../../types/application";
+import { mockApplicationsWithManualScores } from "../../../mocks/manualScoringMocks";
+import { useEffect, useState } from "react";
 
 interface ApplicantListProps {
   applications: ApplicationSummary[];
@@ -22,12 +24,40 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
+  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>([]);
+
+  // Merge real applications with mock manual scores
+  useEffect(() => {
+    // Create a map of email to manual score from mock data
+    const mockScoresMap = new Map(
+      mockApplicationsWithManualScores.map(app => [app.applicant.email, app.manualScore])
+    );
+
+    // Apply mock manual scores to applications that don't have them
+    const updatedApplications = applications.map(app => {
+      // If the application already has a manual score, keep it
+      if (app.manualScore !== undefined) {
+        return app;
+      }
+      
+      // Otherwise, check if we have a mock score for this email
+      const mockScore = mockScoresMap.get(app.applicant.email);
+      if (mockScore !== undefined) {
+        return { ...app, manualScore: mockScore };
+      }
+      
+      // If no mock score exists, return the original application
+      return app;
+    });
+
+    setApplicationsWithManualScores(updatedApplications);
+  }, [applications]);
 
   const handleNavigateToReport = (email: string) => {
     navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
   };
 
-  if (applications.length === 0) {
+  if (applicationsWithManualScores.length === 0) {
     return (
       <Box sx={{ textAlign: "center", py: 4 }}>
         <Typography variant="body1" sx={{ color: colors.gray2 }}>
@@ -43,12 +73,12 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
       sx={{ bgcolor: colors.gray1, borderRadius: 2, overflow: "hidden" }}
     >
       <List sx={{ py: 0 }}>
-        {applications.map((application, index) => (
+        {applicationsWithManualScores.map((application, index) => (
           <ListItem
             key={[application.applicantId, application.jobPostingId].join("-")}
             sx={{
               borderBottom:
-                index < applications.length - 1
+                index < applicationsWithManualScores.length - 1
                   ? `1px solid ${colors.white}`
                   : "none",
               transition: "background-color 0.2s ease",
@@ -80,9 +110,17 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               {application.score !== undefined && (
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.black1, whiteSpace: "nowrap" }}
+                  sx={{ color: colors.orange1, whiteSpace: "nowrap" }}
                 >
-                  Score: {application.score.toFixed(2)}
+                  Auto: {application.score.toFixed(2)}
+                </Typography>
+              )}
+              {application.manualScore !== undefined && (
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.blue1, whiteSpace: "nowrap" }}
+                >
+                  Manual: {application.manualScore}%
                 </Typography>
               )}
             </Box>

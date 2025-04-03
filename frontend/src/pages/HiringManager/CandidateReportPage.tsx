@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ROUTES } from "../../routes/routePaths";
 import {
@@ -40,6 +40,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import EditIcon from "@mui/icons-material/Edit";
 import {
   colors,
   titleStyle,
@@ -49,6 +50,8 @@ import {
 } from "../../styles/commonStyles";
 import { useGetCandidateReport, useGetApplicationsSummary } from "../../queries/jobPosting";
 import { useGetCandidateNotes, useSaveCandidateNotes } from "../../queries/candidateNotes";
+import { ManualScoringForm } from "../../components/HiringManager/ManualScoring/ManualScoringForm";
+import { mockCriteriaWithSkills, getMockManualScoreByEmail } from "../../mocks/manualScoringMocks";
 
 // Mock interview questions data
 const mockInterviewQuestions = {
@@ -124,6 +127,19 @@ export default function CandidateReportPage() {
   // Notes state
   const [notes, setNotes] = useState<string>("");
   const [notesSuccess, setNotesSuccess] = useState<boolean>(false);
+  
+  // Manual score state
+  const [manualScore, setManualScore] = useState<number | null>(null);
+
+  // Load initial mock manual score if available
+  useEffect(() => {
+    if (candidateEmail) {
+      const mockScore = getMockManualScoreByEmail(candidateEmail);
+      if (mockScore !== undefined) {
+        setManualScore(mockScore);
+      }
+    }
+  }, [candidateEmail]);
 
   const {
     data: candidateData,
@@ -267,29 +283,76 @@ export default function CandidateReportPage() {
         </Box>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <LinearProgress
-            variant="determinate"
-            value={summaryData?.totalPossibleScore ? (candidateData.matchScore / summaryData.totalPossibleScore) * 100 : candidateData.matchScore}
-            sx={{
-              width: 100,
-              height: 8,
-              borderRadius: 4,
-              mr: 1,
-              bgcolor: `${colors.orange1}20`,
-              "& .MuiLinearProgress-bar": {
-                bgcolor: colors.orange1,
-                borderRadius: 4,
-              },
-            }}
-          />
-          <Typography
-            variant="body1"
-            sx={{ color: colors.orange1, fontWeight: 500 }}
-          >
-            {summaryData?.totalPossibleScore 
-              ? `${Math.round((candidateData.matchScore / summaryData.totalPossibleScore) * 100)}%` 
-              : `${candidateData.matchScore}%`}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mr: 2 }}>
+            <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
+              Auto Score
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <LinearProgress
+                variant="determinate"
+                value={summaryData?.totalPossibleScore ? (candidateData.matchScore / summaryData.totalPossibleScore) * 100 : candidateData.matchScore}
+                sx={{
+                  width: 80,
+                  height: 8,
+                  borderRadius: 4,
+                  mr: 1,
+                  bgcolor: `${colors.orange1}20`,
+                  "& .MuiLinearProgress-bar": {
+                    bgcolor: colors.orange1,
+                    borderRadius: 4,
+                  },
+                }}
+              />
+              <Typography
+                variant="body1"
+                sx={{ color: colors.orange1, fontWeight: 500 }}
+              >
+                {summaryData?.totalPossibleScore 
+                  ? `${Math.round((candidateData.matchScore / summaryData.totalPossibleScore) * 100)}%` 
+                  : `${candidateData.matchScore}%`}
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
+              Manual Score
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {manualScore !== null ? (
+                <>
+                  <LinearProgress
+                    variant="determinate"
+                    value={manualScore}
+                    sx={{
+                      width: 80,
+                      height: 8,
+                      borderRadius: 4,
+                      mr: 1,
+                      bgcolor: `${colors.blue1}20`,
+                      "& .MuiLinearProgress-bar": {
+                        bgcolor: colors.blue1,
+                        borderRadius: 4,
+                      },
+                    }}
+                  />
+                  <Typography
+                    variant="body1"
+                    sx={{ color: colors.blue1, fontWeight: 500 }}
+                  >
+                    {manualScore}%
+                  </Typography>
+                </>
+              ) : (
+                <Typography
+                  variant="body1"
+                  sx={{ color: colors.gray2, fontWeight: 500 }}
+                >
+                  Not scored
+                </Typography>
+              )}
+            </Box>
+          </Box>
         </Box>
       </Box>
 
@@ -326,6 +389,7 @@ export default function CandidateReportPage() {
           <Tab icon={<PersonIcon />} iconPosition="start" label="Profile & Notes" {...a11yProps(0)} />
           <Tab icon={<QuestionAnswerIcon />} iconPosition="start" label="Interview Questions" {...a11yProps(1)} />
           <Tab icon={<DescriptionIcon />} iconPosition="start" label="Resume" {...a11yProps(2)} />
+          <Tab icon={<AssessmentIcon />} iconPosition="start" label="Manual Scoring" {...a11yProps(3)} />
         </Tabs>
       </Box>
 
@@ -699,6 +763,20 @@ export default function CandidateReportPage() {
               )}
             </Box>
           </Paper>
+        </TabPanel>
+
+        {/* Manual Scoring Tab */}
+        <TabPanel value={tabValue} index={3}>
+          <ManualScoringForm 
+            jobPostingId={jobPostingId!}
+            candidateEmail={candidateEmail!}
+            criteria={mockCriteriaWithSkills}
+            onScoreSaved={(manualScore) => {
+              setManualScore(manualScore);
+              // In a real implementation, this would save to the backend
+              console.log(`Saved manual score: ${manualScore}% for ${candidateEmail}`);
+            }}
+          />
         </TabPanel>
       </Box>
 
