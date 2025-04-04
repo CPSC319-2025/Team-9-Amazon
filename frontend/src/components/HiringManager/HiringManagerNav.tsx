@@ -71,7 +71,6 @@ const HiringManagerNav = ({
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue);
     navigate(newValue);
   };
 
