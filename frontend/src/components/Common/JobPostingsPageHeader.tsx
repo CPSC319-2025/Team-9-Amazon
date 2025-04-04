@@ -19,14 +19,14 @@ export default function JobPostingsPageHeader({
   showSearchBar = true,
 }: JobPostingsPageHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 m-4">
+    <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 m-4 py-5">
       <div className="flex flex-col sm:flex-row w-full md:w-auto justify-around gap-4">
-        <h1 className="text-2xl font-bold text-center md:text-left">
+        <h1 className="text-3xl font-bold text-center md:text-left">
           {headerTitle}
         </h1>
 
         {showSearchBar && (
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-col rounded-full sm:flex-row gap-4 w-full md:w-auto">
             <CustomTextField
               placeholder="Search by job ID or keywords..."
               minWidth={400}
@@ -47,7 +47,7 @@ export default function JobPostingsPageHeader({
         <img
           src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"
           alt="AWS Logo"
-          className="h-9 w-auto"
+          className="h-10 w-auto"
         />
       </div>
     </div>
