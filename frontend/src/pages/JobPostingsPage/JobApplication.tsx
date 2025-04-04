@@ -718,21 +718,21 @@ export default function JobApplication() {
                 </button>
 
                 <CustomFormTextField
-                  label="Title"
+                  label="Title *"
                   name={`work_experience.${index}.job_title`}
                   placeholder="Software Engineer"
                   register={register}
                   errors={errors}
                 />
                 <CustomFormTextField
-                  label="Company"
+                  label="Company *"
                   name={`work_experience.${index}.company`}
                   placeholder="AWS"
                   register={register}
                   errors={errors}
                 />
                 <CustomFormTextField
-                  label="Start Date"
+                  label="Start Date *"
                   name={`work_experience.${index}.from`}
                   register={register}
                   placeholder="MM/YYYY"
@@ -750,7 +750,7 @@ export default function JobApplication() {
                     Skills *
                   </label>
 
-                  {/* Dropdown Button */}
+                  {/* Dropdown */}
                   <div
                     className="relative"
                     ref={(el) => {
@@ -773,14 +773,13 @@ export default function JobApplication() {
                       <span className="ml-2">▼</span>
                     </button>
 
-                    {/* Dropdown Menu (Scrollable Checkboxes) */}
+                    {/* Scrollable Checkboxes + Custom Skill */}
                     <div
                       className="relative"
                       ref={(el) => {
                         dropdownRefs.current[index] = el;
                       }}
                     >
-                      {/* Modified Dropdown Menu with Search */}
                       {openDropdowns[index] && (
                         <div className="absolute w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-10">
                           {/* Search Input */}
@@ -796,7 +795,6 @@ export default function JobApplication() {
                                 }));
                               }}
                               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              // Stop propagation to prevent dropdown from closing
                               onClick={(e) => e.stopPropagation()}
                             />
                           </div>
@@ -806,13 +804,10 @@ export default function JobApplication() {
                             {skillsLoading ? (
                               <p className="p-2">Loading skills...</p>
                             ) : skillsError ? (
-                              <p className="p-2 text-red-500">
-                                Error fetching skills
-                              </p>
+                              <p className="p-2 text-red-500">Error fetching skills</p>
                             ) : (
                               <div className="p-2">
-                                {skills &&
-                                filterSkills(index, skills).length > 0 ? (
+                                {skills && filterSkills(index, skills).length > 0 ? (
                                   filterSkills(index, skills).map((skill) => (
                                     <label
                                       key={skill.skillId}
@@ -822,20 +817,14 @@ export default function JobApplication() {
                                         type="checkbox"
                                         value={skill.name}
                                         checked={
-                                          selectedSkills[index]?.includes(
-                                            skill.name
-                                          ) || false
+                                          selectedSkills[index]?.includes(skill.name) || false
                                         }
                                         onChange={(e) => {
                                           const updatedSkills = e.target.checked
-                                            ? [
-                                                ...(selectedSkills[index] ||
-                                                  []),
-                                                skill.name,
-                                              ]
-                                            : (
-                                                selectedSkills[index] || []
-                                              ).filter((s) => s !== skill.name);
+                                            ? [...(selectedSkills[index] || []), skill.name]
+                                            : (selectedSkills[index] || []).filter(
+                                                (s) => s !== skill.name
+                                              );
 
                                           setSelectedSkills((prev) => ({
                                             ...prev,
@@ -853,19 +842,63 @@ export default function JobApplication() {
                                     </label>
                                   ))
                                 ) : (
-                                  <p className="p-2 text-gray-500">
-                                    No matching skills found
-                                  </p>
+                                  <p className="p-2 text-gray-500">No matching skills found</p>
                                 )}
                               </div>
                             )}
+                          </div>
+
+                          {/* Add Custom Skill */}
+                          <div className="p-2 border-t flex gap-2 items-center">
+                            <input
+                              type="text"
+                              placeholder="Add your own skill"
+                              value={searchTerms[index] || ""}
+                              onChange={(e) =>
+                                setSearchTerms((prev) => ({
+                                  ...prev,
+                                  [index]: e.target.value,
+                                }))
+                              }
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const customSkill = searchTerms[index]?.trim();
+                                if (
+                                  customSkill &&
+                                  !selectedSkills[index]?.includes(customSkill)
+                                ) {
+                                  const updatedSkills = [
+                                    ...(selectedSkills[index] || []),
+                                    customSkill,
+                                  ];
+                                  setSelectedSkills((prev) => ({
+                                    ...prev,
+                                    [index]: updatedSkills,
+                                  }));
+                                  setValue(
+                                    `work_experience.${index}.skills`,
+                                    updatedSkills as string[]
+                                  );
+                                  setSearchTerms((prev) => ({
+                                    ...prev,
+                                    [index]: "",
+                                  }));
+                                }
+                              }}
+                              className="px-3 py-2 bg-[#146eb4] text-white rounded-md hover:bg-[#0d4b7a] text-sm"
+                            >
+                              Add
+                            </button>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Display Selected Skills */}
+                  {/* Display Skills */}
                   {selectedSkills[index]?.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedSkills[index].map((skill, i) => (
@@ -878,9 +911,9 @@ export default function JobApplication() {
                             type="button"
                             className="text-red-500 hover:text-red-700"
                             onClick={() => {
-                              const updatedSkills: string[] = selectedSkills[
-                                index
-                              ].filter((s) => s !== skill);
+                              const updatedSkills: string[] = selectedSkills[index].filter(
+                                (s) => s !== skill
+                              );
 
                               setSelectedSkills((prev) => ({
                                 ...prev,
@@ -900,6 +933,9 @@ export default function JobApplication() {
                   )}
                 </div>
 
+                <label className="text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
                 <textarea
                   {...register(`work_experience.${index}.role_description`)}
                   placeholder="Describe your responsibilities and achievements *"
