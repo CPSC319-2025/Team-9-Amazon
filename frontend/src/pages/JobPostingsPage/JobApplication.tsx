@@ -16,6 +16,7 @@ import { parseResume } from "../../services/resumeParser";
 import { useCreateApplication } from "../../queries/application";
 import { useGetSkills } from "../../queries/skill";
 import ApplicationErrorModal from "./applicationErrorModal";
+import { parsePhoneNumberFromString, AsYouType } from "libphonenumber-js";
 
 type ContextType = {
   setHeaderTitle: (title: string) => void;
@@ -34,9 +35,13 @@ const applicationSchema = z.object({
     .max(50, "Last Name must be less than 50 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 characters")
-    .max(15, "Phone number must be less than 15 characters"),
+  .string()
+  .refine((val) => {
+    const phoneNumber = parsePhoneNumberFromString(val);
+    return phoneNumber?.isValid() ?? false;
+  }, {
+    message: "Please enter a valid international phone number",
+  }),
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   work_experience: z
@@ -64,7 +69,7 @@ const applicationSchema = z.object({
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
-const formatPhoneNumber = (phoneNumber: string): string => {
+/*const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return "";
   const cleaned = phoneNumber?.replace(/\D/g, "");
   if (cleaned?.length === 0) return "";
@@ -75,6 +80,12 @@ const formatPhoneNumber = (phoneNumber: string): string => {
     6,
     10
   )}`;
+}; */
+
+//supports international formats
+const formatPhoneNumber = (phoneNumber: string): string => {
+  if (!phoneNumber) return "";
+  return new AsYouType('CA').input(phoneNumber);
 };
 
 export default function JobApplication() {

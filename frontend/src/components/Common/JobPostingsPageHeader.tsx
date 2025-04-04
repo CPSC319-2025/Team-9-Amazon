@@ -41,6 +41,15 @@ export default function JobPostingsPageHeader({
           </div>
         )}
       </div>
+
+      {/* AWS Logo on the right */}
+      <div className="flex-shrink-0">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"
+          alt="AWS Logo"
+          className="h-9 w-auto"
+        />
+      </div>
     </div>
   );
 }

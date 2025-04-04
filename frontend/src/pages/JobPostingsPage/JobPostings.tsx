@@ -39,6 +39,7 @@ export default function JobPostings() {
 
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [searchTagTerm, setSearchTagTerm] = useState("");
 
   // Fetch job postings from backend when the page loads
   useEffect(() => {
@@ -157,28 +158,40 @@ export default function JobPostings() {
             minWidth: "250px",
             maxWidth: "250px",
             minHeight: "300px",
-            maxHeight: "80vh",
+            maxHeight: "400px",
             overflowY: "auto",
           }}
         >
           <h3 className="font-bold text-lg mb-4">Filter By:</h3>
+            <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Tags</h4>
 
-          {/* Job Type Filter */}
-          <h4 className="text-md font-medium mb-2 text-[#146eb4]">Job Tags</h4>
-          <div className="flex flex-col gap-2 mb-4">
-            {jobTypes.map((type) => (
-              <FormControlLabel
-                key={type}
-                control={
-                  <Checkbox
-                    checked={selectedJobTypes.includes(type)}
-                    onChange={() => handleJobTypeChange(type)}
+            {/* Job Tag Search*/}
+            <input
+              type="text"
+              placeholder="Search job tags..."
+              value={searchTagTerm}
+              onChange={(e) => setSearchTagTerm(e.target.value)}
+              className="p-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <div className="flex flex-col gap-2 mb-4 max-h-48 overflow-y-auto">
+              {jobTypes
+                .filter((type) =>
+                  type.toLowerCase().includes(searchTagTerm.toLowerCase())
+                )
+                .map((type) => (
+                  <FormControlLabel
+                    key={type}
+                    control={
+                      <Checkbox
+                        checked={selectedJobTypes.includes(type)}
+                        onChange={() => handleJobTypeChange(type)}
+                      />
+                    }
+                    label={type}
                   />
-                }
-                label={type}
-              />
-            ))}
-          </div>
+                ))}
+            </div>
         </aside>
 
         {/* Job Listings */}
