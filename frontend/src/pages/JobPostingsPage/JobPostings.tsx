@@ -171,7 +171,7 @@ export default function JobPostings() {
               placeholder="Search job tags..."
               value={searchTagTerm}
               onChange={(e) => setSearchTagTerm(e.target.value)}
-              className="p-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 mb-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
             <div className="flex flex-col gap-2 mb-4 max-h-48 overflow-y-auto">

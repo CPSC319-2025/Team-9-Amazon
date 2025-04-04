@@ -19,8 +19,10 @@ export default function JobDetailsApplicant() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { setShowSearchBar } = useOutletContext<ContextType>();
+  const { setHeaderTitle } = useOutletContext<ContextType>();
 
   useEffect(() => {
+    setHeaderTitle("Learn More");
     setShowSearchBar(false);
   }, [setShowSearchBar]);
 
@@ -88,7 +90,7 @@ export default function JobDetailsApplicant() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+        <div className="bg-gray-50 p-4 rounded-lg shadow-sm h-[350px] overflow-y-auto">
           <h4 className="font-semibold text-lg mb-4">Job Details</h4>
 
           <div className="flex items-start gap-2 mb-3">

@@ -569,7 +569,7 @@ export default function JobApplication() {
           <button
             type="button"
             onClick={() => navigate("/applicant/job-postings")}
-            className="flex items-center text-[#146eb4] hover:text-[#0d4b7a] transition-colors"
+            className="flex items-center text-[#146eb4] hover:text-[#0d4b7a] transition-colors cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
