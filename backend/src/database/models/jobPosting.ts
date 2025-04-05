@@ -50,12 +50,12 @@ export const JobPostingSchema = {
   title: { type: DataTypes.STRING, allowNull: false },
   subtitle: { type: DataTypes.STRING },
   description: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
     defaultValue: "",
   },
-  responsibilities: { type: DataTypes.STRING },
-  qualifications: { type: DataTypes.STRING },
+  responsibilities: { type: DataTypes.TEXT },
+  qualifications: { type: DataTypes.TEXT },
   staffId: {
     type: DataTypes.INTEGER,
     allowNull: true,
