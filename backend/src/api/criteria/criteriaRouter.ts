@@ -38,12 +38,15 @@ criteriaRouter.get("/:criteria_id", authenticateJWT, async (req, res) => {
 const createCriteriaReq = z.object({
   name: z.string().min(1),
   criteriaJson: z.any(),
-  criteriaType: z.enum(Object.values(CriteriaType) as [CriteriaType, ...CriteriaType[]]),
+  criteriaType: z.enum(
+    Object.values(CriteriaType) as [CriteriaType, ...CriteriaType[]]
+  ),
   jobPostingId: z.number().optional(),
 });
 criteriaRouter.post("/", authenticateJWT, async (req, res) => {
   try {
-    const { name, criteriaJson, criteriaType, jobPostingId } = createCriteriaReq.parse(req.body);
+    const { name, criteriaJson, criteriaType, jobPostingId } =
+      createCriteriaReq.parse(req.body);
     const newCriteria = await Criteria.create({
       name,
       criteriaJson,
@@ -60,16 +63,21 @@ criteriaRouter.post("/", authenticateJWT, async (req, res) => {
 const editCriteriaReq = z.object({
   name: z.string().min(1).optional(),
   criteriaJson: z.any().optional(),
-  criteriaType: z.enum(Object.values(CriteriaType) as [CriteriaType, ...CriteriaType[]]).optional(),
+  criteriaType: z
+    .enum(Object.values(CriteriaType) as [CriteriaType, ...CriteriaType[]])
+    .optional(),
   jobPostingId: z.number().optional(),
 });
 criteriaRouter.put("/:criteria_id", authenticateJWT, async (req, res) => {
   try {
     const criteria_id = parseInt(req.params.criteria_id);
-    const { name, criteriaJson, criteriaType, jobPostingId } = editCriteriaReq.parse(req.body);
+    const { name, criteriaJson, criteriaType, jobPostingId } =
+      editCriteriaReq.parse(req.body);
     const criteria = await Criteria.findByPk(criteria_id);
     if (criteria === null) {
-      return res.status(404).json({ error: `Criteria with id ${criteria_id} not found` });
+      return res
+        .status(404)
+        .json({ error: `Criteria with id ${criteria_id} not found` });
     }
     const newCriteria = await criteria.update({
       name,
@@ -77,7 +85,12 @@ criteriaRouter.put("/:criteria_id", authenticateJWT, async (req, res) => {
       criteriaType,
       jobPostingId,
     });
-    res.status(201).json({message: `Successfully updated criteria with id ${criteria_id}`, newCriteria});
+    res
+      .status(201)
+      .json({
+        message: `Successfully updated criteria with id ${criteria_id}`,
+        newCriteria,
+      });
   } catch (error) {
     handleZodError(error, res, "Failed to create new criteria");
   }
@@ -87,15 +100,21 @@ criteriaRouter.put("/:criteria_id", authenticateJWT, async (req, res) => {
 criteriaRouter.delete("/:criteria_id", authenticateJWT, async (req, res) => {
   try {
     const criteria_id = parseInt(req.params.criteria_id);
-    if (await Criteria.findByPk(criteria_id) === null) {
-      return res.status(404).json({ error: `Criteria with id ${criteria_id} not found` });
+    if ((await Criteria.findByPk(criteria_id)) === null) {
+      return res
+        .status(404)
+        .json({ error: `Criteria with id ${criteria_id} not found` });
     }
     const criteria = await Criteria.destroy({
       where: {
         id: criteria_id,
       },
     });
-    res.status(200).json({ message: `Successfully deleted criteria with id ${criteria_id}` });
+    res
+      .status(200)
+      .json({
+        message: `Successfully deleted criteria with id ${criteria_id}`,
+      });
   } catch (error) {
     handleZodError(error, res, "Failed to delete criteria");
   }

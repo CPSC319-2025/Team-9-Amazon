@@ -12,12 +12,12 @@ import { env } from "@/common/utils/envConfig";
 
 // Routers
 import loginRouter from "./api/login/loginRouter";
-import adminRouter from "./api/admin/adminRouter";
 import jobPostingsRouter from "./api/jobPostings/jobPostingsRouter";
 import criteriaRouter from "./api/criteria/criteriaRouter";
 import skillsRouter from "./api/skills/skillsRouter";
 import applicantJobPostingRouter from "./api/applicant/applicantJobPostingRouter";
 import applicationsRouter from "./api/application/applicationsRouter";
+import accountsRouter from "./api/admin/accountsRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -79,7 +79,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // Routes
 app.use("/health-check", healthCheckRouter);
 app.use("/login", loginRouter);
-app.use("/admin", adminRouter);
+app.use("/accounts", accountsRouter);
 app.use("/job-postings", jobPostingsRouter);
 app.use("/criteria", criteriaRouter);
 app.use("/skills", skillsRouter);
