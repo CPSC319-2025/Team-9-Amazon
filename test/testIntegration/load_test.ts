@@ -9,8 +9,14 @@ import fs from "fs";
 const n_staff = 2;
 const n_job_postings = 5;
 const n_applications = 50;
-const staffEmails: string[] = Array.from({ length: n_staff }, (_, i) => `staff${i + 1}@load-test.com`);
-const applicantEmails: string[] = Array.from({ length: n_applications }, (_, i) => `applicant${i + 1}@load-test.com`);
+const staffEmails: string[] = Array.from(
+  { length: n_staff },
+  (_, i) => `staff${i + 1}@load-test.com`
+);
+const applicantEmails: string[] = Array.from(
+  { length: n_applications },
+  (_, i) => `applicant${i + 1}@load-test.com`
+);
 const BASE_URL = "http://localhost:3001";
 const adminEmail = "violet@CHPostal.com";
 const adminPassword = "password";
@@ -19,8 +25,8 @@ const adminPassword = "password";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const apiUrls = {
   login: `${BASE_URL}/login`,
-  staff: `${BASE_URL}/admin/accounts`,
-  deleteStaff: `${BASE_URL}/admin/accounts/:account_id`,
+  staff: `${BASE_URL}/accounts`,
+  deleteStaff: `${BASE_URL}/accounts/:account_id`,
   jobPostings: `${BASE_URL}/job-postings`,
   criteria: (jobId: number) => `${BASE_URL}/job-postings/${jobId}/criteria`,
   deleteJobPosting: (jobId: number) => `${BASE_URL}/job-postings/${jobId}`,
@@ -42,7 +48,9 @@ const myCriteria = {
     ],
   },
 };
-const resumeBase64 = fs.readFileSync(path.join(__dirname, "Load_Test_Resume.pdf")).toString("base64");
+const resumeBase64 = fs
+  .readFileSync(path.join(__dirname, "Load_Test_Resume.pdf"))
+  .toString("base64");
 
 // Functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +101,9 @@ const createStaff = async (): Promise<void> => {
           _authTokens[email] = response.data.token;
         })
         .catch((error: any) => {
-          console.error(`Error creating staff with email ${email}: ${error.response?.status}`);
+          console.error(
+            `Error creating staff with email ${email}: ${error.response?.status}`
+          );
         })
     );
   }
@@ -117,10 +127,14 @@ const deleteStaff = async (): Promise<void> => {
       axios
         .delete(url, options)
         .then((response) => {
-          console.log(`Deleting staff with email ${email} and account ID ${account_id}: ${response.status}`);
+          console.log(
+            `Deleting staff with email ${email} and account ID ${account_id}: ${response.status}`
+          );
         })
         .catch((error: any) => {
-          console.error(`Error deleting staff with account ID ${account_id}: ${error.response?.status}`);
+          console.error(
+            `Error deleting staff with account ID ${account_id}: ${error.response?.status}`
+          );
         })
     );
   }
@@ -129,7 +143,10 @@ const deleteStaff = async (): Promise<void> => {
 
 // Handling job postings and criteria
 const createJobPostings = async (): Promise<void> => {
-  const createCriteria = async (staffEmail: string, jobId: number): Promise<void> => {
+  const createCriteria = async (
+    staffEmail: string,
+    jobId: number
+  ): Promise<void> => {
     const options = {
       headers: {
         Authorization: `Bearer ${await getStaffToken(staffEmail)}`,
@@ -137,14 +154,25 @@ const createJobPostings = async (): Promise<void> => {
     };
     const payload = myCriteria;
     try {
-      const response = await axios.post(apiUrls.criteria(jobId), payload, options);
-      console.log(`Creating criteria for job posting ${jobId}: ${response.status}`);
+      const response = await axios.post(
+        apiUrls.criteria(jobId),
+        payload,
+        options
+      );
+      console.log(
+        `Creating criteria for job posting ${jobId}: ${response.status}`
+      );
     } catch (error: any) {
-      console.error(`Error creating criteria for job posting ${jobId}: ${error.response?.status}`);
+      console.error(
+        `Error creating criteria for job posting ${jobId}: ${error.response?.status}`
+      );
     }
-  }
+  };
 
-  const createJobPosting = async (staffEmail: string, index: number): Promise<void> => {
+  const createJobPosting = async (
+    staffEmail: string,
+    index: number
+  ): Promise<void> => {
     const options = {
       headers: {
         Authorization: `Bearer ${await getStaffToken(staffEmail)}`,
@@ -163,12 +191,17 @@ const createJobPostings = async (): Promise<void> => {
       await createCriteria(staffEmail, jobId);
       jobIds.push(jobId);
     } catch (error: any) {
-      console.error(`Error creating job posting ${index + 1}: ${error.response?.status} - ${error.response?.data}`);
+      console.error(
+        `Error creating job posting ${index + 1}: ${error.response?.status} - ${
+          error.response?.data
+        }`
+      );
     }
   };
 
   const promises = Array.from({ length: n_job_postings }, (_, i) => {
-    const staffEmail = staffEmails[Math.floor(Math.random() * staffEmails.length)];
+    const staffEmail =
+      staffEmails[Math.floor(Math.random() * staffEmails.length)];
     return createJobPosting(staffEmail, i);
   });
   await Promise.all(promises);
@@ -191,10 +224,14 @@ const deleteJobPostings = async (): Promise<void> => {
         axios
           .delete(url, options)
           .then((response) => {
-            console.log(`Deleting job posting with ID ${jobId}: ${response.status}`);
+            console.log(
+              `Deleting job posting with ID ${jobId}: ${response.status}`
+            );
           })
           .catch((error: any) => {
-            console.error(`Error deleting job posting with ID ${jobId}: ${error.response?.status}`);
+            console.error(
+              `Error deleting job posting with ID ${jobId}: ${error.response?.status}`
+            );
           })
       );
     }
@@ -227,7 +264,9 @@ const makeApplications = async (): Promise<void> => {
       axios
         .post(apiUrls.applications, payload)
         .then((response) => {
-          console.log(`Making application for jobId ${jobId}, using email ${email}: ${response.status}`);
+          console.log(
+            `Making application for jobId ${jobId}, using email ${email}: ${response.status}`
+          );
         })
         .catch((error: any) => {
           console.error(
