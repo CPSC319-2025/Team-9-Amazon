@@ -473,7 +473,6 @@ export default function JobApplication() {
   };
 
   const onSubmit = async (data: ApplicationFormData) => {
-    console.log("SUBMIT TRIGGERED");
     try {
       setIsSubmitting(true);
 
@@ -486,9 +485,6 @@ export default function JobApplication() {
         })),
         education_experience: data.education_experience || [],
       };
-
-      // Debug log for referralSource
-      console.log("Submitting application with referralSource:", data.referralSource);
 
       const result = await createApplication.mutateAsync(applicationPayload);
       setErrorMessage(null);
@@ -512,7 +508,6 @@ export default function JobApplication() {
 
     // Run your custom validation first
     const missingField = validateForm(formData);
-    console.log("missing", missingField);
 
     if (missingField) {
       // If validation fails, show error and stop

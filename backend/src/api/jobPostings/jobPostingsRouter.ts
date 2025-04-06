@@ -188,8 +188,6 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
 
     const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, { transaction: t });
 
-    // console.log("Created job posting:", freshJobPosting);
-
     // If tags were provided, process them.
     if (tags && Array.isArray(tags) && tags.length > 0) {
       const tagInstances = await Promise.all(
@@ -941,21 +939,9 @@ router.get(
       const sourceCount = new Map();
       let totalSourcedApplications = 0;
 
-      console.log("DEBUG: All applications:", applications.length);
-      
-      // Log the raw application data to see what's available
-      applications.forEach((application, index) => {
-        console.log(`DEBUG: Application ${index + 1} data:`, {
-          id: application.get('id'),
-          referralSource: application.get('referralSource'),
-          rawData: application.toJSON()
-        });
-      });
-
       applications.forEach(application => {
         // Use the new referralSource field, default to "Other" if not specified
         const source = application.get("referralSource") || application.dataValues?.referralSource || "Other";
-        console.log("DEBUG: Processing application with source:", source);
         sourceCount.set(source, (sourceCount.get(source) || 0) + 1);
         totalSourcedApplications++;
       });
@@ -967,9 +953,7 @@ router.get(
           value: Math.round((count / totalSourcedApplications) * 100),
           color: sourceColors[name as keyof typeof sourceColors] || sourceColors.Other,
         }))
-        .sort((a, b) => b.value - a.value); // Sort by highest percentage first
-
-      //////////////////////////////////////////////////////////////////////////////
+        .sort((a, b) => b.value - a.value);
 
       // Get all criteria for this job posting
       const criteria = await Criteria.findAll({
