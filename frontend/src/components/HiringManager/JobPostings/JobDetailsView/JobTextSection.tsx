@@ -11,15 +11,27 @@ interface JobTextSectionProps {
   editMode: EditMode | null;
   toggleEditMode: (mode: EditMode) => void;
   handleChange: (field: keyof JobPosting, value: string) => void;
+  errorMessage?: string;
 }
 
-const JobTextSection: React.FC<JobTextSectionProps> = ({ field, title, jobPosting, editable, editMode, toggleEditMode, handleChange }) => {
+const JobTextSection: React.FC<JobTextSectionProps> = ({
+  field,
+  title,
+  jobPosting,
+  editable,
+  editMode,
+  toggleEditMode,
+  handleChange,
+  errorMessage
+}) => {
   return jobPosting[field] || editable ? (
     <>
       <Divider sx={{ marginY: 2 }} />
       <Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>{title}</Typography>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            {title}
+          </Typography>
           {editable && (
             <IconButton size="small" onClick={() => toggleEditMode(field as EditMode)}>
               <EditIcon />
@@ -27,9 +39,24 @@ const JobTextSection: React.FC<JobTextSectionProps> = ({ field, title, jobPostin
           )}
         </Box>
         {editMode === field ? (
-          <TextField value={jobPosting[field] as string} onChange={(e) => handleChange(field, e.target.value)} fullWidth multiline rows={3} variant="outlined" />
+          <TextField
+            value={jobPosting[field] as string}
+            onChange={(e) => handleChange(field, e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            error={editable && !!errorMessage}
+            helperText={editable ? errorMessage : undefined} />
         ) : (
-          <Typography variant="body1">{jobPosting[field]?.toString()}</Typography>
+          <Box>
+            <Typography variant="body1">{jobPosting[field]?.toString()}</Typography>
+            {editable && errorMessage && (
+              <Typography variant="caption" color="error">
+                {errorMessage}
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
     </>

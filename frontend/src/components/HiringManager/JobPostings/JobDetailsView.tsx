@@ -1,4 +1,4 @@
-import { Box, Typography, Grid, Button, Stack } from "@mui/material";
+import { Box, Typography, Grid, Button, Stack, Tooltip } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useEffect, useMemo, useState } from "react";
 import { JobPosting } from "../../../types/JobPosting/jobPosting";
@@ -18,6 +18,7 @@ import ConfirmDialog from "../../Common/ConfirmDialog";
 import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
 import { useSnackbar } from "notistack";
 import { useBlocker, useBrowserBlocker } from "../UnsavedChangesBlocker";
+import { FIELD_MAX_LENGTHS } from "../../../utils/jobPostingValidationRules";
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
   mode: JobDetailsMode;
@@ -31,14 +32,14 @@ interface JobDetailsSectionProps {
 const JobDetailsView = ({
   jobPosting,
   mode,
-  onApply = ()=>{},
-  onCancel = ()=>{},
-  onSave = ()=>{},
+  onApply = () => { },
+  onCancel = () => { },
+  onSave = () => { },
 }: JobDetailsSectionProps) => {
   const [editedJob, setEditedJob] = useState<JobPosting>({ ...jobPosting });
   const [editMode, setEditMode] = useState<EditMode | null>(null);
 
-  const [ hasUnsavedChanges, setHasUnsavedChanges ] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Synchronize local state when the context jobPosting changes. (for edit mode)
   useEffect(() => {
@@ -52,12 +53,30 @@ const JobDetailsView = ({
   // Confirm Dialogue
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
+  const [errors, setErrors] = useState<Partial<Record<keyof JobPosting, string>>>({});
+
   const editable = useMemo(() => mode !== JobDetailsMode.APPLY, [mode]);
 
   // Handle input changes
   const handleChange = (field: keyof JobPosting, value: string) => {
     setEditedJob((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
+
+    const maxLength = FIELD_MAX_LENGTHS[field];
+
+    if (maxLength !== undefined && value.length > maxLength) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: `Maximum allowed characters for ${field} is ${maxLength}.`,
+      }));
+    } else if (!value.trim()) {
+      setErrors((prev) => ({ ...prev, [field]: "This field is required." }));
+    } else {
+      setErrors((prev) => {
+        const { [field]: removed, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const handleChangeStringArray = (
@@ -71,7 +90,7 @@ const JobDetailsView = ({
   const handleSave = () => {
     setHasUnsavedChanges(false);
     onSave(editedJob);
-    
+
     // setSnackbarMessage("Job Posting Saved!");
     // setSnackbarSeverity("success");
     // setOpenSnackbar(true);
@@ -99,22 +118,22 @@ const JobDetailsView = ({
     setConfirmDialogOpen(false);
 
     // Show Snackbar
-    enqueueSnackbar("Changes Discarded!", {variant: "warning"});
+    enqueueSnackbar("Changes Discarded!", { variant: "warning" });
 
     onCancel();
   };
 
   // Block navigation if there are unsaved changes
   useBlocker(() =>
-      hasUnsavedChanges
-        ? window.confirm(
-            "You have unsaved changes. Are you sure you want to leave this page?"
-          )
-        : true,
-      hasUnsavedChanges
-    );
+    hasUnsavedChanges
+      ? window.confirm(
+        "You have unsaved changes. Are you sure you want to leave this page?"
+      )
+      : true,
+    hasUnsavedChanges
+  );
   useBrowserBlocker(() => hasUnsavedChanges, hasUnsavedChanges);
-  
+
   return (
     <Box sx={{ padding: "40px", maxWidth: "1200px", margin: "auto" }}>
 
@@ -126,6 +145,8 @@ const JobDetailsView = ({
           editMode={editMode}
           toggleEditMode={toggleEditMode}
           handleChange={handleChange}
+          errorTitle={errors.title}
+          errorSubtitle={errors.subtitle}
         />
         {mode === JobDetailsMode.APPLY && (
           <Button sx={{
@@ -153,6 +174,7 @@ const JobDetailsView = ({
             editMode={editMode}
             toggleEditMode={toggleEditMode}
             handleChange={handleChange}
+            errorMessage={errors.description}
           />
           <JobTextSection
             field="qualifications"
@@ -162,6 +184,7 @@ const JobDetailsView = ({
             editMode={editMode}
             toggleEditMode={toggleEditMode}
             handleChange={handleChange}
+            errorMessage={errors.qualifications}
           />
           <JobTextSection
             field="responsibilities"
@@ -171,6 +194,7 @@ const JobDetailsView = ({
             editMode={editMode}
             toggleEditMode={toggleEditMode}
             handleChange={handleChange}
+            errorMessage={errors.responsibilities}
           />
         </Grid>
 
@@ -193,6 +217,7 @@ const JobDetailsView = ({
             editMode={editMode}
             toggleEditMode={toggleEditMode}
             handleChange={handleChange}
+            errorMessage={errors.location}
           />
           <JobTags
             jobPosting={editedJob}
@@ -229,15 +254,27 @@ const JobDetailsView = ({
               >
                 CANCEL
               </Button>
-              <Button
-                startIcon={<SaveIcon />}
-                onClick={handleSave}
-                sx={{
-                  ...filledButtonStyle,
-                }}
+              <Tooltip
+                title={
+                  Object.keys(errors).length > 0
+                    ? "Please fill out all required fields to save."
+                    : ""
+                }
+                arrow
               >
-                {mode === JobDetailsMode.CREATE ? "Create" : "Save"}
-              </Button>
+                <span>
+                  <Button
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                    disabled={Object.keys(errors).length > 0}
+                    sx={{
+                      ...filledButtonStyle,
+                    }}
+                  >
+                    {mode === JobDetailsMode.CREATE ? "Create" : "Save"}
+                  </Button>
+                </span>
+              </Tooltip>
             </Stack>
           )}
 

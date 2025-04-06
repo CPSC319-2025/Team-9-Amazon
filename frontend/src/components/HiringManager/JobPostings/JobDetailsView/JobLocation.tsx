@@ -10,9 +10,17 @@ interface JobLocationProps {
   editMode: EditMode | null;
   toggleEditMode: (mode: EditMode) => void;
   handleChange: (field: keyof JobPosting, value: string) => void;
+  errorMessage?: string;
 }
 
-const JobLocation: React.FC<JobLocationProps> = ({ jobPosting, editable, editMode, toggleEditMode, handleChange }) => {
+const JobLocation: React.FC<JobLocationProps> = ({
+  jobPosting,
+  editable,
+  editMode,
+  toggleEditMode,
+  handleChange,
+  errorMessage,
+}) => {
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -23,9 +31,18 @@ const JobLocation: React.FC<JobLocationProps> = ({ jobPosting, editable, editMod
             onChange={(e) => handleChange("location", e.target.value)}
             fullWidth
             variant="outlined"
+            error={editable && !!errorMessage}
+            helperText={editable ? errorMessage : undefined}
           />
         ) : (
-          <Typography>{jobPosting.location}</Typography>
+          <Box>
+            <Typography>{jobPosting.location}</Typography>
+            {editable && errorMessage && (
+              <Typography variant="caption" color="error">
+                {errorMessage}
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
 
