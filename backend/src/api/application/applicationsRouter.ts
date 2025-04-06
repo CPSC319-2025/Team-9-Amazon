@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
         );
         await application.update({ score });
       } catch (error) {
-        throw new Error("Error calculating application score");
+        console.error("Error calculating application score:", error);
         // Don't throw - we want to create the application even if scoring fails
       }
     }
