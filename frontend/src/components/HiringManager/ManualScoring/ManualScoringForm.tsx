@@ -29,6 +29,7 @@ export interface SkillScore {
   skillName: string;
   score: number;
   maxPoints: number;
+  isActive?: boolean;
 }
 
 // Criteria score structure
@@ -38,6 +39,7 @@ export interface ManualCriteriaScore {
   skills: SkillScore[];
   totalScore: number;
   maxTotalScore: number;
+  isActive?: boolean;
 }
 
 export interface ManualScoreData {
@@ -46,25 +48,29 @@ export interface ManualScoreData {
   lastUpdated: Date | null;
 }
 
+// New CriteriaRepresentation interface
+export interface CriteriaRepresentation {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  criteriaMaxScore: number;
+  criteriaType: "global" | "local";
+  jobPostingId: number | null;
+  name: string;
+  criteriaJson: {
+    rules: Array<{
+      skill: string;
+      pointsPerYearOfExperience: number;
+      maxPoints: number;
+      isActive?: boolean;
+    }>;
+  };
+}
+
 interface ManualScoringFormProps {
   jobPostingId: string;
   candidateEmail: string;
-  criteria: Array<{ 
-    name: string; 
-    score: number;
-    criteriaJson?: {
-      rules: Array<{
-        skill: string;
-        maxPoints: number;
-      }>;
-    };
-    skills?: Array<{
-      id: number;
-      name: string;
-      score?: number;
-      maxPoints: number;
-    }>;
-  }>;
+  criteria: CriteriaRepresentation[];
   onScoreSaved?: (manualScore: number) => void;
 }
 
@@ -74,43 +80,32 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
   criteria,
   onScoreSaved,
 }) => {
-  // Initialize with criteria and skills from props
-  const initialScores: ManualCriteriaScore[] = criteria.map((criterion, index) => {
-    // Extract skills from criteriaJson if available, or from skills property
-    const skills: SkillScore[] = criterion.skills ? 
-      criterion.skills.map(skill => ({
-        skillName: skill.name,
-        score: skill.score || 0,
-        maxPoints: skill.maxPoints,
-      })) : 
-      criterion.criteriaJson?.rules.map(rule => ({
-        skillName: rule.skill,
-        score: 0,
-        maxPoints: rule.maxPoints,
-      })) || [
-        // Fallback if no skills data is provided
-        {
-          skillName: 'General',
-          score: 0,
-          maxPoints: 10,
-        }
-      ];
+  // Initialize with criteria and skills from CriteriaRepresentation
+  const initialScores: ManualCriteriaScore[] = criteria.map((criterion) => {
+    // Extract skills from criteriaJson
+    const skills: SkillScore[] = criterion.criteriaJson.rules.map(rule => ({
+      skillName: rule.skill,
+      score: 0,
+      maxPoints: rule.maxPoints,
+      isActive: rule.isActive !== false, // Default to true if not specified
+    }));
 
-    // Calculate max total score for this criterion
+    // Calculate max total score for this criterion based on skills
     const maxTotalScore = skills.reduce((sum, skill) => sum + skill.maxPoints, 0);
 
     return {
-      id: index + 1,
+      id: criterion.id,
       name: criterion.name,
       skills,
       totalScore: 0,
       maxTotalScore,
+      isActive: true, // Default to active
     };
   });
 
-  // OPTION 1: Split state into separate variables
   const [criteriaScores, setCriteriaScores] = useState<ManualCriteriaScore[]>(initialScores);
   const [totalScore, setTotalScore] = useState<number>(0);
+  const [totalScorePoints, setTotalScorePoints] = useState<number>(0);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [error, setError] = useState<string | null>(null);
@@ -190,6 +185,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
     // 3. Update both states in sequence
     setCriteriaScores(updatedCriteriaScores);
     setTotalScore(calculatedTotalScore);
+    setTotalScorePoints(totalPoints)
   };
 
   // Handle save using the mutation
@@ -202,7 +198,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
         candidateEmail,
         data: {
           criteriaScores: criteriaScores,
-          totalScore: totalScore,
+          totalScore: totalScorePoints,
         },
       });
       
@@ -213,7 +209,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
       
       // Notify parent component about the new manual score
       if (onScoreSaved) {
-        onScoreSaved(totalScore);
+        onScoreSaved(totalScorePoints);
       }
     } catch (err) {
       console.error('Error saving manual scores:', err);
@@ -255,7 +251,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
           return {
             ...criterion,
             skills: mergedSkills,
-            totalScore: savedCriterion.totalScore,
+            totalScore: mergedSkills.reduce((sum, skill) => sum + skill.score, 0),
           };
         }
         
@@ -263,10 +259,39 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
       });
       
       setCriteriaScores(mergedCriteriaScores);
-      setTotalScore(savedScoreData.totalScore);
+      
+      // Recalculate total score
+      const totalPoints = mergedCriteriaScores.reduce(
+        (sum, criterion) => sum + criterion.totalScore, 0
+      );
+      
+      const totalMaxPoints = mergedCriteriaScores.reduce(
+        (sum, criterion) => sum + criterion.maxTotalScore, 0
+      );
+      
+      const calculatedTotalScore = totalMaxPoints > 0 
+        ? Math.round((totalPoints / totalMaxPoints) * 100) 
+        : 0;
+      
+      setTotalScore(calculatedTotalScore);
       setLastUpdated(savedScoreData.lastUpdated ? new Date(savedScoreData.lastUpdated) : new Date());
     }
   }, [savedScoreData, initialScores]);
+
+  // Handle initialization when criteria props change
+  useEffect(() => {
+    setCriteriaScores(initialScores);
+    // Reset total score when criteria changes
+    const totalMaxPoints = initialScores.reduce(
+      (sum, criterion) => sum + criterion.maxTotalScore, 0
+    );
+    
+    const calculatedTotalScore = totalMaxPoints > 0 
+      ? Math.round((initialScores.reduce((sum, criterion) => sum + criterion.totalScore, 0) / totalMaxPoints) * 100) 
+      : 0;
+    
+    setTotalScore(calculatedTotalScore);
+  }, [criteria]);
 
   if (isLoading) {
     return (

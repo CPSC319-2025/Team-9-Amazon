@@ -24,34 +24,8 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
-  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>([]);
-
-  // Merge real applications with mock manual scores
-  useEffect(() => {
-    // Create a map of email to manual score from mock data
-    const mockScoresMap = new Map(
-      mockApplicationsWithManualScores.map(app => [app.applicant.email, app.manualScore])
-    );
-
-    // Apply mock manual scores to applications that don't have them
-    const updatedApplications = applications.map(app => {
-      // If the application already has a manual score, keep it
-      if (app.manualScore !== undefined) {
-        return app;
-      }
-      
-      // Otherwise, check if we have a mock score for this email
-      const mockScore = mockScoresMap.get(app.applicant.email);
-      if (mockScore !== undefined) {
-        return { ...app, manualScore: mockScore };
-      }
-      
-      // If no mock score exists, return the original application
-      return app;
-    });
-
-    setApplicationsWithManualScores(updatedApplications);
-  }, [applications]);
+  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>(applications);
+  console.log('data: ', applicationsWithManualScores)
 
   const handleNavigateToReport = (email: string) => {
     navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
@@ -115,12 +89,12 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
                   Auto: {application.score.toFixed(2)}
                 </Typography>
               )}
-              {application.manualScore !== undefined && (
+              {application.manualScore !== undefined && application.manualScore !== null && (
                 <Typography
                   variant="body2"
                   sx={{ color: colors.blue1, whiteSpace: "nowrap" }}
                 >
-                  Manual: {application.manualScore}%
+                  Manual: {application.manualScore} pts
                 </Typography>
               )}
             </Box>

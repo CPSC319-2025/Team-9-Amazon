@@ -526,7 +526,7 @@ interface SaveManualScoreRequest {
 }
 
 interface ManualScoreResponse {
-  totalScore: number;
+  manualScore: number;
   criteriaScores: ManualCriteriaScore[];
   lastUpdated: string;
 }
@@ -594,6 +594,70 @@ export const useSaveManualScore = () => {
       // Also invalidate application summary to reflect the updated manual score
       queryClient.invalidateQueries({
         queryKey: ['applicationsSummary', variables.jobPostingId],
+      });
+    },
+  });
+};
+
+// Type for the response from the delete manual scores endpoint
+interface DeleteManualScoresResponse {
+  message: string;
+  count: number;
+}
+
+// Hook to delete all manual scores for a job posting
+
+export const useDeleteAllManualScores = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation<DeleteManualScoresResponse, ApiError, string>({
+    mutationFn: async (jobPostingId: string) => {
+      if (!jobPostingId) {
+        throw new Error("Job posting ID is required");
+      }
+
+      const url = apiUrls.resetManualScore.replace(":jobPostingId", jobPostingId)
+      const response = await fetchWithAuth(url, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        // First try to get the response as text
+        const responseText = await response.text();
+        console.error("Error response from server:", responseText);
+        
+        // Try to parse it as JSON, but handle HTML responses gracefully
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          // Not valid JSON, likely HTML error page
+          throw new Error(`Server returned status ${response.status}: Not a valid JSON response`);
+        }
+        
+        throw ApiError.fromResponse(errorData, response);
+      }
+
+      // Try to parse as JSON, but handle empty responses too
+      try {
+        return await response.json();
+      } catch (error) {
+        // If the response is empty or not valid JSON, return a default response
+        return {
+          message: "Manual scores deleted successfully",
+          count: 0
+        };
+      }
+    },
+    onSuccess: (_, jobPostingId) => {
+      // Invalidate applications summary query to reflect the removed manual scores
+      queryClient.invalidateQueries({
+        queryKey: ['applications', 'summary', jobPostingId],
+      });
+      
+      // Invalidate any existing manual score queries for this job posting
+      queryClient.invalidateQueries({
+        queryKey: ['manualScore', jobPostingId],
       });
     },
   });

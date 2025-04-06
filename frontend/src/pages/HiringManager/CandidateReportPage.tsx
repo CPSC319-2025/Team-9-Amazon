@@ -38,12 +38,16 @@ import {
   paperStyle,
   filledButtonStyle,
 } from "../../styles/commonStyles";
-import { 
-  useGetCandidateReport, 
+import {
+  useGetCandidateReport,
   useGetApplicationsSummary,
-  useGetManualScore  // Import the hook for getting manual score
+  useGetManualScore, // Import the hook for getting manual score
+  useGetJobPostingCriteria,
 } from "../../queries/jobPosting";
-import { useGetCandidateNotes, useSaveCandidateNotes } from "../../queries/candidateNotes";
+import {
+  useGetCandidateNotes,
+  useSaveCandidateNotes,
+} from "../../queries/candidateNotes";
 import { ManualScoringForm } from "../../components/HiringManager/ManualScoring/ManualScoringForm";
 import { mockCriteriaWithSkills } from "../../mocks/manualScoringMocks";
 
@@ -51,31 +55,41 @@ import { mockCriteriaWithSkills } from "../../mocks/manualScoringMocks";
 const mockInterviewQuestions = {
   questions: [
     {
-      question: "Can you describe your experience with AWS cloud services and how you've implemented them in previous projects?",
+      question:
+        "Can you describe your experience with AWS cloud services and how you've implemented them in previous projects?",
       category: "Technical",
-      rationale: "The candidate's resume mentions AWS experience, and this role requires cloud expertise."
+      rationale:
+        "The candidate's resume mentions AWS experience, and this role requires cloud expertise.",
     },
     {
-      question: "Tell me about a time when you had to meet a tight deadline. How did you prioritize tasks and ensure quality?",
+      question:
+        "Tell me about a time when you had to meet a tight deadline. How did you prioritize tasks and ensure quality?",
       category: "Behavioral",
-      rationale: "This question helps assess the candidate's time management skills and ability to work under pressure."
+      rationale:
+        "This question helps assess the candidate's time management skills and ability to work under pressure.",
     },
     {
-      question: "How would you approach optimizing a slow-performing database query in a production environment?",
+      question:
+        "How would you approach optimizing a slow-performing database query in a production environment?",
       category: "Problem-solving",
-      rationale: "This evaluates the candidate's troubleshooting approach and technical knowledge."
+      rationale:
+        "This evaluates the candidate's troubleshooting approach and technical knowledge.",
     },
     {
-      question: "Describe a situation where you had to learn a new technology quickly. What was your approach?",
+      question:
+        "Describe a situation where you had to learn a new technology quickly. What was your approach?",
       category: "Experience",
-      rationale: "This role requires adaptability and continuous learning of new technologies."
+      rationale:
+        "This role requires adaptability and continuous learning of new technologies.",
     },
     {
-      question: "How do you ensure your code is maintainable and follows best practices?",
+      question:
+        "How do you ensure your code is maintainable and follows best practices?",
       category: "Technical",
-      rationale: "Code quality and maintainability are important aspects of the role."
-    }
-  ]
+      rationale:
+        "Code quality and maintainability are important aspects of the role.",
+    },
+  ],
 };
 
 // Tab panel component
@@ -95,13 +109,9 @@ function TabPanel(props: TabPanelProps) {
       id={`candidate-tabpanel-${index}`}
       aria-labelledby={`candidate-tab-${index}`}
       {...other}
-      style={{ height: '100%' }}
+      style={{ height: "100%" }}
     >
-      {value === index && (
-        <Box sx={{ height: '100%', pt: 2 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ height: "100%", pt: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -109,7 +119,7 @@ function TabPanel(props: TabPanelProps) {
 function a11yProps(index: number) {
   return {
     id: `candidate-tab-${index}`,
-    'aria-controls': `candidate-tabpanel-${index}`,
+    "aria-controls": `candidate-tabpanel-${index}`,
   };
 }
 
@@ -117,11 +127,11 @@ export default function CandidateReportPage() {
   const { jobPostingId, candidateEmail } = useParams();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
-  
+
   // Notes state
   const [notes, setNotes] = useState<string>("");
   const [notesSuccess, setNotesSuccess] = useState<boolean>(false);
-  
+
   // Manual score state
   const [manualScore, setManualScore] = useState<number | null>(null);
 
@@ -133,9 +143,9 @@ export default function CandidateReportPage() {
   } = useGetCandidateReport(jobPostingId!, candidateEmail!);
 
   // Get application summary to access totalPossibleScore
-  const {
-    data: summaryData,
-  } = useGetApplicationsSummary(jobPostingId!);
+  const { data: summaryData } = useGetApplicationsSummary(jobPostingId!);
+
+  const { data: criteriaData } = useGetJobPostingCriteria(jobPostingId!);
 
   // Get manual score from API
   const {
@@ -148,14 +158,14 @@ export default function CandidateReportPage() {
   const {
     data: noteData,
     isLoading: isLoadingNotes,
-    error: notesQueryError
+    error: notesQueryError,
   } = useGetCandidateNotes(jobPostingId!, candidateEmail!);
 
   // Save notes mutation
-  const { 
+  const {
     mutate: saveNotes,
     isPending: isSavingNotes,
-    error: saveNotesError
+    error: saveNotesError,
   } = useSaveCandidateNotes();
 
   // Set notes from query data when it loads
@@ -167,8 +177,13 @@ export default function CandidateReportPage() {
 
   // Set manual score from API data when it loads
   React.useEffect(() => {
-    if (manualScoreData && manualScoreData.manualScore !== undefined) {
-      setManualScore(manualScoreData.manualScore);
+    if (manualScoreData && manualScoreData.manualScore !== undefined && manualScoreData.manualScore !== null) {
+      const percentage = Math.floor(
+        (manualScoreData.manualScore / summaryData?.totalPossibleScore) * 100
+      );
+      setManualScore(percentage);
+    } else {
+      setManualScore(null)
     }
   }, [manualScoreData]);
 
@@ -179,22 +194,19 @@ export default function CandidateReportPage() {
   const handleSaveNotes = async () => {
     if (!jobPostingId || !candidateEmail) return;
 
-    console.log("Saving notes:", notes);
-    
     saveNotes(
-      { 
-        jobPostingId, 
-        candidateEmail, 
-        notes 
+      {
+        jobPostingId,
+        candidateEmail,
+        notes,
       },
       {
         onSuccess: (data) => {
-          console.log("Notes saved successfully:", data);
           setNotesSuccess(true);
         },
         onError: (error) => {
           console.error("Error in save notes mutation:", error);
-        }
+        },
       }
     );
   };
@@ -211,14 +223,9 @@ export default function CandidateReportPage() {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
 
-  // Handler for when manual score is saved
-  const handleManualScoreSaved = (newScore: number) => {
-    setManualScore(newScore);
-  };
-
-  let isPdf = null
+  let isPdf = null;
   if (candidateData?.resume) {
-    isPdf = candidateData?.resume.fileType === 'application/pdf';
+    isPdf = candidateData?.resume.fileType === "application/pdf";
   }
 
   if (isLoading) {
@@ -319,9 +326,9 @@ export default function CandidateReportPage() {
           </Box>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
+            {manualScore !== null && <Typography variant="body2" sx={{ color: colors.gray2, mb: 0.5 }}>
               Manual Score
-            </Typography>
+            </Typography>}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {isLoadingManualScore ? (
                 <CircularProgress size={20} sx={{ mr: 1 }} />
@@ -349,14 +356,7 @@ export default function CandidateReportPage() {
                     {manualScore}%
                   </Typography>
                 </>
-              ) : (
-                <Typography
-                  variant="body1"
-                  sx={{ color: colors.gray2, fontWeight: 500 }}
-                >
-                  Not scored
-                </Typography>
-              )}
+              ) : null}
             </Box>
           </Box>
         </Box>
@@ -740,7 +740,7 @@ export default function CandidateReportPage() {
                 >
                   <iframe
                     id="resume-preview-iframe"
-                    src={candidateData.resume}
+                    src={candidateData.resume.url}
                     title="Resume Preview"
                     width="100%"
                     height="100%"
@@ -781,8 +781,7 @@ export default function CandidateReportPage() {
           <ManualScoringForm 
             jobPostingId={jobPostingId!}
             candidateEmail={candidateEmail!}
-            criteria={mockCriteriaWithSkills}
-            onScoreSaved={handleManualScoreSaved}
+            criteria={criteriaData!}
           />
         </TabPanel>
       </Box>

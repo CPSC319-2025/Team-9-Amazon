@@ -7,6 +7,7 @@ import {
   Alert,
   Typography,
   CircularProgress,
+  Button,
 } from "@mui/material";
 import { colors, paperStyle } from "../../styles/commonStyles";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
@@ -33,7 +34,6 @@ const JobPostingApplicationsPage = () => {
     isLoading,
     error,
   } = useGetApplicationsSummary(jobPostingId || "");
-  console.log('summary', summaryData);
 
   // Fetch potential candidates on demand
   const {
@@ -52,7 +52,7 @@ const JobPostingApplicationsPage = () => {
   const filteredApplications = useMemo(() => {
     if (!summaryData?.applications) return [];
 
-    let filtered = summaryData.applications.filter((application) => {
+    const filtered = summaryData.applications.filter((application) => {
       const fullName =
         `${application.applicant.firstName} ${application.applicant.lastName}`.toLowerCase();
       return (
@@ -161,6 +161,9 @@ const JobPostingApplicationsPage = () => {
     (app) => app.score !== undefined
   );
 
+  // Check if the maximum score is zero
+  const hasZeroMaxScore = summaryData?.totalPossibleScore === 0;
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
@@ -173,6 +176,30 @@ const JobPostingApplicationsPage = () => {
             showSort={hasEvaluatedApplicants}
           />
         </Box>
+
+        {/* No Scoring Criteria Alert */}
+        {hasZeroMaxScore && (
+          <Alert 
+            severity="info"
+            sx={{ 
+              mb: 4, 
+              bgcolor: `${colors.blue1}15`,
+              color: colors.blue1,
+              '& .MuiAlert-icon': { color: colors.blue1 }
+            }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={handleNavigateToCriteria}
+              >
+                Add Criteria
+              </Button>
+            }
+          >
+            No scoring criteria have been set up for this job posting. Add evaluation criteria to start scoring applicants.
+          </Alert>
+        )}
 
         <Grid container spacing={4}>
           <Grid item xs={12} md={scanned ? 6 : 12}>
@@ -192,9 +219,12 @@ const JobPostingApplicationsPage = () => {
                 >
                   Applications ({summaryData?.totalApplications || 0})
                 </Typography>
-                {summaryData?.totalPossibleScore && (
+                {summaryData?.totalPossibleScore !== undefined && (
                   <Typography variant="subtitle1" sx={{ color: colors.gray2 }}>
-                    Maximum Possible Score: {summaryData.totalPossibleScore}
+                    {summaryData.totalPossibleScore > 0 
+                      ? `Maximum Possible Score: ${summaryData.totalPossibleScore}`
+                      : "No scoring criteria available"
+                    }
                   </Typography>
                 )}
               </Box>

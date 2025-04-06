@@ -964,16 +964,6 @@ router.get(
           color: sourceColors[name as keyof typeof sourceColors] || sourceColors.Other,
         }))
         .sort((a, b) => b.value - a.value);
-        
-      // Define colors for common sources
-      const sourceColors = {
-        LinkedIn: "#0077B5",
-        Indeed: "#2164f3",
-        "Company Site": "#6B7280",
-        Referral: "#FF9B50",
-        "Job Board": "#00A86B",
-        Other: "#9CA3AF",
-      };
 
       // Get all criteria for this job posting
       const criteria = await Criteria.findAll({
@@ -1351,6 +1341,16 @@ router.post(
       const { jobPostingId, candidateEmail } = req.params;
       const { notes } = req.body;
 
+      // Define colors for common sources
+      const sourceColors = {
+        LinkedIn: "#0077B5",
+        Indeed: "#2164f3",
+        "Company Site": "#6B7280",
+        Referral: "#FF9B50",
+        "Job Board": "#00A86B",
+        Other: "#9CA3AF",
+      };
+
       console.log("Received save notes request:", {
         jobPostingId,
         candidateEmail,
@@ -1579,6 +1579,74 @@ router.get(
       console.error('Error retrieving manual score:', error);
       res.status(500).json({ 
         error: "Failed to retrieve manual score",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Add the new endpoint to delete all manual scores for a job posting
+router.delete(
+  "/:jobPostingId/manual-scores",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+      const staffId = req.auth?.id;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: staffId,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to modify its applications"
+        });
+      }
+
+      // Find all applications with manual scores for this job posting
+      const applications = await Application.findAll({
+        where: {
+          jobPostingId,
+          manualScore: {
+            [Op.not]: null // Find only applications with a manual score
+          }
+        }
+      });
+
+      if (applications.length === 0) {
+        return res.status(200).json({
+          message: "No manually scored applications found for this job posting",
+          count: 0
+        });
+      }
+
+      // Update all applications to set manualScore to null
+      const updateCount = await Application.update(
+        { manualScore: null },
+        {
+          where: {
+            jobPostingId,
+            manualScore: {
+              [Op.not]: null
+            }
+          }
+        }
+      );
+
+      return res.status(200).json({
+        message: "Successfully reset all manual scores for this job posting",
+        count: updateCount[0] // Number of rows affected
+      });
+    } catch (error) {
+      console.error("Error deleting manual scores:", error);
+      return res.status(500).json({
+        error: "Failed to delete manual scores",
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }
