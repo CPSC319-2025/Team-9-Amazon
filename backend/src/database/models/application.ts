@@ -37,6 +37,7 @@ interface ApplicationAttributes {
   educationJson: EducationJSON;
   referralSource?: string;
   applicant?: Applicant;
+  manualScore: number | null;
 }
 
 interface ApplicationCreationAttributes
@@ -161,6 +162,10 @@ export const ApplicationSchema = {
       }
     }
   },
+  manualScore: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -184,6 +189,7 @@ export default class Application
   declare experienceJson: ExperienceJSON;
   declare educationJson: EducationJSON;
   declare referralSource?: string;
+  declare manualScore: number | null;
   declare createdAt: Date;
   declare updatedAt: Date;
 

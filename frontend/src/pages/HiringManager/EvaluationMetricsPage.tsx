@@ -16,6 +16,11 @@ import {
   Alert,
   CircularProgress,
   Tooltip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import {
   colors,
@@ -26,6 +31,7 @@ import { CriteriaGroup as CriteriaGroupComponent } from "../../components/Hiring
 import { Rule } from "../../types/criteria";
 import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
+import WarningIcon from "@mui/icons-material/Warning";
 import {
   CriteriaGroupRepresentation,
   transformToRequestData,
@@ -34,6 +40,7 @@ import {
   transformCriteriaData,
   useCreateJobPostingCriteria,
   useDeleteJobPostingCriteria,
+  useDeleteAllManualScores,
   useEditJobPostingCriteria,
   useGetJobPostingCriteria,
 } from "../../queries/jobPosting";
@@ -65,6 +72,8 @@ const EvaluationMetricsPage = () => {
     CriteriaGroupRepresentation[]
   >([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Add state for confirmation dialog
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const {
     data: criteriaData,
@@ -85,6 +94,7 @@ const EvaluationMetricsPage = () => {
   const deleteCriteriaMutation = useDeleteJobPostingCriteria(
     jobPostingId || ""
   );
+  const deleteManualScoresMutation = useDeleteAllManualScores();
 
   useBlocker(
     () =>
@@ -241,9 +251,26 @@ const EvaluationMetricsPage = () => {
     setSnackbarOpen(true);
   };
 
+  // Modified to open confirmation dialog instead of saving directly
+  const handleSaveChangesClick = () => {
+    setConfirmDialogOpen(true);
+  };
+
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
+      setConfirmDialogOpen(false);
+
+      // Delete all manual scores for this job posting first
+      try {
+        await deleteManualScoresMutation.mutateAsync(jobPostingId || "");
+      } catch (deleteError) {
+        console.error("Error deleting manual scores:", deleteError);
+        // Continue with the rest of the operation even if this fails
+        setSnackbarMessage("Warning: Failed to delete manual scores, but continuing with criteria updates.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      }
 
       // Find deleted criteria
       const deletedCriteria = initialCriteria.filter(
@@ -302,11 +329,20 @@ const EvaluationMetricsPage = () => {
       );
 
       setHasUnsavedChanges(false);
-      setSnackbarMessage("All changes saved successfully");
+      setSnackbarMessage("All changes saved successfully. Manual scores have been deleted.");
       setSnackbarSeverity("success");
     } catch (error) {
       console.error("Error saving criteria:", error);
-      setSnackbarMessage("Failed to save changes. Please try again.");
+      
+      // More specific error handling for JSON parsing errors
+      if (error instanceof SyntaxError && error.message.includes("Unexpected token")) {
+        setSnackbarMessage("Server error: The server returned an unexpected response. Please check the network tab for details.");
+      } else if (error instanceof Error) {
+        setSnackbarMessage(`Failed to save changes: ${error.message}`);
+      } else {
+        setSnackbarMessage("Failed to save changes. Please try again.");
+      }
+      
       setSnackbarSeverity("error");
     } finally {
       setIsSaving(false);
@@ -383,7 +419,7 @@ const EvaluationMetricsPage = () => {
           <Button
             variant="contained"
             startIcon={<SaveIcon />}
-            onClick={handleSaveChanges}
+            onClick={handleSaveChangesClick}
             disabled={isSaving || !hasUnsavedChanges}
             sx={{
               ...filledButtonStyle,
@@ -504,6 +540,7 @@ const EvaluationMetricsPage = () => {
         </Grid>
       </Container>
 
+      {/* Edit Rule Dialog */}
       <EditRuleDialog
         open={!!editingRule}
         rule={editingRule?.rule || null}
@@ -511,9 +548,54 @@ const EvaluationMetricsPage = () => {
         onSave={handleSaveRule}
       />
 
+      {/* Confirmation Dialog for Manual Score Warning */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          color: colors.orange1,
+          fontWeight: 'bold'
+        }}>
+          <WarningIcon sx={{ mr: 1, color: colors.orange1 }} />
+          Warning: Manual Scores Will Be Deleted
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <Typography paragraph>
+              <strong>Important:</strong> Updating job criteria will delete all manual scores for this job posting.
+            </Typography>
+            <Typography>
+              This action cannot be undone. All manually entered scores for candidates will be reset.
+            </Typography>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setConfirmDialogOpen(false)}
+            sx={{ color: colors.black1 }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveChanges}
+            variant="contained"
+            color="error"
+            sx={{ fontWeight: 'bold' }}
+          >
+            Save and Delete Manual Scores
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success/Error Notification */}
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         sx={{ top: "24px" }}

@@ -7,12 +7,15 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { colors } from "../../../styles/commonStyles";
 import { useNavigate, useParams } from "react-router";
 import { ROUTES } from "../../../routes/routePaths";
 import { ApplicationSummary } from "../../../types/application";
+import { mockApplicationsWithManualScores } from "../../../mocks/manualScoringMocks";
+import { useEffect, useState } from "react";
 
 interface ApplicantListProps {
   applications: ApplicationSummary[];
@@ -21,8 +24,14 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
+  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>(applications);
+  console.log('data: ', applicationsWithManualScores)
 
-  if (applications.length === 0) {
+  const handleNavigateToReport = (email: string) => {
+    navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
+  };
+
+  if (applicationsWithManualScores.length === 0) {
     return (
       <Box sx={{ textAlign: "center", py: 4 }}>
         <Typography variant="body1" sx={{ color: colors.gray2 }}>
@@ -38,12 +47,12 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
       sx={{ bgcolor: colors.gray1, borderRadius: 2, overflow: "hidden" }}
     >
       <List sx={{ py: 0 }}>
-        {applications.map((application, index) => (
+        {applicationsWithManualScores.map((application, index) => (
           <ListItem
             key={[application.applicantId, application.jobPostingId].join("-")}
             sx={{
               borderBottom:
-                index < applications.length - 1
+                index < applicationsWithManualScores.length - 1
                   ? `1px solid ${colors.white}`
                   : "none",
               transition: "background-color 0.2s ease",
@@ -53,14 +62,7 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               },
               py: 2,
             }}
-            onClick={() =>
-              navigate(
-                ROUTES.hiringManager.candidateReport(
-                  jobPostingId!,
-                  application.applicant.email
-                )
-              )
-            }
+            onClick={() => handleNavigateToReport(application.applicant.email)}
           >
             <ListItemText
               primary={
@@ -82,34 +84,40 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               {application.score !== undefined && (
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.black1, whiteSpace: "nowrap" }}
+                  sx={{ color: colors.orange1, whiteSpace: "nowrap" }}
                 >
-                  Score: {application.score.toFixed(2)}
+                  Auto: {application.score.toFixed(2)}
+                </Typography>
+              )}
+              {application.manualScore !== undefined && application.manualScore !== null && (
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.blue1, whiteSpace: "nowrap" }}
+                >
+                  Manual: {application.manualScore} pts
                 </Typography>
               )}
             </Box>
             <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
-              <IconButton
-                edge="end"
-                onClick={() =>
-                  navigate(
-                    ROUTES.hiringManager.candidateReport(
-                      jobPostingId!,
-                      application.applicant.email
-                    )
-                  )
-                }
-                sx={{
-                  color: colors.black1,
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    color: colors.blue1,
-                    bgcolor: `${colors.blue1}15`,
-                  },
-                }}
-              >
-                <AssessmentIcon sx={{ color: colors.orange1 }} />
-              </IconButton>
+              <Tooltip title="View candidate report" arrow>
+                <IconButton
+                  edge="end"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent row click event from firing
+                    handleNavigateToReport(application.applicant.email);
+                  }}
+                  sx={{
+                    color: colors.black1,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      color: colors.blue1,
+                      bgcolor: `${colors.blue1}15`,
+                    },
+                  }}
+                >
+                  <AssessmentIcon sx={{ color: colors.orange1 }} />
+                </IconButton>
+              </Tooltip>
             </ListItemSecondaryAction>
           </ListItem>
         ))}

@@ -5,7 +5,7 @@ import {
 } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
 import { generateTemporaryUrl } from "@/common/utils/awsTools";
-import Database, { JobPosting, JobTag, Staff } from "@/database/database";
+import Database, { JobPosting, JobTag, Staff, CandidateNote } from "@/database/database";
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
 import Criteria, { CriteriaType } from "@/database/models/criteria";
@@ -93,7 +93,6 @@ router.get("/invisible", authenticateJWT, requireAdmin, async (req, res) => {
     handleZodError(error, res, "Error fetching invisible job postings");
   }
 });
-
 
 // Get job posting of id
 router.get(
@@ -708,6 +707,15 @@ router.get(
           },
         ],
         order: [["score", "DESC"]],
+        // Include the manualScore field in the query
+        attributes: [
+          "jobPostingId", 
+          "applicantId", 
+          "score", 
+          "manualScore", // Include manualScore
+          "createdAt", 
+          "updatedAt"
+        ]
       });
 
       // Transform the data for response
@@ -715,6 +723,7 @@ router.get(
         const applicantData = application.get({ plain: true }).applicant;
         return {
           score: application.score || 0,
+          manualScore: application.manualScore, // Include manualScore in response
           applicant: {
             firstName: applicantData?.firstName,
             lastName: applicantData?.lastName,
@@ -739,6 +748,7 @@ router.get(
     }
   }
 );
+
 // Scan database for potential top 10 candidates
 router.get(
   "/:jobPostingId/potential-candidates",
@@ -1271,6 +1281,372 @@ router.get(
       console.error("Error fetching candidate report:", error);
       res.status(500).json({
         error: "Failed to fetch candidate report",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Get candidate notes for a specific job posting and candidate
+router.get(
+  "/:jobPostingId/candidate-notes/:candidateEmail",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: { 
+          id: jobPostingId,
+          staffId: req.auth?.id 
+        }
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({ error: "Job posting not found or not authorized" });
+      }
+
+      // Find the notes for this candidate
+      const candidateNote = await CandidateNote.findOne({
+        where: {
+          jobPostingId,
+          candidateEmail: decodeURIComponent(candidateEmail)
+        }
+      });
+
+      if (!candidateNote) {
+        return res.status(404).json({ error: "No notes found for this candidate" });
+      }
+
+      res.json(candidateNote);
+    } catch (error) {
+      console.error("Error fetching candidate notes:", error);
+      res.status(500).json({
+        error: "Failed to fetch candidate notes",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Save candidate notes for a specific job posting and candidate
+router.post(
+  "/:jobPostingId/candidate-notes/:candidateEmail",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+      const { notes } = req.body;
+
+      // Define colors for common sources
+      const sourceColors = {
+        LinkedIn: "#0077B5",
+        Indeed: "#2164f3",
+        "Company Site": "#6B7280",
+        Referral: "#FF9B50",
+        "Job Board": "#00A86B",
+        Other: "#9CA3AF",
+      };
+
+      console.log("Received save notes request:", {
+        jobPostingId,
+        candidateEmail,
+        notes,
+        body: req.body
+      });
+
+      if (!notes) {
+        console.log("Notes content is missing");
+        return res.status(400).json({ error: "Notes content is required" });
+      }
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: { 
+          id: jobPostingId,
+          staffId: req.auth?.id 
+        }
+      });
+
+      if (!jobPosting) {
+        console.log("Job posting not found or not authorized");
+        return res.status(404).json({ error: "Job posting not found or not authorized" });
+      }
+
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      console.log("Decoded email:", decodedEmail);
+
+      // Check if notes already exist for this candidate
+      let candidateNote = await CandidateNote.findOne({
+        where: {
+          jobPostingId,
+          candidateEmail: decodedEmail
+        }
+      });
+
+      console.log("Existing note found:", candidateNote ? true : false);
+
+      if (candidateNote) {
+        // Update existing note
+        console.log("Updating existing note");
+        console.log("Old notes value:", candidateNote.notes);
+        console.log("New notes value:", notes);
+        
+        // Update the model
+        candidateNote.set({
+          notes: notes,
+          lastUpdated: new Date()
+        });
+        
+        // Save the changes
+        await candidateNote.save();
+        
+        // Reload the model to ensure we have the latest data
+        await candidateNote.reload();
+        
+        console.log("Note updated successfully");
+        console.log("Updated notes value:", candidateNote.notes);
+      } else {
+        // Create new note
+        console.log("Creating new note");
+        candidateNote = await CandidateNote.create({
+          jobPostingId,
+          candidateEmail: decodedEmail,
+          notes,
+          lastUpdated: new Date()
+        });
+        console.log("Note created successfully");
+      }
+
+      console.log("Returning note:", candidateNote);
+      res.json(candidateNote);
+    } catch (error) {
+      console.error("Error saving candidate notes:", error);
+      res.status(500).json({
+        error: "Failed to save candidate notes",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Save candidate manual score for specific application
+router.post(
+  "/:jobPostingId/:candidateEmail/manual-score",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+      const { totalScore } = req.body;
+
+      // this is the break down of each skill and score can implement in the future to populate manually scoring page
+      const {criteriaScores} = req.body
+
+      const manualScore = totalScore
+      
+      if (manualScore === undefined || manualScore === null) {
+        return res.status(400).json({ error: "Manual score is required" });
+      }
+      
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to score this candidate"
+        });
+      }
+
+      // Find the applicant by email
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      const applicant = await Applicant.findOne({
+        where: { email: decodedEmail }
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this job posting and applicant
+      const application = await Application.findOne({
+        where: {
+          jobPostingId,
+          applicantId: applicant.id
+        }
+      });
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      // Update the application with the manual score
+      await application.update({
+        manualScore: manualScore
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Manual score updated successfully",
+        data: {
+          jobPostingId: parseInt(jobPostingId),
+          applicantId: applicant.id,
+          applicantEmail: decodedEmail,
+          manualScore: manualScore,
+          updatedAt: application.updatedAt
+        }
+      });
+    } catch (error) {
+      console.error('Error saving manual score:', error);
+      res.status(500).json({ 
+        error: "Failed to save manual score",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Get candidate manual score for specific application
+router.get(
+  "/:jobPostingId/:candidateEmail/manual-score",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to view this candidate's score"
+        });
+      }
+
+      // Find the applicant by email
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      const applicant = await Applicant.findOne({
+        where: { email: decodedEmail },
+        attributes: ['id', 'email', 'firstName', 'lastName', 'phone', 'linkedIn']
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this job posting and applicant
+      const application = await Application.findOne({
+        where: {
+          jobPostingId,
+          applicantId: applicant.id
+        }
+      });
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      // Return the manual score information with full applicant details
+      res.status(200).json({
+        jobPostingId: parseInt(jobPostingId),
+        applicant: {
+          id: applicant.id,
+          email: applicant.email,
+          firstName: applicant.firstName,
+          lastName: applicant.lastName,
+          phone: applicant.phone || null,
+          linkedIn: applicant.linkedIn || null,
+        },
+        manualScore: application.manualScore,
+        algorithmScore: application.score,
+        lastUpdated: application.updatedAt
+      });
+    } catch (error) {
+      console.error('Error retrieving manual score:', error);
+      res.status(500).json({ 
+        error: "Failed to retrieve manual score",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Add the new endpoint to delete all manual scores for a job posting
+router.delete(
+  "/:jobPostingId/manual-scores",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
+      const staffId = req.auth?.id;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: staffId,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to modify its applications"
+        });
+      }
+
+      // Find all applications with manual scores for this job posting
+      const applications = await Application.findAll({
+        where: {
+          jobPostingId,
+          manualScore: {
+            [Op.not]: null // Find only applications with a manual score
+          }
+        }
+      });
+
+      if (applications.length === 0) {
+        return res.status(200).json({
+          message: "No manually scored applications found for this job posting",
+          count: 0
+        });
+      }
+
+      // Update all applications to set manualScore to null
+      const updateCount = await Application.update(
+        { manualScore: null },
+        {
+          where: {
+            jobPostingId,
+            manualScore: {
+              [Op.not]: null
+            }
+          }
+        }
+      );
+
+      return res.status(200).json({
+        message: "Successfully reset all manual scores for this job posting",
+        count: updateCount[0] // Number of rows affected
+      });
+    } catch (error) {
+      console.error("Error deleting manual scores:", error);
+      return res.status(500).json({
+        error: "Failed to delete manual scores",
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }

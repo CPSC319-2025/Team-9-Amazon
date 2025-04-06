@@ -42,13 +42,17 @@ const HiringManagerNav = ({
     // If on base job posting route, default to "Job Details"
     if (location.pathname === ROUTES.hiringManager.jobPosting(jobPostingId!)) {
       setTabValue(ROUTES.hiringManager.jobDetails(jobPostingId!));
+    } else if (location.pathname.includes('/candidate-report/')) {
+      // If on a candidate profile page, keep the Applications tab highlighted
+      setTabValue(ROUTES.hiringManager.applications(jobPostingId!));
     } else {
       setTabValue(location.pathname);
     }
   }, [location.pathname, jobPostingId]);
 
   useEffect(() => {
-    setTabValue(location.pathname);
+    // This is redundant with the above effect and can cause issues
+    // setTabValue(location.pathname);
   }, [location]);
 
   const onStatusChange = async () => {
