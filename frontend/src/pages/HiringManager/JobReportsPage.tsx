@@ -13,6 +13,13 @@ import { Outlet, useParams } from "react-router";
 import { useGetJobReports } from '../../queries/jobPosting';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+const sourceColors = {
+  LinkedIn: '#0077B5', // LinkedIn blue
+  Amazon: '#FF9900',   // Amazon orange
+  Indeed: '#003A9B',   // Indeed blue
+  Other: '#6F7287',    // Gray for other sources
+};
+
 export default function JobReportsPage() {
   const params = useParams();
   const jobPostingId = params.jobPostingId;

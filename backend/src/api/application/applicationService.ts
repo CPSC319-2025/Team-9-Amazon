@@ -99,6 +99,7 @@ export const createApplication = async (data: any, applicantId: number, resumeFi
         jobPostingId,
         applicantId,
         resumePath: resumeFileName,
+        referralSource: data.referral_source || null,
         experienceJson: {
             experiences:
                 data.work_experience?.map((exp: any) => ({
