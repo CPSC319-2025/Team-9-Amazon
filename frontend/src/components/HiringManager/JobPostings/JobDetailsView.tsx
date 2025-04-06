@@ -67,7 +67,7 @@ const JobDetailsView = ({
     if (maxLength !== undefined && value.length > maxLength) {
       setErrors((prev) => ({
         ...prev,
-        [field]: `Maximum allowed characters for ${field} is ${FIELD_MAX_LENGTHS[field]}.`,
+        [field]: `Maximum allowed characters for ${field} is ${maxLength}.`,
       }));
     } else if (!value.trim()) {
       setErrors((prev) => ({ ...prev, [field]: "This field is required." }));
