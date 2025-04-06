@@ -18,6 +18,7 @@ import ConfirmDialog from "../../Common/ConfirmDialog";
 import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
 import { useSnackbar } from "notistack";
 import { useBlocker, useBrowserBlocker } from "../UnsavedChangesBlocker";
+import { FIELD_MAX_LENGTHS } from "../../../utils/jobPostingValidationRules";
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
   mode: JobDetailsMode;
@@ -61,10 +62,16 @@ const JobDetailsView = ({
     setEditedJob((prev) => ({ ...prev, [field]: value }));
     setHasUnsavedChanges(true);
 
-    if (!value.trim()) {
+    const maxLength = FIELD_MAX_LENGTHS[field];
+
+    if (maxLength !== undefined && value.length > maxLength) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: `Maximum allowed characters for ${field} is ${FIELD_MAX_LENGTHS[field]}.`,
+      }));
+    } else if (!value.trim()) {
       setErrors((prev) => ({ ...prev, [field]: "This field is required." }));
     } else {
-      // Remove error for that field if value is valid
       setErrors((prev) => {
         const { [field]: removed, ...rest } = prev;
         return rest;
