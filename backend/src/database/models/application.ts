@@ -35,6 +35,7 @@ interface ApplicationAttributes {
   score: number | undefined;
   experienceJson: ExperienceJSON;
   educationJson: EducationJSON;
+  referralSource?: string;
   applicant?: Applicant;
 }
 
@@ -150,6 +151,16 @@ export const ApplicationSchema = {
       }
     }
   },
+  referralSource: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isIn: {
+        args: [['LinkedIn', 'Amazon', 'Indeed', 'Other']],
+        msg: "Referral source must be one of: LinkedIn, Amazon, Indeed, Other"
+      }
+    }
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -172,6 +183,7 @@ export default class Application
   declare score: number | undefined;
   declare experienceJson: ExperienceJSON;
   declare educationJson: EducationJSON;
+  declare referralSource?: string;
   declare createdAt: Date;
   declare updatedAt: Date;
 

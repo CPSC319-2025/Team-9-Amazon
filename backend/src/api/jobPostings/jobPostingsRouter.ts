@@ -17,6 +17,16 @@ import { Op, Transaction } from "sequelize";
 
 const router = Router();
 
+// Define colors for common sources
+const sourceColors = {
+  LinkedIn: "#0077B5",
+  Indeed: "#2164f3",
+  "Company Site": "#6B7280",
+  Referral: "#FF9B50",
+  "Job Board": "#00A86B",
+  Other: "#9CA3AF",
+  Amazon: "#FF9900",
+};
 
 // get all job postings for a hiring manager
 router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
@@ -177,8 +187,6 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     );
 
     const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, { transaction: t });
-
-    // console.log("Created job posting:", freshJobPosting);
 
     // If tags were provided, process them.
     if (tags && Array.isArray(tags) && tags.length > 0) {
@@ -882,7 +890,7 @@ router.get(
             attributes: ["id", "firstName", "lastName", "email"],
           },
         ],
-        attributes: ["jobPostingId", "applicantId", "score", "createdAt"],
+        attributes: ["jobPostingId", "applicantId", "score", "createdAt", "referralSource"],
       });
 
       // Calculate applications over time (by month)
@@ -927,27 +935,25 @@ router.get(
         }))
         .reverse(); // Show oldest month first
 
-      // // Calculate application sources
-      // const sourceCount = new Map();
-      // let totalSourcedApplications = 0;
+      // Calculate application sources
+      const sourceCount = new Map();
+      let totalSourcedApplications = 0;
 
-      // applications.forEach(application => {
-      //   const source = application.applicant?.source || "Other";
-      //   sourceCount.set(source, (sourceCount.get(source) || 0) + 1);
-      //   totalSourcedApplications++;
-      // });
+      applications.forEach(application => {
+        // Use the new referralSource field, default to "Other" if not specified
+        const source = application.get("referralSource") || application.dataValues?.referralSource || "Other";
+        sourceCount.set(source, (sourceCount.get(source) || 0) + 1);
+        totalSourcedApplications++;
+      });
 
-      // Define colors for common sources
-      const sourceColors = {
-        LinkedIn: "#0077B5",
-        Indeed: "#2164f3",
-        "Company Site": "#6B7280",
-        Referral: "#FF9B50",
-        "Job Board": "#00A86B",
-        Other: "#9CA3AF",
-      };
-
-      //////////////////////////////////////////////////////////////////////////////
+      // Convert to array and calculate percentages
+      const sourceData = Array.from(sourceCount.entries())
+        .map(([name, count]) => ({
+          name,
+          value: Math.round((count / totalSourcedApplications) * 100),
+          color: sourceColors[name as keyof typeof sourceColors] || sourceColors.Other,
+        }))
+        .sort((a, b) => b.value - a.value);
 
       // Get all criteria for this job posting
       const criteria = await Criteria.findAll({
@@ -1033,6 +1039,7 @@ router.get(
       res.json({
         totalApplications: applications.length,
         applicationData,
+        sourceData,
         criteriaMatchStats,
       });
     } catch (error) {

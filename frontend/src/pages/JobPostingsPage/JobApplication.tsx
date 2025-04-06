@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Modal } from "@mui/material";
+import { Box, Modal, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import CustomFormTextField from "../../components/Common/FormInputs/CustomFormTextField";
 import CustomButton from "../../components/Common/Buttons/CustomButton";
 import CircularProgressLoader from "../../components/Common/Loaders/CircularProgressLoader";
@@ -44,6 +44,7 @@ const applicationSchema = z.object({
   }),
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
+  referralSource: z.enum(["LinkedIn", "Amazon", "Indeed", "Other"]).optional(),
   work_experience: z
   .array(
     z.object({
@@ -472,7 +473,6 @@ export default function JobApplication() {
   };
 
   const onSubmit = async (data: ApplicationFormData) => {
-    console.log("SUBMIT TRIGGERED");
     try {
       setIsSubmitting(true);
 
@@ -508,7 +508,6 @@ export default function JobApplication() {
 
     // Run your custom validation first
     const missingField = validateForm(formData);
-    console.log("missing", missingField);
 
     if (missingField) {
       // If validation fails, show error and stop
@@ -711,6 +710,46 @@ export default function JobApplication() {
           register={register}
           errors={errors}
         />
+
+        <div className="space-y-1">
+          <FormControl fullWidth>
+            <InputLabel 
+              id="referral-source-label"
+              sx={{
+                "&.Mui-focused": {
+                  color: "#FF9900",
+                },
+              }}
+            >
+              Where did you hear about us?
+            </InputLabel>
+            <Select
+              labelId="referral-source-label"
+              id="referral-source"
+              {...register("referralSource")}
+              label="Where did you hear about us?"
+              defaultValue=""
+              sx={{
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#FF9900",
+                },
+              }}
+            >
+              <MenuItem value="">
+                <em>Select an option</em>
+              </MenuItem>
+              <MenuItem value="LinkedIn">LinkedIn</MenuItem>
+              <MenuItem value="Amazon">Amazon</MenuItem>
+              <MenuItem value="Indeed">Indeed</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </Select>
+            {errors.referralSource && (
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.referralSource.message as string}
+              </span>
+            )}
+          </FormControl>
+        </div>
 
         {showWorkExperience && (
           <>

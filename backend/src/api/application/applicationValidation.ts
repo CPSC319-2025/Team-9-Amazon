@@ -28,6 +28,7 @@ export const applicationSchema = z.object({
     phone: z.string().trim().min(10).max(15),
     personal_links: z.string().trim().optional(),
     resume: z.string().trim().min(1),
+    referralSource: z.string().trim().optional(),
     jobPostingId: z.string().min(1, "Job posting ID is required")
         .refine((val) => /^\d+$/.test(val.trim()), {
             message: "Job posting Id must be a numeric string"
