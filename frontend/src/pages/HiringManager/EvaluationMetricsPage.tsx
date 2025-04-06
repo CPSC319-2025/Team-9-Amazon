@@ -1,4 +1,5 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   Box,
   Container,
@@ -14,7 +15,7 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import {
   colors,
@@ -24,6 +25,7 @@ import {
 import { CriteriaGroup as CriteriaGroupComponent } from "../../components/HiringManager/Evaluation/CriteriaGroup";
 import { Rule } from "../../types/criteria";
 import SaveIcon from "@mui/icons-material/Save";
+import AddIcon from "@mui/icons-material/Add";
 import {
   CriteriaGroupRepresentation,
   transformToRequestData,
@@ -38,7 +40,10 @@ import {
 import { useGetGlobalCriteria } from "../../queries/criteria";
 import { useParams } from "react-router";
 import { EditRuleDialog } from "../../components/HiringManager/Evaluation/EditRuleDialog";
-import { useBlocker, useBrowserBlocker } from "../../components/HiringManager/UnsavedChangesBlocker";
+import {
+  useBlocker,
+  useBrowserBlocker,
+} from "../../components/HiringManager/UnsavedChangesBlocker";
 
 const EvaluationMetricsPage = () => {
   const { jobPostingId } = useParams();
@@ -81,12 +86,13 @@ const EvaluationMetricsPage = () => {
     jobPostingId || ""
   );
 
-  useBlocker(() =>
-    hasUnsavedChanges
-      ? window.confirm(
-          "You have unsaved changes. Are you sure you want to leave this page?"
-        )
-      : true,
+  useBlocker(
+    () =>
+      hasUnsavedChanges
+        ? window.confirm(
+            "You have unsaved changes. Are you sure you want to leave this page?"
+          )
+        : true,
     hasUnsavedChanges
   );
   useBrowserBlocker(() => hasUnsavedChanges, hasUnsavedChanges);
@@ -110,7 +116,24 @@ const EvaluationMetricsPage = () => {
       )
     : [];
 
+  const handleCreateNewCriteria = () => {
+    const newCriteria: CriteriaGroupRepresentation = {
+      id: `new-${uuidv4()}`,
+      name: "New Criteria",
+      rules: [],
+    };
+
+    setLocalActiveCriteria((prev) => [...prev, newCriteria]);
+    setHasUnsavedChanges(true);
+    setSnackbarMessage(
+      "New criteria created. Don't forget to save your changes!"
+    );
+    setSnackbarSeverity("success");
+    setSnackbarOpen(true);
+  };
+
   const handleDeleteGroup = (groupId: string) => {
+    console.log("groupId", groupId);
     setLocalActiveCriteria((prev) =>
       prev.filter((criteria) => criteria.id !== groupId)
     );
@@ -207,7 +230,7 @@ const EvaluationMetricsPage = () => {
       .filter((c) => selectedCriteria.includes(c.id))
       .map((criteria) => ({
         ...criteria,
-        id: criteria.id.replace("existing-", ""),
+        id: `${criteria.id.replace("existing-", "")}-${uuidv4()}`,
       }));
 
     setLocalActiveCriteria((prev) => [...prev, ...criteriaToAdd]);
@@ -345,7 +368,18 @@ const EvaluationMetricsPage = () => {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateNewCriteria}
+            sx={{
+              ...filledButtonStyle,
+              bgcolor: colors.blue1,
+            }}
+          >
+            Create New Criteria
+          </Button>
           <Button
             variant="contained"
             startIcon={<SaveIcon />}
@@ -453,17 +487,17 @@ const EvaluationMetricsPage = () => {
                     : ""
                 }
               >
-              <span>
-              <Button
-                fullWidth
-                variant="contained"
-                disabled={selectedCriteria.length === 0}
-                onClick={handleAddSelectedCriteria}
-                sx={{ ...filledButtonStyle }}
-              >
-                Add Selected Criteria
-              </Button>
-              </span>
+                <span>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    disabled={selectedCriteria.length === 0}
+                    onClick={handleAddSelectedCriteria}
+                    sx={{ ...filledButtonStyle }}
+                  >
+                    Add Selected Criteria
+                  </Button>
+                </span>
               </Tooltip>
             </Paper>
           </Grid>
