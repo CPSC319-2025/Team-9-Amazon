@@ -33,6 +33,7 @@ const JobPostingApplicationsPage = () => {
     isLoading,
     error,
   } = useGetApplicationsSummary(jobPostingId || "");
+  console.log('summary', summaryData);
 
   // Fetch potential candidates on demand
   const {

@@ -8,9 +8,6 @@ import {
   IconButton,
   Grid,
   LinearProgress,
-  List,
-  ListItem,
-  ListItemText,
   Divider,
   Chip,
   Stack,
@@ -27,31 +24,29 @@ import {
   Snackbar,
   Tabs,
   Tab,
-  Card,
-  CardContent,
-  CardHeader,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SaveIcon from "@mui/icons-material/Save";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import PersonIcon from "@mui/icons-material/Person";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import EditIcon from "@mui/icons-material/Edit";
 import {
   colors,
   titleStyle,
   paperStyle,
-  chipStyle,
   filledButtonStyle,
 } from "../../styles/commonStyles";
-import { useGetCandidateReport, useGetApplicationsSummary } from "../../queries/jobPosting";
+import { 
+  useGetCandidateReport, 
+  useGetApplicationsSummary,
+  useGetManualScore  // Import the hook for getting manual score
+} from "../../queries/jobPosting";
 import { useGetCandidateNotes, useSaveCandidateNotes } from "../../queries/candidateNotes";
 import { ManualScoringForm } from "../../components/HiringManager/ManualScoring/ManualScoringForm";
-import { mockCriteriaWithSkills, getMockManualScoreByEmail } from "../../mocks/manualScoringMocks";
+import { mockCriteriaWithSkills } from "../../mocks/manualScoringMocks";
 
 // Mock interview questions data
 const mockInterviewQuestions = {
@@ -131,16 +126,7 @@ export default function CandidateReportPage() {
   // Manual score state
   const [manualScore, setManualScore] = useState<number | null>(null);
 
-  // Load initial mock manual score if available
-  useEffect(() => {
-    if (candidateEmail) {
-      const mockScore = getMockManualScoreByEmail(candidateEmail);
-      if (mockScore !== undefined) {
-        setManualScore(mockScore);
-      }
-    }
-  }, [candidateEmail]);
-
+  // Get candidate report data
   const {
     data: candidateData,
     isLoading,
@@ -151,6 +137,13 @@ export default function CandidateReportPage() {
   const {
     data: summaryData,
   } = useGetApplicationsSummary(jobPostingId!);
+
+  // Get manual score from API
+  const {
+    data: manualScoreData,
+    isLoading: isLoadingManualScore,
+    error: manualScoreError,
+  } = useGetManualScore(jobPostingId!, candidateEmail!);
 
   // Load candidate notes using React Query
   const {
@@ -172,6 +165,13 @@ export default function CandidateReportPage() {
       setNotes(noteData.notes);
     }
   }, [noteData]);
+
+  // Set manual score from API data when it loads
+  React.useEffect(() => {
+    if (manualScoreData && manualScoreData.manualScore !== undefined) {
+      setManualScore(manualScoreData.manualScore);
+    }
+  }, [manualScoreData]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -212,9 +212,14 @@ export default function CandidateReportPage() {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
 
+  // Handler for when manual score is saved
+  const handleManualScoreSaved = (newScore: number) => {
+    setManualScore(newScore);
+  };
+
   let isPdf = null
   if (candidateData?.resume) {
-    isPdf = candidateData?.resume.fileType == 'application/pdf';
+    isPdf = candidateData?.resume.fileType === 'application/pdf';
   }
 
   if (isLoading) {
@@ -319,7 +324,9 @@ export default function CandidateReportPage() {
               Manual Score
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {manualScore !== null ? (
+              {isLoadingManualScore ? (
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+              ) : manualScore !== null ? (
                 <>
                   <LinearProgress
                     variant="determinate"
@@ -767,15 +774,16 @@ export default function CandidateReportPage() {
 
         {/* Manual Scoring Tab */}
         <TabPanel value={tabValue} index={3}>
+          {manualScoreError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              Error loading manual score: {manualScoreError instanceof Error ? manualScoreError.message : "Unknown error"}
+            </Alert>
+          )}
           <ManualScoringForm 
             jobPostingId={jobPostingId!}
             candidateEmail={candidateEmail!}
             criteria={mockCriteriaWithSkills}
-            onScoreSaved={(manualScore) => {
-              setManualScore(manualScore);
-              // In a real implementation, this would save to the backend
-              console.log(`Saved manual score: ${manualScore}% for ${candidateEmail}`);
-            }}
+            onScoreSaved={handleManualScoreSaved}
           />
         </TabPanel>
       </Box>

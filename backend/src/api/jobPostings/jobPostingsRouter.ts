@@ -707,6 +707,15 @@ router.get(
           },
         ],
         order: [["score", "DESC"]],
+        // Include the manualScore field in the query
+        attributes: [
+          "jobPostingId", 
+          "applicantId", 
+          "score", 
+          "manualScore", // Include manualScore
+          "createdAt", 
+          "updatedAt"
+        ]
       });
 
       // Transform the data for response
@@ -714,6 +723,7 @@ router.get(
         const applicantData = application.get({ plain: true }).applicant;
         return {
           score: application.score || 0,
+          manualScore: application.manualScore, // Include manualScore in response
           applicant: {
             firstName: applicantData?.firstName,
             lastName: applicantData?.lastName,
@@ -954,6 +964,16 @@ router.get(
           color: sourceColors[name as keyof typeof sourceColors] || sourceColors.Other,
         }))
         .sort((a, b) => b.value - a.value);
+        
+      // Define colors for common sources
+      const sourceColors = {
+        LinkedIn: "#0077B5",
+        Indeed: "#2164f3",
+        "Company Site": "#6B7280",
+        Referral: "#FF9B50",
+        "Job Board": "#00A86B",
+        Other: "#9CA3AF",
+      };
 
       // Get all criteria for this job posting
       const criteria = await Criteria.findAll({
@@ -1407,6 +1427,158 @@ router.post(
       console.error("Error saving candidate notes:", error);
       res.status(500).json({
         error: "Failed to save candidate notes",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Save candidate manual score for specific application
+router.post(
+  "/:jobPostingId/:candidateEmail/manual-score",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+      const { totalScore } = req.body;
+
+      // this is the break down of each skill and score can implement in the future to populate manually scoring page
+      const {criteriaScores} = req.body
+
+      const manualScore = totalScore
+      
+      if (manualScore === undefined || manualScore === null) {
+        return res.status(400).json({ error: "Manual score is required" });
+      }
+      
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to score this candidate"
+        });
+      }
+
+      // Find the applicant by email
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      const applicant = await Applicant.findOne({
+        where: { email: decodedEmail }
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this job posting and applicant
+      const application = await Application.findOne({
+        where: {
+          jobPostingId,
+          applicantId: applicant.id
+        }
+      });
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      // Update the application with the manual score
+      await application.update({
+        manualScore: manualScore
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Manual score updated successfully",
+        data: {
+          jobPostingId: parseInt(jobPostingId),
+          applicantId: applicant.id,
+          applicantEmail: decodedEmail,
+          manualScore: manualScore,
+          updatedAt: application.updatedAt
+        }
+      });
+    } catch (error) {
+      console.error('Error saving manual score:', error);
+      res.status(500).json({ 
+        error: "Failed to save manual score",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+);
+
+// Get candidate manual score for specific application
+router.get(
+  "/:jobPostingId/:candidateEmail/manual-score",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail } = req.params;
+
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error: "Job posting not found or you don't have permission to view this candidate's score"
+        });
+      }
+
+      // Find the applicant by email
+      const decodedEmail = decodeURIComponent(candidateEmail);
+      const applicant = await Applicant.findOne({
+        where: { email: decodedEmail },
+        attributes: ['id', 'email', 'firstName', 'lastName', 'phone', 'linkedIn']
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this job posting and applicant
+      const application = await Application.findOne({
+        where: {
+          jobPostingId,
+          applicantId: applicant.id
+        }
+      });
+
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      // Return the manual score information with full applicant details
+      res.status(200).json({
+        jobPostingId: parseInt(jobPostingId),
+        applicant: {
+          id: applicant.id,
+          email: applicant.email,
+          firstName: applicant.firstName,
+          lastName: applicant.lastName,
+          phone: applicant.phone || null,
+          linkedIn: applicant.linkedIn || null,
+        },
+        manualScore: application.manualScore,
+        algorithmScore: application.score,
+        lastUpdated: application.updatedAt
+      });
+    } catch (error) {
+      console.error('Error retrieving manual score:', error);
+      res.status(500).json({ 
+        error: "Failed to retrieve manual score",
         details: error instanceof Error ? error.message : "Unknown error"
       });
     }

@@ -22,6 +22,7 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { colors, paperStyle, filledButtonStyle } from '../../../styles/commonStyles';
+import { useGetManualScore, useSaveManualScore } from '../../../queries/jobPosting';
 
 // Skill score structure
 export interface SkillScore {
@@ -107,137 +108,116 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
     };
   });
 
-  const [manualScores, setManualScores] = useState<ManualScoreData>({
-    criteriaScores: initialScores,
-    totalScore: 0,
-    lastUpdated: null,
-  });
+  // OPTION 1: Split state into separate variables
+  const [criteriaScores, setCriteriaScores] = useState<ManualCriteriaScore[]>(initialScores);
+  const [totalScore, setTotalScore] = useState<number>(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [expandedPanel, setExpandedPanel] = useState<number | false>(false);
+
+  // Get manual score query
+  const {
+    data: savedScoreData,
+    isLoading,
+    isError,
+    error: fetchError,
+  } = useGetManualScore(jobPostingId, candidateEmail);
+
+  // Save manual score mutation
+  const {
+    mutate: saveScore,
+    isPending: isSaving,
+    error: saveError,
+  } = useSaveManualScore();
 
   // Handle accordion expansion
   const handleAccordionChange = (panel: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpandedPanel(isExpanded ? panel : false);
   };
 
-  // Calculate total scores whenever skills scores change
-  useEffect(() => {
-    // First update each criterion's total score
-    const updatedCriteriaScores = manualScores.criteriaScores.map(criterion => {
-      const criterionTotalScore = criterion.skills.reduce(
-        (sum, skill) => sum + skill.score,
-        0
-      );
-      
-      return {
-        ...criterion,
-        totalScore: criterionTotalScore,
-      };
-    });
+  // Handle score change for a skill - calculate everything in one place
+  const handleSkillScoreChange = (criterionId: number, skillIndex: number, value: string) => {
+    const criterionIndex = criteriaScores.findIndex(c => c.id === criterionId);
+    if (criterionIndex === -1) return;
 
-    // Then calculate the overall percentage score
+    const skill = criteriaScores[criterionIndex].skills[skillIndex];
+    
+    // Determine the new score value
+    let newScore = 0;
+    if (value !== '') {
+      const numericValue = parseInt(value, 10);
+      if (!isNaN(numericValue)) {
+        // Clamp value between 0 and max points
+        newScore = Math.max(0, Math.min(numericValue, skill.maxPoints));
+      }
+    }
+    
+    // Skip update if the value is the same
+    if (skill.score === newScore) return;
+    
+    // Create a new criteriaScores array with the updated skill score
+    const newCriteriaScores = [...criteriaScores];
+    const newSkills = [...newCriteriaScores[criterionIndex].skills];
+    newSkills[skillIndex] = { ...newSkills[skillIndex], score: newScore };
+    
+    newCriteriaScores[criterionIndex] = {
+      ...newCriteriaScores[criterionIndex],
+      skills: newSkills,
+    };
+    
+    // Calculate all the totals immediately
+    // 1. Update each criterion's total score
+    const updatedCriteriaScores = newCriteriaScores.map(criterion => {
+      const totalScore = criterion.skills.reduce((sum, s) => sum + s.score, 0);
+      return { ...criterion, totalScore };
+    });
+    
+    // 2. Calculate the overall percentage
     const totalPoints = updatedCriteriaScores.reduce(
-      (sum, criterion) => sum + criterion.totalScore,
-      0
+      (sum, criterion) => sum + criterion.totalScore, 0
     );
     
     const totalMaxPoints = updatedCriteriaScores.reduce(
-      (sum, criterion) => sum + criterion.maxTotalScore,
-      0
+      (sum, criterion) => sum + criterion.maxTotalScore, 0
     );
     
-    const totalScorePercentage = totalMaxPoints > 0 
+    const calculatedTotalScore = totalMaxPoints > 0 
       ? Math.round((totalPoints / totalMaxPoints) * 100) 
       : 0;
-      
-    setManualScores({
-      criteriaScores: updatedCriteriaScores,
-      totalScore: totalScorePercentage,
-      lastUpdated: manualScores.lastUpdated,
-    });
-  }, [manualScores.criteriaScores]);
-
-  // Handle score change for a skill
-  const handleSkillScoreChange = (criterionId: number, skillIndex: number, value: string) => {
-    const criterionIndex = manualScores.criteriaScores.findIndex(c => c.id === criterionId);
-    if (criterionIndex === -1) return;
-
-    const skill = manualScores.criteriaScores[criterionIndex].skills[skillIndex];
     
-    // Handle empty input
-    if (value === '') {
-      setManualScores(prev => {
-        const newCriteriaScores = [...prev.criteriaScores];
-        newCriteriaScores[criterionIndex] = {
-          ...newCriteriaScores[criterionIndex],
-          skills: newCriteriaScores[criterionIndex].skills.map((s, idx) => 
-            idx === skillIndex ? { ...s, score: 0 } : s
-          ),
-        };
-        
-        return {
-          ...prev,
-          criteriaScores: newCriteriaScores,
-        };
-      });
-      return;
-    }
-    
-    // Parse the input value
-    const numericValue = parseInt(value, 10);
-    
-    // Skip update if not a valid number
-    if (isNaN(numericValue)) return;
-    
-    // Clamp the value between 0 and max points
-    const clampedValue = Math.max(0, Math.min(numericValue, skill.maxPoints));
-    
-    setManualScores(prev => {
-      const newCriteriaScores = [...prev.criteriaScores];
-      newCriteriaScores[criterionIndex] = {
-        ...newCriteriaScores[criterionIndex],
-        skills: newCriteriaScores[criterionIndex].skills.map((s, idx) => 
-          idx === skillIndex ? { ...s, score: clampedValue } : s
-        ),
-      };
-      
-      return {
-        ...prev,
-        criteriaScores: newCriteriaScores,
-      };
-    });
+    // 3. Update both states in sequence
+    setCriteriaScores(updatedCriteriaScores);
+    setTotalScore(calculatedTotalScore);
   };
 
-  // Handle save
+  // Handle save using the mutation
   const handleSave = async () => {
-    setSaving(true);
     setError(null);
     
     try {
-      // In a real implementation, this would be an API call
-      // For now, we'll simulate a successful save
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await saveScore({
+        jobPostingId,
+        candidateEmail,
+        data: {
+          criteriaScores: criteriaScores,
+          totalScore: totalScore,
+        },
+      });
       
       // Update the last updated timestamp
-      setManualScores(prev => ({
-        ...prev,
-        lastUpdated: new Date(),
-      }));
+      setLastUpdated(new Date());
       
       setSuccess(true);
       
       // Notify parent component about the new manual score
       if (onScoreSaved) {
-        onScoreSaved(manualScores.totalScore);
+        onScoreSaved(totalScore);
       }
     } catch (err) {
+      console.error('Error saving manual scores:', err);
       setError('Failed to save manual scores. Please try again.');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -245,27 +225,50 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
     setSuccess(false);
   };
 
-  // Simulate loading data (in a real implementation, this would fetch from an API)
+  // Set error message if fetch or save operation fails
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // For now, we'll just use the initial scores
-        // In a real implementation, this would fetch saved scores if they exist
-      } catch (err) {
-        setError('Failed to load manual scores.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [jobPostingId, candidateEmail]);
+    if (isError && fetchError) {
+      setError('Failed to load manual scores.');
+    } else if (saveError) {
+      setError('Failed to save manual scores. Please try again.');
+    }
+  }, [isError, fetchError, saveError]);
 
-  if (loading) {
+  // Load saved scores data when available
+  useEffect(() => {
+    if (savedScoreData && savedScoreData.criteriaScores) {
+      // Merge saved scores with existing criteria structure
+      const mergedCriteriaScores = initialScores.map(criterion => {
+        const savedCriterion = savedScoreData.criteriaScores.find(
+          c => c.name === criterion.name
+        );
+        
+        if (savedCriterion) {
+          // Merge skills scores
+          const mergedSkills = criterion.skills.map(skill => {
+            const savedSkill = savedCriterion.skills.find(
+              s => s.skillName === skill.skillName
+            );
+            return savedSkill ? { ...skill, score: savedSkill.score } : skill;
+          });
+          
+          return {
+            ...criterion,
+            skills: mergedSkills,
+            totalScore: savedCriterion.totalScore,
+          };
+        }
+        
+        return criterion;
+      });
+      
+      setCriteriaScores(mergedCriteriaScores);
+      setTotalScore(savedScoreData.totalScore);
+      setLastUpdated(savedScoreData.lastUpdated ? new Date(savedScoreData.lastUpdated) : new Date());
+    }
+  }, [savedScoreData, initialScores]);
+
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress />
@@ -279,9 +282,9 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
         <Typography variant="h6" sx={{ fontWeight: 600, color: colors.black1 }}>
           Manual Scoring
         </Typography>
-        {manualScores.lastUpdated && (
+        {lastUpdated && (
           <Typography variant="body2" sx={{ color: colors.gray2 }}>
-            Last updated: {manualScores.lastUpdated.toLocaleString()}
+            Last updated: {lastUpdated.toLocaleString()}
           </Typography>
         )}
       </Box>
@@ -297,7 +300,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
       </Typography>
       
       <Box sx={{ mb: 3, flex: '1 1 auto', overflow: 'auto' }}>
-        {manualScores.criteriaScores.map((criterion) => (
+        {criteriaScores.map((criterion) => (
           <Accordion 
             key={criterion.id}
             expanded={expandedPanel === criterion.id}
@@ -367,13 +370,13 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
       
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
         <Typography variant="h6" sx={{ color: colors.orange1, fontWeight: 600 }}>
-          Total Score: {manualScores.totalScore}%
+          Total Score: {totalScore}%
         </Typography>
         <Button
           variant="contained"
           startIcon={<SaveIcon />}
           onClick={handleSave}
-          disabled={saving}
+          disabled={isSaving}
           sx={{
             ...filledButtonStyle,
             bgcolor: colors.blue1,
@@ -382,7 +385,7 @@ export const ManualScoringForm: React.FC<ManualScoringFormProps> = ({
             },
           }}
         >
-          {saving ? 'Saving...' : 'Save Scores'}
+          {isSaving ? 'Saving...' : 'Save Scores'}
         </Button>
       </Box>
       

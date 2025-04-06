@@ -21,6 +21,7 @@ import {
   PotentialCandidatesResponse,
 } from "../types/application";
 import { transformJobPosting, transformJobPostings } from "../utils/transformJobPosting";
+import { ManualCriteriaScore } from '../components/HiringManager/ManualScoring/ManualScoringForm';
 
 // Query keys
 export const jobPostingKeys = {
@@ -515,5 +516,85 @@ export const useGetCandidateReport = (
       return response.json();
     },
     enabled: !!jobPostingId && !!candidateEmail,
+  });
+};
+
+// Types for manual scoring
+interface SaveManualScoreRequest {
+  criteriaScores: ManualCriteriaScore[];
+  totalScore: number;
+}
+
+interface ManualScoreResponse {
+  totalScore: number;
+  criteriaScores: ManualCriteriaScore[];
+  lastUpdated: string;
+}
+
+// Get manual score for a candidate
+export const useGetManualScore = (jobPostingId: string, candidateEmail: string) => {
+  return useQuery<ManualScoreResponse>({
+    queryKey: ['manualScore', jobPostingId, candidateEmail],
+    queryFn: async () => {
+      // const response = await fetch(`/api/applications/${jobPostingId}/${candidateEmail}/manual-score`);
+      const url = apiUrls.manualScore
+        .replace(":jobPostingId", jobPostingId)
+        .replace(":candidateEmail", encodeURIComponent(candidateEmail));
+
+      const response = await fetchWithAuth(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch manual scores');
+      }
+      return response.json();
+    },
+    // Only fetch when we have both jobPostingId and candidateEmail
+    enabled: !!jobPostingId && !!candidateEmail,
+  });
+};
+
+// Save manual score for a candidate
+export const useSaveManualScore = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({
+      jobPostingId,
+      candidateEmail,
+      data,
+    }: {
+      jobPostingId: string;
+      candidateEmail: string;
+      data: SaveManualScoreRequest;
+    }) => {
+
+      const url = apiUrls.manualScore
+        .replace(":jobPostingId", jobPostingId)
+        .replace(":candidateEmail", encodeURIComponent(candidateEmail));
+
+      const response = await fetchWithAuth(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save manual scores');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate relevant queries to trigger refetch
+      queryClient.invalidateQueries({
+        queryKey: ['manualScore', variables.jobPostingId, variables.candidateEmail],
+      });
+      
+      // Also invalidate application summary to reflect the updated manual score
+      queryClient.invalidateQueries({
+        queryKey: ['applicationsSummary', variables.jobPostingId],
+      });
+    },
   });
 };
