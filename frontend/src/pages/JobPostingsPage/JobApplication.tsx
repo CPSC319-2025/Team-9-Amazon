@@ -44,7 +44,7 @@ const applicationSchema = z.object({
   }),
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
-  referral_source: z.enum(["LinkedIn", "Amazon", "Indeed", "Other"]).optional(),
+  referralSource: z.enum(["LinkedIn", "Amazon", "Indeed", "Other"]).optional(),
   work_experience: z
   .array(
     z.object({
@@ -487,6 +487,9 @@ export default function JobApplication() {
         education_experience: data.education_experience || [],
       };
 
+      // Debug log for referralSource
+      console.log("Submitting application with referralSource:", data.referralSource);
+
       const result = await createApplication.mutateAsync(applicationPayload);
       setErrorMessage(null);
       setIsSuccessModalOpen(true);
@@ -728,7 +731,7 @@ export default function JobApplication() {
             <Select
               labelId="referral-source-label"
               id="referral-source"
-              {...register("referral_source")}
+              {...register("referralSource")}
               label="Where did you hear about us?"
               defaultValue=""
               sx={{
@@ -745,9 +748,9 @@ export default function JobApplication() {
               <MenuItem value="Indeed">Indeed</MenuItem>
               <MenuItem value="Other">Other</MenuItem>
             </Select>
-            {errors.referral_source && (
+            {errors.referralSource && (
               <span className="text-red-500 text-sm mt-1 block">
-                {errors.referral_source.message as string}
+                {errors.referralSource.message as string}
               </span>
             )}
           </FormControl>

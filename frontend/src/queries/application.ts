@@ -18,6 +18,7 @@ interface ApplicationData {
   personal_links?: string;
   resume: string;
   jobPostingId: string;
+  referralSource?: string;
   work_experience?: WorkExperience[];
 }
 

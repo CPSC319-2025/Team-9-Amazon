@@ -26,6 +26,14 @@ export default function JobReportsPage() {
 
   const { data, isLoading, error } = useGetJobReports(jobPostingId!);
 
+  // Debug log to see the job reports data
+  React.useEffect(() => {
+    if (data) {
+      console.log("Job reports data received:", data);
+      console.log("Source data:", data.sourceData);
+    }
+  }, [data]);
+
   if (isLoading) {
     return (
       <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
