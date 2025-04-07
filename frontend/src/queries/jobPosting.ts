@@ -417,6 +417,7 @@ export const prepareCriteriaData = (
 // Types for job reports
 interface JobReportsResponse {
   totalApplications: number;
+  error: any;
   applicationData: Array<{
     month: string;
     applications: number;
