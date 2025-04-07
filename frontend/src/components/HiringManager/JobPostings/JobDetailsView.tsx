@@ -19,6 +19,7 @@ import { JobDetailsMode } from "../../../types/JobPosting/JobDetailsMode";
 import { useSnackbar } from "notistack";
 import { useBlocker, useBrowserBlocker } from "../UnsavedChangesBlocker";
 import { FIELD_MAX_LENGTHS } from "../../../utils/jobPostingValidationRules";
+
 interface JobDetailsSectionProps {
   jobPosting: JobPosting;
   mode: JobDetailsMode;

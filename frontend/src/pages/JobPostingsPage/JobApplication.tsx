@@ -35,13 +35,17 @@ const applicationSchema = z.object({
     .max(50, "Last Name must be less than 50 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 characters")
+    .max(15, "Phone number must be less than 15 characters"),
+  /*phone: z
   .string()
   .refine((val) => {
     const phoneNumber = parsePhoneNumberFromString(val);
     return phoneNumber?.isValid() ?? false;
   }, {
     message: "Please enter a valid international phone number",
-  }),
+  }),*/
   resume: z.string().min(1, "Resume is required"),
   personal_links: z.string().optional(),
   referralSource: z.enum(["LinkedIn", "Amazon", "Indeed", "Other"]).optional(),
@@ -53,7 +57,7 @@ const applicationSchema = z.object({
       from: z.string().min(1, "Start date is required"),
       to: z.string().optional().nullable(),  
       role_description: z.string().optional(),
-      skills: z.array(z.string()).min(1, "At least one skill is required"),
+      skills: z.array(z.string()).optional(),
     })
   )
   .min(1, "At least one work experience is required"),
@@ -70,7 +74,7 @@ const applicationSchema = z.object({
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
-/*const formatPhoneNumber = (phoneNumber: string): string => {
+const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return "";
   const cleaned = phoneNumber?.replace(/\D/g, "");
   if (cleaned?.length === 0) return "";
@@ -81,13 +85,13 @@ type ApplicationFormData = z.infer<typeof applicationSchema>;
     6,
     10
   )}`;
-}; */
-
-//supports international formats
+}; 
+/*
+supports international formats
 const formatPhoneNumber = (phoneNumber: string): string => {
   if (!phoneNumber) return "";
   return new AsYouType('CA').input(phoneNumber);
-};
+}; */
 
 export default function JobApplication() {
   const { jobPostingId } = useParams();
@@ -287,9 +291,6 @@ export default function JobApplication() {
 
         if (!exp.from || exp.from.trim() === "")
           return `Start Date (Work Experience #${index + 1})`;
-
-        if (!exp.skills || exp.skills.length === 0)
-          return `Skills (Work Experience #${index + 1})`;
 
         if (exp.role_description?.trim() === "")
           return `Description (Work Experience #${index + 1})`;

@@ -5,14 +5,22 @@ import {
 } from "@/common/middleware/auth";
 import { handleZodError } from "@/common/middleware/errorHandler";
 import { generateTemporaryUrl } from "@/common/utils/awsTools";
-import Database, { JobPosting, JobTag, Staff, CandidateNote } from "@/database/database";
+import Database, {
+  JobPosting,
+  JobTag,
+  Staff,
+  CandidateNote,
+} from "@/database/database";
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
 import Criteria, { CriteriaType } from "@/database/models/criteria";
-import { JobPostingCreationAttributes, JobPostingStatus } from "@/database/models/jobPosting";
+import {
+  JobPostingCreationAttributes,
+  JobPostingStatus,
+} from "@/database/models/jobPosting";
 import { ApplicationScoring } from "@/services/applicationScoring";
 import { Router } from "express";
-import path from 'path';
+import path from "path";
 import { Op, Transaction } from "sequelize";
 
 const router = Router();
@@ -65,9 +73,10 @@ router.get("/", authenticateJWT, requireHiringManager, async (req, res) => {
 // get all unassigned job postings
 router.get("/unassigned", authenticateJWT, requireAdmin, async (req, res) => {
   try {
-    const jobPostings = await JobPosting.findAll({
-      where: { staffId: { [Op.is]: null } },
-    }) ?? [];
+    const jobPostings =
+      (await JobPosting.findAll({
+        where: { staffId: { [Op.is]: null } },
+      })) ?? [];
     return res.json(jobPostings.map((jp) => jp.toJSON()));
   } catch (error) {
     handleZodError(error, res, "Error fetching unassigned job postings");
@@ -83,7 +92,7 @@ router.get("/invisible", authenticateJWT, requireAdmin, async (req, res) => {
           model: Staff,
           as: "staff",
           where: { isHiringManager: false }, // Filter staff who are not hiring managers
-          attributes: {exclude: ['password']}, 
+          attributes: { exclude: ["password"] },
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -122,7 +131,9 @@ router.get(
       // validate staffID as valid hiring manager
       const staffId = req.auth?.id;
       if (!staffId || jobPosting.get("staffId") !== staffId) {
-        return res.status(403).json({ error: "You are not authorized to view this job posting" });
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to view this job posting" });
       }
 
       res.json(jobPosting);
@@ -162,7 +173,9 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
 
   const staff = await Staff.findByPk(staffId);
   if (!staff || !staff.isHiringManager) {
-    return res.status(403).json({ error: "You are not authorized to create job postings" });
+    return res
+      .status(403)
+      .json({ error: "You are not authorized to create job postings" });
   }
 
   // Wrap the creation process in a transaction for atomicity.
@@ -185,7 +198,9 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
       { transaction: t }
     );
 
-    const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, { transaction: t });
+    const freshJobPosting = await JobPosting.findByPk(newJobPosting.id, {
+      transaction: t,
+    });
 
     // If tags were provided, process them.
     if (tags && Array.isArray(tags) && tags.length > 0) {
@@ -214,7 +229,7 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
     const ret = {
       ...newJobPosting.toJSON(),
       id: newJobPosting.id,
-    }
+    };
     res.status(201).json(ret);
   } catch (error) {
     await t.rollback();
@@ -223,50 +238,53 @@ router.post("/", authenticateJWT, requireHiringManager, async (req, res) => {
 });
 
 // DELETE a job posting. Only the owning hiring manager can delete job posting
-router.delete("/:jobPostingId", authenticateJWT, requireHiringManager, async (req, res) => {
-  const t = await Database.GetSequelize().transaction();
-  try {
-    const { jobPostingId } = req.params;
-    const staffId = req.auth?.id;
-    const jobPosting = await JobPosting.findOne({
-      where: { id: jobPostingId },
-      include: [
-        {
-          model: Staff,
-          as: "staff",
-          attributes: ["id"],
-        },
-      ],
-      transaction: t,
-    });
-    // Try to delete
-    if (!jobPosting) {
-      await t.rollback()
-      return res.status(404).json({ error: "Job posting not found" });
-    }
-    if (!staffId || jobPosting.dataValues.staffId !== staffId) {
-      await t.rollback()
-      return res.status(403).json({ error: "Not authorized" });
-    }
+router.delete(
+  "/:jobPostingId",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    const t = await Database.GetSequelize().transaction();
+    try {
+      const { jobPostingId } = req.params;
+      const staffId = req.auth?.id;
+      const jobPosting = await JobPosting.findOne({
+        where: { id: jobPostingId },
+        include: [
+          {
+            model: Staff,
+            as: "staff",
+            attributes: ["id"],
+          },
+        ],
+        transaction: t,
+      });
+      // Try to delete
+      if (!jobPosting) {
+        await t.rollback();
+        return res.status(404).json({ error: "Job posting not found" });
+      }
+      if (!staffId || jobPosting.dataValues.staffId !== staffId) {
+        await t.rollback();
+        return res.status(403).json({ error: "Not authorized" });
+      }
 
-    await Criteria.destroy({
-      where: { jobPostingId },
-      transaction: t,
-    });
-    await jobPosting.destroy({transaction: t});
-    await t.commit();
+      await Criteria.destroy({
+        where: { jobPostingId },
+        transaction: t,
+      });
+      await jobPosting.destroy({ transaction: t });
+      await t.commit();
 
-    
-    res.json({
-      "message": "Job posting deleted successfully",
-      jobPosting
-    });
-  } catch (error) {
-    await t.rollback();
-    handleZodError(error, res, "Error deleting job posting");
+      res.json({
+        message: "Job posting deleted successfully",
+        jobPosting,
+      });
+    } catch (error) {
+      await t.rollback();
+      handleZodError(error, res, "Error deleting job posting");
+    }
   }
-});
-
+);
 
 export interface JobPostingEditRequest {
   title?: string;
@@ -305,7 +323,9 @@ router.put(
       // check the user is authorized to update this job posting
       const userId = req.auth?.id;
       if (!userId || jobPosting.get("staffId") !== userId) {
-        return res.status(403).json({ error: "You are not authorized to update this job posting" });
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this job posting" });
       }
 
       // Start a transaction for atomic updates.
@@ -333,47 +353,62 @@ router.put(
         }
       }
       if (subtitle !== undefined) {
-        const trimmedSubtitle = typeof subtitle === "string" ? subtitle.trim() : subtitle;
+        const trimmedSubtitle =
+          typeof subtitle === "string" ? subtitle.trim() : subtitle;
         if (trimmedSubtitle) {
           updates.subtitle = trimmedSubtitle;
         }
       }
       if (description !== undefined) {
-        const trimmedDescription = typeof description === "string" ? description.trim() : description;
+        const trimmedDescription =
+          typeof description === "string" ? description.trim() : description;
         if (trimmedDescription) {
           updates.description = trimmedDescription;
         }
       }
       if (responsibilities !== undefined) {
-        const trimmedResp = typeof responsibilities === "string" ? responsibilities.trim() : responsibilities;
+        const trimmedResp =
+          typeof responsibilities === "string"
+            ? responsibilities.trim()
+            : responsibilities;
         if (trimmedResp) {
           updates.responsibilities = trimmedResp;
         }
       }
       if (qualifications !== undefined) {
-        const trimmedQual = typeof qualifications === "string" ? qualifications.trim() : qualifications;
+        const trimmedQual =
+          typeof qualifications === "string"
+            ? qualifications.trim()
+            : qualifications;
         if (trimmedQual) {
           updates.qualifications = trimmedQual;
         }
       }
       if (location !== undefined) {
-        const trimmedLocation = typeof location === "string" ? location.trim() : location;
+        const trimmedLocation =
+          typeof location === "string" ? location.trim() : location;
         if (trimmedLocation) {
           updates.location = trimmedLocation;
         }
       }
 
       const previousStatus: JobPostingStatus = jobPosting.get("status");
-      
+
       // status validation
       if (status !== undefined && status !== previousStatus) {
         // check transitions
-        if (previousStatus === JobPostingStatus.DRAFT && status !== JobPostingStatus.OPEN) {
+        if (
+          previousStatus === JobPostingStatus.DRAFT &&
+          status !== JobPostingStatus.OPEN
+        ) {
           await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
 
-        if (previousStatus === JobPostingStatus.DRAFT && status == JobPostingStatus.OPEN) {
+        if (
+          previousStatus === JobPostingStatus.DRAFT &&
+          status == JobPostingStatus.OPEN
+        ) {
           // check if there are criteria for this job posting
           const criteria = await Criteria.findAll({
             where: { jobPostingId },
@@ -389,13 +424,19 @@ router.put(
         }
 
         // only allows OPEN to CLOSED transition
-        if (previousStatus === JobPostingStatus.OPEN && status !== JobPostingStatus.CLOSED) {
+        if (
+          previousStatus === JobPostingStatus.OPEN &&
+          status !== JobPostingStatus.CLOSED
+        ) {
           await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
 
         // only allows CLOSED to OPEN transition
-        if (previousStatus === JobPostingStatus.CLOSED && status !== JobPostingStatus.OPEN) {
+        if (
+          previousStatus === JobPostingStatus.CLOSED &&
+          status !== JobPostingStatus.OPEN
+        ) {
           await t.rollback();
           return res.status(400).json({ error: "Invalid status transition" });
         }
@@ -443,27 +484,31 @@ router.put(
 );
 
 // PUT /job-postings/assign/:jobPostingId – Assign a job posting to a hiring manager
-router.put("/assign/:jobPostingId", authenticateJWT, requireAdmin, async (req, res) => {
-  try {
-    const { jobPostingId } = req.params;
+router.put(
+  "/assign/:jobPostingId",
+  authenticateJWT,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { jobPostingId } = req.params;
 
-    // Find the existing job posting
-    const jobPosting = await JobPosting.findOne({
-      where: { id: jobPostingId },
-    });
+      // Find the existing job posting
+      const jobPosting = await JobPosting.findOne({
+        where: { id: jobPostingId },
+      });
 
-    if (!jobPosting) {
-      return res.status(404).json({ error: "Job posting not found" });
+      if (!jobPosting) {
+        return res.status(404).json({ error: "Job posting not found" });
+      }
+      const { staffId } = req.body as JobPostingAssignRequest;
+      await jobPosting.update({ staffId });
+
+      res.json(jobPosting.toJSON());
+    } catch (error) {
+      handleZodError(error, res, "Error assigning job posting");
     }
-    const { staffId } = req.body as JobPostingAssignRequest;
-    await jobPosting.update({ staffId })
-
-    res.json(jobPosting.toJSON());
-  } catch (error) {
-    handleZodError(error, res, "Error assigning job posting");
   }
-});
-
+);
 
 // Get all local criteria for a specific job posting
 router.get(
@@ -713,13 +758,13 @@ router.get(
         order: [["score", "DESC"]],
         // Include the manualScore field in the query
         attributes: [
-          "jobPostingId", 
-          "applicantId", 
-          "score", 
+          "jobPostingId",
+          "applicantId",
+          "score",
           "manualScore", // Include manualScore
-          "createdAt", 
-          "updatedAt"
-        ]
+          "createdAt",
+          "updatedAt",
+        ],
       });
 
       // Transform the data for response
@@ -790,7 +835,7 @@ router.get(
         });
       }
 
-      // **Get current applicants who already applied for this job**
+      // Get current applicants who already applied for this job
       const currentApplicants = await Application.findAll({
         where: { jobPostingId },
         attributes: ["applicantId"],
@@ -841,10 +886,15 @@ router.get(
         })
       );
 
-      // **Filter to keep only the best application per applicant**
+      // Filter out applications with zero score
+      const nonZeroScoreApplications = scoredApplications.filter(
+        (app) => app.score > 0
+      );
+
+      // Filter to keep only the best application per applicant
       const bestApplicationsPerApplicant = new Map();
 
-      scoredApplications.forEach((app) => {
+      nonZeroScoreApplications.forEach((app) => {
         if (
           !bestApplicationsPerApplicant.has(app.applicantId) ||
           bestApplicationsPerApplicant.get(app.applicantId).score < app.score
@@ -906,7 +956,13 @@ router.get(
             attributes: ["id", "firstName", "lastName", "email"],
           },
         ],
-        attributes: ["jobPostingId", "applicantId", "score", "createdAt", "referralSource"],
+        attributes: [
+          "jobPostingId",
+          "applicantId",
+          "score",
+          "createdAt",
+          "referralSource",
+        ],
       });
 
       // Calculate applications over time (by month)
@@ -955,9 +1011,12 @@ router.get(
       const sourceCount = new Map();
       let totalSourcedApplications = 0;
 
-      applications.forEach(application => {
+      applications.forEach((application) => {
         // Use the new referralSource field, default to "Other" if not specified
-        const source = application.get("referralSource") || application.dataValues?.referralSource || "Other";
+        const source =
+          application.get("referralSource") ||
+          application.dataValues?.referralSource ||
+          "Other";
         sourceCount.set(source, (sourceCount.get(source) || 0) + 1);
         totalSourcedApplications++;
       });
@@ -967,7 +1026,9 @@ router.get(
         .map(([name, count]) => ({
           name,
           value: Math.round((count / totalSourcedApplications) * 100),
-          color: sourceColors[name as keyof typeof sourceColors] || sourceColors.Other,
+          color:
+            sourceColors[name as keyof typeof sourceColors] ||
+            sourceColors.Other,
         }))
         .sort((a, b) => b.value - a.value);
 
@@ -1097,13 +1158,14 @@ router.get(
 
       if (!jobPosting) {
         return res.status(404).json({
-          error: "Job posting not found or you don't have permission to view this candidate"
+          error:
+            "Job posting not found or you don't have permission to view this candidate",
         });
       }
 
       // Find the applicant by email
       const applicant = await Applicant.findOne({
-        where: { email: candidateEmail }
+        where: { email: candidateEmail },
       });
 
       if (!applicant) {
@@ -1114,32 +1176,50 @@ router.get(
       const application = await Application.findOne({
         where: {
           jobPostingId,
-          applicantId: applicant.dataValues.id
+          applicantId: applicant.dataValues.id,
         },
         include: [
           {
             model: Applicant,
             as: "applicant",
-            attributes: ["id", "firstName", "lastName", "email", "phone", "linkedIn"]
-          }
-        ]
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "email",
+              "phone",
+              "linkedIn",
+            ],
+          },
+        ],
       });
 
       if (!application) {
-        return res.status(404).json({ error: "Application not found for this candidate" });
+        return res
+          .status(404)
+          .json({ error: "Application not found for this candidate" });
       }
 
       const applicantData = await Applicant.findByPk(applicant.dataValues.id, {
-        attributes: ["id", "firstName", "lastName", "email", "phone", "linkedIn"]
+        attributes: [
+          "id",
+          "firstName",
+          "lastName",
+          "email",
+          "phone",
+          "linkedIn",
+        ],
       });
 
       // Get criteria for this job posting
       const criteria = await Criteria.findAll({
-        where: { jobPostingId }
+        where: { jobPostingId },
       });
 
       if (!criteria.length) {
-        return res.status(400).json({ error: "No criteria found for this job posting" });
+        return res
+          .status(400)
+          .json({ error: "No criteria found for this job posting" });
       }
 
       // Calculate scores for each criterion
@@ -1153,10 +1233,15 @@ router.get(
         const applicantSkills = new Set();
 
         // Extract applicant skills from experiences
-        if (application.experienceJson && application.experienceJson.experiences) {
-          application.experienceJson.experiences.forEach(exp => {
+        if (
+          application.experienceJson &&
+          application.experienceJson.experiences
+        ) {
+          application.experienceJson.experiences.forEach((exp) => {
             if (exp.skills && Array.isArray(exp.skills)) {
-              exp.skills.forEach(skill => applicantSkills.add(skill.toLowerCase()));
+              exp.skills.forEach((skill) =>
+                applicantSkills.add(skill.toLowerCase())
+              );
             }
           });
         }
@@ -1173,9 +1258,10 @@ router.get(
           }
 
           // Calculate score as a percentage of maximum possible points
-          criterionScore = criterion.criteriaMaxScore > 0
-            ? (rulePoints / criterion.criteriaMaxScore) * 100
-            : 0;
+          criterionScore =
+            criterion.criteriaMaxScore > 0
+              ? (rulePoints / criterion.criteriaMaxScore) * 100
+              : 0;
         }
 
         // Add to total scores
@@ -1185,10 +1271,9 @@ router.get(
         // Add to criteria array
         criteriaScores.push({
           name: criterion.name,
-          score: Math.round(criterionScore)
+          score: Math.round(criterionScore),
         });
       }
-
 
       // Process rules for matching and missing
       const matchedRules: string[] = [];
@@ -1196,10 +1281,15 @@ router.get(
 
       // Extract applicant skills once
       const applicantSkills = new Set();
-      if (application.experienceJson && application.experienceJson.experiences) {
-        application.experienceJson.experiences.forEach(exp => {
+      if (
+        application.experienceJson &&
+        application.experienceJson.experiences
+      ) {
+        application.experienceJson.experiences.forEach((exp) => {
           if (exp.skills && Array.isArray(exp.skills)) {
-            exp.skills.forEach(skill => applicantSkills.add(skill.toLowerCase()));
+            exp.skills.forEach((skill) =>
+              applicantSkills.add(skill.toLowerCase())
+            );
           }
         });
       }
@@ -1225,9 +1315,11 @@ router.get(
 
       // Determine current role from latest experience
       let currentRole = "Applicant";
-      if (application.experienceJson &&
+      if (
+        application.experienceJson &&
         application.experienceJson.experiences &&
-        application.experienceJson.experiences.length > 0) {
+        application.experienceJson.experiences.length > 0
+      ) {
         // Sort experiences by start date (newest first)
         const sortedExperiences = [
           ...application.experienceJson.experiences,
@@ -1253,43 +1345,46 @@ router.get(
         personalLinks.push(applicantData.linkedIn);
       }
 
-      const score = Math.floor(application?.score || 0)
+      const score = Math.floor(application?.score || 0);
 
       const applicationForResume = await Application.findOne({
         where: {
           jobPostingId: jobPostingId,
-          applicantId: applicant.dataValues.id
+          applicantId: applicant.dataValues.id,
         },
       });
 
-      let resume = null
+      let resume = null;
 
       try {
-          // Extract just the filename from the full path
-        const resumeFileName = path.basename(applicationForResume?.dataValues.resumePath || '');
+        // Extract just the filename from the full path
+        const resumeFileName = path.basename(
+          applicationForResume?.dataValues.resumePath || ""
+        );
 
-        resume = await generateTemporaryUrl(resumeFileName)
-
+        resume = await generateTemporaryUrl(resumeFileName);
       } catch (s3Error) {
         console.error("Error retrieving resume from S3:", s3Error);
         // Continue without resume content
       }
-    
+
       const candidateReport = {
-        name: `${applicantData?.dataValues.firstName || ''} ${applicantData?.dataValues.lastName || ''}`,
+        name: `${applicantData?.dataValues.firstName || ""} ${
+          applicantData?.dataValues.lastName || ""
+        }`,
         role: currentRole,
         matchScore: score,
         details: {
-          email: applicantData?.dataValues.email || '',
-          phone: applicantData?.dataValues.phone || 'N/A',
+          email: applicantData?.dataValues.email || "",
+          phone: applicantData?.dataValues.phone || "N/A",
           personalLinks: personalLinks,
         },
         criteria: criteriaScores,
         rules: {
           matched: matchedRules,
-          missing: missingRules
+          missing: missingRules,
         },
-        resume: resume
+        resume: resume,
       };
 
       res.json(candidateReport);
@@ -1297,7 +1392,7 @@ router.get(
       console.error("Error fetching candidate report:", error);
       res.status(500).json({
         error: "Failed to fetch candidate report",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -1314,26 +1409,30 @@ router.get(
 
       // Verify the job posting exists and belongs to this hiring manager
       const jobPosting = await JobPosting.findOne({
-        where: { 
+        where: {
           id: jobPostingId,
-          staffId: req.auth?.id 
-        }
+          staffId: req.auth?.id,
+        },
       });
 
       if (!jobPosting) {
-        return res.status(404).json({ error: "Job posting not found or not authorized" });
+        return res
+          .status(404)
+          .json({ error: "Job posting not found or not authorized" });
       }
 
       // Find the notes for this candidate
       const candidateNote = await CandidateNote.findOne({
         where: {
           jobPostingId,
-          candidateEmail: decodeURIComponent(candidateEmail)
-        }
+          candidateEmail: decodeURIComponent(candidateEmail),
+        },
       });
 
       if (!candidateNote) {
-        return res.status(404).json({ error: "No notes found for this candidate" });
+        return res
+          .status(404)
+          .json({ error: "No notes found for this candidate" });
       }
 
       res.json(candidateNote);
@@ -1341,7 +1440,7 @@ router.get(
       console.error("Error fetching candidate notes:", error);
       res.status(500).json({
         error: "Failed to fetch candidate notes",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -1371,7 +1470,7 @@ router.post(
         jobPostingId,
         candidateEmail,
         notes,
-        body: req.body
+        body: req.body,
       });
 
       if (!notes) {
@@ -1381,15 +1480,17 @@ router.post(
 
       // Verify the job posting exists and belongs to this hiring manager
       const jobPosting = await JobPosting.findOne({
-        where: { 
+        where: {
           id: jobPostingId,
-          staffId: req.auth?.id 
-        }
+          staffId: req.auth?.id,
+        },
       });
 
       if (!jobPosting) {
         console.log("Job posting not found or not authorized");
-        return res.status(404).json({ error: "Job posting not found or not authorized" });
+        return res
+          .status(404)
+          .json({ error: "Job posting not found or not authorized" });
       }
 
       const decodedEmail = decodeURIComponent(candidateEmail);
@@ -1399,8 +1500,8 @@ router.post(
       let candidateNote = await CandidateNote.findOne({
         where: {
           jobPostingId,
-          candidateEmail: decodedEmail
-        }
+          candidateEmail: decodedEmail,
+        },
       });
 
       console.log("Existing note found:", candidateNote ? true : false);
@@ -1410,19 +1511,19 @@ router.post(
         console.log("Updating existing note");
         console.log("Old notes value:", candidateNote.notes);
         console.log("New notes value:", notes);
-        
+
         // Update the model
         candidateNote.set({
           notes: notes,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
-        
+
         // Save the changes
         await candidateNote.save();
-        
+
         // Reload the model to ensure we have the latest data
         await candidateNote.reload();
-        
+
         console.log("Note updated successfully");
         console.log("Updated notes value:", candidateNote.notes);
       } else {
@@ -1432,7 +1533,7 @@ router.post(
           jobPostingId,
           candidateEmail: decodedEmail,
           notes,
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
         });
         console.log("Note created successfully");
       }
@@ -1443,7 +1544,7 @@ router.post(
       console.error("Error saving candidate notes:", error);
       res.status(500).json({
         error: "Failed to save candidate notes",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -1460,14 +1561,14 @@ router.post(
       const { totalScore } = req.body;
 
       // this is the break down of each skill and score can implement in the future to populate manually scoring page
-      const {criteriaScores} = req.body
+      const { criteriaScores } = req.body;
 
-      const manualScore = totalScore
-      
+      const manualScore = totalScore;
+
       if (manualScore === undefined || manualScore === null) {
         return res.status(400).json({ error: "Manual score is required" });
       }
-      
+
       // Verify the job posting exists and belongs to this hiring manager
       const jobPosting = await JobPosting.findOne({
         where: {
@@ -1478,14 +1579,15 @@ router.post(
 
       if (!jobPosting) {
         return res.status(404).json({
-          error: "Job posting not found or you don't have permission to score this candidate"
+          error:
+            "Job posting not found or you don't have permission to score this candidate",
         });
       }
 
       // Find the applicant by email
       const decodedEmail = decodeURIComponent(candidateEmail);
       const applicant = await Applicant.findOne({
-        where: { email: decodedEmail }
+        where: { email: decodedEmail },
       });
 
       if (!applicant) {
@@ -1496,8 +1598,8 @@ router.post(
       const application = await Application.findOne({
         where: {
           jobPostingId,
-          applicantId: applicant.id
-        }
+          applicantId: applicant.id,
+        },
       });
 
       if (!application) {
@@ -1506,7 +1608,7 @@ router.post(
 
       // Update the application with the manual score
       await application.update({
-        manualScore: manualScore
+        manualScore: manualScore,
       });
 
       res.status(200).json({
@@ -1517,14 +1619,14 @@ router.post(
           applicantId: applicant.id,
           applicantEmail: decodedEmail,
           manualScore: manualScore,
-          updatedAt: application.updatedAt
-        }
+          updatedAt: application.updatedAt,
+        },
       });
     } catch (error) {
-      console.error('Error saving manual score:', error);
-      res.status(500).json({ 
+      console.error("Error saving manual score:", error);
+      res.status(500).json({
         error: "Failed to save manual score",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -1549,7 +1651,8 @@ router.get(
 
       if (!jobPosting) {
         return res.status(404).json({
-          error: "Job posting not found or you don't have permission to view this candidate's score"
+          error:
+            "Job posting not found or you don't have permission to view this candidate's score",
         });
       }
 
@@ -1557,7 +1660,14 @@ router.get(
       const decodedEmail = decodeURIComponent(candidateEmail);
       const applicant = await Applicant.findOne({
         where: { email: decodedEmail },
-        attributes: ['id', 'email', 'firstName', 'lastName', 'phone', 'linkedIn']
+        attributes: [
+          "id",
+          "email",
+          "firstName",
+          "lastName",
+          "phone",
+          "linkedIn",
+        ],
       });
 
       if (!applicant) {
@@ -1568,8 +1678,8 @@ router.get(
       const application = await Application.findOne({
         where: {
           jobPostingId,
-          applicantId: applicant.id
-        }
+          applicantId: applicant.id,
+        },
       });
 
       if (!application) {
@@ -1589,13 +1699,13 @@ router.get(
         },
         manualScore: application.manualScore,
         algorithmScore: application.score,
-        lastUpdated: application.updatedAt
+        lastUpdated: application.updatedAt,
       });
     } catch (error) {
-      console.error('Error retrieving manual score:', error);
-      res.status(500).json({ 
+      console.error("Error retrieving manual score:", error);
+      res.status(500).json({
         error: "Failed to retrieve manual score",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -1621,7 +1731,8 @@ router.delete(
 
       if (!jobPosting) {
         return res.status(404).json({
-          error: "Job posting not found or you don't have permission to modify its applications"
+          error:
+            "Job posting not found or you don't have permission to modify its applications",
         });
       }
 
@@ -1630,15 +1741,15 @@ router.delete(
         where: {
           jobPostingId,
           manualScore: {
-            [Op.not]: null // Find only applications with a manual score
-          }
-        }
+            [Op.not]: null, // Find only applications with a manual score
+          },
+        },
       });
 
       if (applications.length === 0) {
         return res.status(200).json({
           message: "No manually scored applications found for this job posting",
-          count: 0
+          count: 0,
         });
       }
 
@@ -1649,21 +1760,21 @@ router.delete(
           where: {
             jobPostingId,
             manualScore: {
-              [Op.not]: null
-            }
-          }
+              [Op.not]: null,
+            },
+          },
         }
       );
 
       return res.status(200).json({
         message: "Successfully reset all manual scores for this job posting",
-        count: updateCount[0] // Number of rows affected
+        count: updateCount[0], // Number of rows affected
       });
     } catch (error) {
       console.error("Error deleting manual scores:", error);
       return res.status(500).json({
         error: "Failed to delete manual scores",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }

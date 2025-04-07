@@ -7,14 +7,24 @@ export class ApplicationScoring {
     startDate: string,
     endDate: string
   ): number {
-    const [startMonth, startYear] = startDate.split("/").map(Number);
-    const [endMonth, endYear] = endDate.split("/").map(Number);
+    try {
+      const [startMonth, startYear] = startDate.split("/").map(Number);
 
-    const start = new Date(startYear, startMonth - 1);
-    const end = new Date(endYear, endMonth - 1);
+      let end;
+      if (endDate === "Present") {
+        end = new Date(); // Use current date for ongoing positions
+      } else {
+        const [endMonth, endYear] = endDate.split("/").map(Number);
+        end = new Date(endYear, endMonth - 1);
+      }
 
-    const monthsDiff = differenceInMonths(end, start);
-    return monthsDiff / 12; // Convert months to years
+      const start = new Date(startYear, startMonth - 1);
+      const monthsDiff = differenceInMonths(end, start);
+      return Math.max(0, monthsDiff / 12); // Convert months to years, ensure non-negative
+    } catch (error) {
+      console.error("Error calculating experience duration:", error);
+      return 0;
+    }
   }
 
   static evaluateSkill(
@@ -112,6 +122,7 @@ export class ApplicationScoring {
       for (const application of applications) {
         try {
           const score = await this.evaluateApplication(application, criteria);
+          console.log("updating");
           await application.update({ score });
           updatedCount++;
         } catch (error) {
