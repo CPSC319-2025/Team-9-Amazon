@@ -204,7 +204,6 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
                               fullWidth
                             />
                           )}
-                          freeSolo
                           filterOptions={(options, state) => {
                             const inputValue = state.inputValue.toLowerCase().trim();
                             return options.filter(option => 
