@@ -26,7 +26,7 @@ export default function JobPostingsPageHeader({
         </h1>
 
         {showSearchBar && (
-          <div className="flex flex-col rounded-full sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <CustomTextField
               placeholder="Search by job ID or keywords..."
               minWidth={400}
