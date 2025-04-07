@@ -14,12 +14,13 @@ import { ActionButtons } from "../../components/HiringManager/Applicants/ActionB
 import { SearchBar } from "../../components/Common/SearchBar";
 import { ApplicantList } from "../../components/HiringManager/Applicants/ApplicantList";
 import { useState, useMemo } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import {
   useGetApplicationsSummary,
   useGetPotentialCandidates,
 } from "../../queries/jobPosting";
 import { ApplicationSummary } from "../../types/application";
+import { ROUTES } from "../../routes/routePaths";
 
 const JobPostingApplicationsPage = () => {
   const { jobPostingId } = useParams<{ jobPostingId: string }>();
@@ -28,6 +29,7 @@ const JobPostingApplicationsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAscending, setSortAscending] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const navigate = useNavigate();
 
   const {
     data: summaryData,
@@ -191,7 +193,7 @@ const JobPostingApplicationsPage = () => {
               <Button 
                 color="inherit" 
                 size="small" 
-                onClick={handleNavigateToCriteria}
+                onClick={() => navigate(ROUTES.hiringManager.evaluationMetrics(jobPostingId || ""))}
               >
                 Add Criteria
               </Button>
