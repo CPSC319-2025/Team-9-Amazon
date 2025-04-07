@@ -50,7 +50,9 @@ const JobTextSection: React.FC<JobTextSectionProps> = ({
             helperText={editable ? errorMessage : undefined} />
         ) : (
           <Box>
-            <Typography variant="body1">{jobPosting[field]?.toString()}</Typography>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+              {jobPosting[field]?.toString()}
+              </Typography>
             {editable && errorMessage && (
               <Typography variant="caption" color="error">
                 {errorMessage}

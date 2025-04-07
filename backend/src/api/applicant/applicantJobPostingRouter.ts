@@ -15,6 +15,7 @@ router.get("/", async (req, res) => {
       attributes: [
         "id",
         "title", 
+        "subtitle",
         "description", 
         "responsibilities", 
         "qualifications", 
@@ -37,6 +38,7 @@ router.get("/", async (req, res) => {
         id: jobData.id,
         code: jobData.id?.toString(),
         title: jobData.title,
+        subtitle: jobData.subtitle,
         description: jobData.description,
         location: jobData.location,
         posted_at: new Date(jobData.createdAt).toISOString().split("T")[0],
