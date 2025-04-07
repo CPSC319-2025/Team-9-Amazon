@@ -152,6 +152,7 @@ const CriteriaManagerPage = () => {
           titleText={"Create New Criteria"} 
           mutationHook={useCreateCriteria} 
           dataState={createCriteriaData} 
+          initialDataState={initialCreateCriteriaRequest}
           setDataState={setCreateCriteriaData} 
         />
         <CriteriaEditModal
