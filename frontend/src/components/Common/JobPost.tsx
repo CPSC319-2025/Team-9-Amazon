@@ -10,8 +10,8 @@ export interface Job {
   description: string;
   department: string;
   posted_at: string;
-  qualifications: string[];
-  responsibilities: string[];
+  qualifications: string;
+  responsibilities: string;
   tags?: string[]; 
 }
 
