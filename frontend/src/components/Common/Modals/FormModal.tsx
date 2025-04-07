@@ -20,7 +20,7 @@ export interface FormSelectOptions {
   }[]
 }
 
-interface FormModalProps<T extends Record<string, any>> {
+interface FormModalProps<T extends Record<string, unknown>> {
   dataState: T;
   initialDataState?: T;
   setDataState: React.Dispatch<React.SetStateAction<T>>;
@@ -51,7 +51,7 @@ export const FormModal = <T extends Record<string, any>>({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value: string | boolean = e.target.value;
-    let { type, name } = e.target;
+    const { type, name } = e.target;
     if (type == "checkbox") {
       value = e.target.checked;
     }
