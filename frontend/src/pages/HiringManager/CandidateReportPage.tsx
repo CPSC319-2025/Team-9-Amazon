@@ -49,7 +49,6 @@ import {
   useSaveCandidateNotes,
 } from "../../queries/candidateNotes";
 import { ManualScoringForm } from "../../components/HiringManager/ManualScoring/ManualScoringForm";
-import { mockCriteriaWithSkills } from "../../mocks/manualScoringMocks";
 
 // Mock interview questions data
 const mockInterviewQuestions = {
@@ -223,6 +222,7 @@ export default function CandidateReportPage() {
     navigate(ROUTES.hiringManager.applications(jobPostingId!));
   };
 
+  // Resume file type detection logic
   let isPdf = null;
   if (candidateData?.resume) {
     isPdf = candidateData?.resume.fileType === "application/pdf";
@@ -705,30 +705,46 @@ export default function CandidateReportPage() {
                 Resume Preview
               </Typography>
 
-              <Tooltip title="View in fullscreen">
-                <IconButton
-                  onClick={() => {
-                    const iframe = document.getElementById(
-                      "resume-preview-iframe"
-                    );
-                    if (iframe && iframe.requestFullscreen) {
-                      iframe.requestFullscreen();
-                    }
-                  }}
-                  sx={{
-                    color: colors.blue1,
-                    "&:hover": {
-                      bgcolor: `${colors.blue1}10`,
-                    },
-                  }}
-                  aria-label="Fullscreen"
-                >
-                  <FullscreenIcon />
-                </IconButton>
-              </Tooltip>
+              {candidateData?.resume && (
+                isPdf ? (
+                  <Tooltip title="View in fullscreen">
+                    <IconButton
+                      onClick={() => {
+                        const iframe = document.getElementById(
+                          "resume-preview-iframe"
+                        );
+                        if (iframe && iframe.requestFullscreen) {
+                          iframe.requestFullscreen();
+                        }
+                      }}
+                      sx={{
+                        color: colors.blue1,
+                        "&:hover": {
+                          bgcolor: `${colors.blue1}10`,
+                        },
+                      }}
+                      aria-label="Fullscreen"
+                    >
+                      <FullscreenIcon />
+                    </IconButton>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{
+                      ...filledButtonStyle,
+                      backgroundColor: colors.orange1,
+                      color: colors.black1,
+                    }}
+                    onClick={()=>{window.location.href = candidateData.resume.url}}
+                  >
+                    Download Resume
+                  </Button>
+                )
+              )}
             </Box>
             <Box sx={{ flexGrow: 1 }}>
-              {candidateData.resume ? (
+              {candidateData?.resume ? (
                 <Box
                   sx={{
                     height: '100%',
@@ -738,18 +754,24 @@ export default function CandidateReportPage() {
                     overflow: "hidden",
                   }}
                 >
-                  <iframe
-                    id="resume-preview-iframe"
-                    src={candidateData.resume.url}
-                    title="Resume Preview"
-                    width="100%"
-                    height="100%"
-                    style={{
-                      border: "none",
-                      borderRadius: "4px",
-                    }}
-                    allowFullScreen
-                  />
+                  {isPdf ? (
+                    <iframe
+                      id="resume-preview-iframe"
+                      src={candidateData.resume.url}
+                      title="Resume Preview"
+                      width="100%"
+                      height="100%"
+                      style={{
+                        border: "none",
+                        borderRadius: "4px",
+                      }}
+                      allowFullScreen
+                    />
+                  ) : (
+                    <Alert severity="error">
+                      Can not display Word docs. Please convert to .pdf to see here or download the file
+                    </Alert>
+                  )}
                 </Box>
               ) : (
                 <Box
