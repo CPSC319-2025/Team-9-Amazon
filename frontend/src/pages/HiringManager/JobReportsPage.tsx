@@ -52,6 +52,25 @@ export default function JobReportsPage() {
     );
   }
 
+  // Check if there are no applications or criteria
+  if (data?.error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" sx={{ ...titleStyle, mb: 3 }}>
+          Job Metrics
+        </Typography>
+        <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1, p: 4, textAlign: 'center' }}>
+          <Alert severity="info" sx={{ mb: 3 }}>
+            {data.error}
+          </Alert>
+          <Typography variant="body1">
+            Reports will be available once you have applications for this job posting.
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   // Use the data from API or fallback to empty arrays
   const applicationData = data?.applicationData || [];
   const sourceData = data?.sourceData || [];
