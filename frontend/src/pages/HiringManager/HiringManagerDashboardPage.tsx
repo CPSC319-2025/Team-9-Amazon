@@ -157,9 +157,7 @@ const HiringManagerDashboardPage = () => {
                     color: colors.black1,
                   }}
                 >
-                  <Typography variant="h6">
-                    No job postings found matching "{searchTerm}."
-                  </Typography>
+                  <Typography variant="h6">No job postings found."</Typography>
                   <Typography
                     variant="body1"
                     sx={{ mt: 1, color: colors.black1 + "99" }}
