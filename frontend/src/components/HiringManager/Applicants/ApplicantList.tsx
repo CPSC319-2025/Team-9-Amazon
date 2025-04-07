@@ -14,7 +14,6 @@ import { colors } from "../../../styles/commonStyles";
 import { useNavigate, useParams } from "react-router";
 import { ROUTES } from "../../../routes/routePaths";
 import { ApplicationSummary } from "../../../types/application";
-import { mockApplicationsWithManualScores } from "../../../mocks/manualScoringMocks";
 import { useEffect, useState } from "react";
 
 interface ApplicantListProps {
@@ -24,8 +23,12 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
-  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>(applications);
-  console.log('data: ', applicationsWithManualScores)
+  const [applicationsWithManualScores, setApplicationsWithManualScores] =
+    useState<ApplicationSummary[]>(applications);
+
+  useEffect(() => {
+    setApplicationsWithManualScores(applications);
+  }, [applications]);
 
   const handleNavigateToReport = (email: string) => {
     navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
@@ -89,14 +92,15 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
                   Auto: {application.score.toFixed(2)}
                 </Typography>
               )}
-              {application.manualScore !== undefined && application.manualScore !== null && (
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.blue1, whiteSpace: "nowrap" }}
-                >
-                  Manual: {application.manualScore} pts
-                </Typography>
-              )}
+              {application.manualScore !== undefined &&
+                application.manualScore !== null && (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: colors.blue1, whiteSpace: "nowrap" }}
+                  >
+                    Manual: {application.manualScore} pts
+                  </Typography>
+                )}
             </Box>
             <ListItemSecondaryAction sx={{ display: "flex", gap: 1 }}>
               <Tooltip title="View candidate report" arrow>
