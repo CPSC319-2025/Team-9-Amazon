@@ -736,10 +736,14 @@ router.get(
         where: { jobPostingId: jobPostingId },
       });
 
-      // Calculate total possible score from criteria
-      const totalPossibleScore = criteria.reduce((total, criterion) => {
-        return total + criterion.criteriaMaxScore;
-      }, 0);
+      if (!criteria.length) {
+        return res.json({
+          totalApplications: 0,
+          applicationData: [],
+          sourceData: [],
+          error: "No criteria found for this job posting"
+        });
+      }
 
       // Get all applications with applicant information
       const applications = await Application.findAll({
@@ -780,7 +784,9 @@ router.get(
       });
 
       res.json({
-        totalPossibleScore,
+        totalPossibleScore: criteria.reduce((total, criterion) => {
+          return total + criterion.criteriaMaxScore;
+        }, 0),
         totalApplications: applications.length,
         applications: applicationsSummary,
       });
@@ -1032,7 +1038,12 @@ router.get(
       });
 
       if (!criteria.length) {
-        return { error: "No criteria found for this job posting" };
+        return res.json({
+          totalApplications: applications.length,
+          applicationData,
+          sourceData,
+          error: "No criteria found for this job posting"
+        });
       }
 
       const all_applications = await Application.findAll({
@@ -1048,7 +1059,12 @@ router.get(
       });
 
       if (!all_applications.length) {
-        return { error: "No applications found for this job posting" };
+        return res.json({
+          totalApplications: 0,
+          applicationData,
+          sourceData,
+          error: "No applications found for this job posting"
+        });
       }
 
       const totalApplicants = all_applications.length;

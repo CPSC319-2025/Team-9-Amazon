@@ -595,6 +595,12 @@ export const useSaveManualScore = () => {
       queryClient.invalidateQueries({
         queryKey: ['applicationsSummary', variables.jobPostingId],
       });
+
+      // Invalidate the applications summary query used in JobPostingApplicationsPage
+      queryClient.invalidateQueries({
+        queryKey: ['applications', 'summary', variables.jobPostingId],
+      });
+
     },
   });
 };

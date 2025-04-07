@@ -55,7 +55,7 @@ export default class Database {
       // Development Tool:
       // Set "force: true" to drop and recreate tables
       // Set "alter: true" to update tables
-      await this.sequelize.sync({ force: false, alter: false });
+      // await this.sequelize.sync({ force: false, alter: false });
 
       return this.sequelize;
     } catch (error) {
