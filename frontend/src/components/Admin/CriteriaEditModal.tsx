@@ -151,6 +151,9 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
     );
   };
 
+  const includedSkills = rules.map((rule) => rule.skill);
+  const filteredSkills = skills?.filter((skill) => !includedSkills.includes(skill.name)) ?? [];
+
   if (!criteria) return null;
 
   return (
@@ -187,7 +190,7 @@ const CriteriaEditModal: React.FC<CriteriaEditModalProps> = ({
                     <TableRow key={index}>
                       <TableCell>
                         <Autocomplete
-                          options={skills || []}
+                          options={filteredSkills}
                           getOptionLabel={(option) =>
                             typeof option == 'string' ? option : option.name
                           }
