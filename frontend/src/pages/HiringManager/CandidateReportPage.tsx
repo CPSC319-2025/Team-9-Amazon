@@ -179,7 +179,7 @@ export default function CandidateReportPage() {
   React.useEffect(() => {
     if (manualScoreData && manualScoreData.manualScore !== undefined && manualScoreData.manualScore !== null) {
       const percentage = Math.floor(
-        (manualScoreData.manualScore / summaryData?.totalPossibleScore) * 100
+        (summaryData?.totalPossibleScore != undefined ? manualScoreData.manualScore / summaryData?.totalPossibleScore : 0) * 100
       );
       setManualScore(percentage);
     } else {
