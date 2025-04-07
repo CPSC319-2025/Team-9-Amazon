@@ -117,12 +117,8 @@ export default function JobPostings() {
           job.code.toLowerCase().includes(searchTermLower) ||
           job.title.toLowerCase().includes(searchTermLower) ||
           job.description.toLowerCase().includes(searchTermLower) ||
-          job.qualifications.some((qual) =>
-            qual.toLowerCase().includes(searchTermLower)
-          ) ||
-          job.responsibilities.some((resp) =>
-            resp.toLowerCase().includes(searchTermLower)
-          )) &&
+          job.qualifications.toLowerCase().includes(searchTermLower) ||
+          job.responsibilities.toLowerCase().includes(searchTermLower)) &&
         job.location.toLowerCase().includes(locationLower)
       );
     })

@@ -42,12 +42,8 @@ router.get("/", async (req, res) => {
         description: jobData.description,
         location: jobData.location,
         posted_at: new Date(jobData.createdAt).toISOString().split("T")[0],
-        qualifications: jobData.qualifications
-          ? jobData.qualifications.split(",").map((q) => q.trim())
-          : [],
-        responsibilities: jobData.responsibilities
-          ? jobData.responsibilities.split(",").map((r) => r.trim())
-          : [],
+        qualifications: jobData.qualifications,
+        responsibilities: jobData.responsibilities,
           tags: jobData.jobTags?.map((tag) => tag.name) || [],
       };
     });
