@@ -78,7 +78,7 @@ const CriteriaManagerPage = () => {
     { field: "name", headerName: "Name", flex: 1 },
     {
       field: "criteriaJson",
-      headerName: "Rules",
+      headerName: "Skills",
       valueGetter: (json: any) => {
         const targetTexts = json.rules.map((element: Rule) => element.skill);
         return targetTexts.join(", ");
