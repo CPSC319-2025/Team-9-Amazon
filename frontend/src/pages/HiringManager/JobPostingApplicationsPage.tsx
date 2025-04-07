@@ -181,25 +181,30 @@ const JobPostingApplicationsPage = () => {
 
         {/* No Scoring Criteria Alert */}
         {hasZeroMaxScore && (
-          <Alert 
+          <Alert
             severity="info"
-            sx={{ 
-              mb: 4, 
+            sx={{
+              mb: 4,
               bgcolor: `${colors.blue1}15`,
               color: colors.blue1,
-              '& .MuiAlert-icon': { color: colors.blue1 }
+              "& .MuiAlert-icon": { color: colors.blue1 },
             }}
             action={
-              <Button 
-                color="inherit" 
-                size="small" 
-                onClick={() => navigate(ROUTES.hiringManager.evaluationMetrics(jobPostingId || ""))}
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  navigate(
+                    ROUTES.hiringManager.evaluationMetrics(jobPostingId || "")
+                  )
+                }
               >
                 Add Criteria
               </Button>
             }
           >
-            No scoring criteria have been set up for this job posting. Add evaluation criteria to start scoring applicants.
+            No scoring criteria have been set up for this job posting. Add
+            evaluation criteria to start scoring applicants.
           </Alert>
         )}
 
@@ -223,10 +228,9 @@ const JobPostingApplicationsPage = () => {
                 </Typography>
                 {summaryData?.totalPossibleScore !== undefined && (
                   <Typography variant="subtitle1" sx={{ color: colors.gray2 }}>
-                    {summaryData.totalPossibleScore > 0 
+                    {summaryData.totalPossibleScore > 0
                       ? `Maximum Possible Score: ${summaryData.totalPossibleScore}`
-                      : "No scoring criteria available"
-                    }
+                      : "No scoring criteria available"}
                   </Typography>
                 )}
               </Box>
@@ -235,7 +239,7 @@ const JobPostingApplicationsPage = () => {
           </Grid>
 
           {/* Potential Candidates Section */}
-          {scanned && filteredPotentialCandidates.length > 0 && (
+          {scanned && (
             <Grid item xs={12} md={6}>
               <Paper
                 elevation={0}
@@ -257,8 +261,12 @@ const JobPostingApplicationsPage = () => {
                   <Typography color="error">
                     Error fetching candidates.
                   </Typography>
-                ) : (
+                ) : filteredPotentialCandidates.length > 0 ? (
                   <ApplicantList applications={filteredPotentialCandidates} />
+                ) : (
+                  <Typography variant="subtitle1" sx={{ color: colors.gray2 }}>
+                    No potential candidates found
+                  </Typography>
                 )}
               </Paper>
             </Grid>
