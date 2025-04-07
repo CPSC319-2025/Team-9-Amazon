@@ -24,14 +24,14 @@ interface ApplicantListProps {
 export const ApplicantList = ({ applications }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
-  const [applicationsWithManualScores, setApplicationsWithManualScores] = useState<ApplicationSummary[]>(applications);
-  console.log('data: ', applicationsWithManualScores)
+
+  console.log('data: ', applications);
 
   const handleNavigateToReport = (email: string) => {
     navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
   };
 
-  if (applicationsWithManualScores.length === 0) {
+  if (applications.length === 0) {
     return (
       <Box sx={{ textAlign: "center", py: 4 }}>
         <Typography variant="body1" sx={{ color: colors.gray2 }}>
@@ -47,12 +47,12 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
       sx={{ bgcolor: colors.gray1, borderRadius: 2, overflow: "hidden" }}
     >
       <List sx={{ py: 0 }}>
-        {applicationsWithManualScores.map((application, index) => (
+        {applications.map((application, index) => (
           <ListItem
             key={[application.applicantId, application.jobPostingId].join("-")}
             sx={{
               borderBottom:
-                index < applicationsWithManualScores.length - 1
+                index < applications.length - 1
                   ? `1px solid ${colors.white}`
                   : "none",
               transition: "background-color 0.2s ease",
