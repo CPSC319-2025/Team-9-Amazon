@@ -26,7 +26,7 @@ python devopsTool.py
 ```
 It will show you the list of available commands.
 
-# Setup
+# Deployment Instructions
 Deployment infrastructure is done purely through AWS. The current setup uses Matthew's personal AWS account, and incurs about $94 monthly (I need to get that down). I will outline deployment instructions for 3 different configurations: development, minimal deployment setup, full deployment setup.
 
 ## Common Setup
@@ -134,6 +134,13 @@ We use AWS IAM to provision AWS accounts for team members, as well as an account
 ### AWS Certificate Manager (ACM)
 We use AWS ACM to obtain SSL certificates for our domain. We modified our application load balancer to utilize SSL termination, such that externally we communicate only through HTTPS, but internally we use HTTP.
 
+# Environment Configuration (Development, Test, Staging, and Production)
+The primary way in which we separate our environments is by having different databases. Instructions on how to set up a database are detailed above ("Database Setup"). I will detail how to set up a database for the test environment. The process for staging and production are identical.
+
+1. Get terminal access to your database. Create a new database called "myTestDb"
+2. Modify `backend/src/database/config/config.json` to point to this database, migrate and seed this database (instructions included in "Database Setup" section)
+
+Since the `config.json` is pointing to the test database, Running your application now will use the test database (test environment).
 
 
 # License
