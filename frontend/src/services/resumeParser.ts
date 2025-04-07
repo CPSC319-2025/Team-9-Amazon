@@ -2,10 +2,13 @@ import mammoth from "mammoth";
 import OpenAI from "openai";
 import * as pdfjsLib from "pdfjs-dist";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+import pdfWorkerSource from "pdfjs-dist/build/pdf.worker.min.mjs?raw";
+
+// Then before using PDF.js:
+const blob = new Blob([pdfWorkerSource], { type: "text/javascript" });
+const workerUrl = URL.createObjectURL(blob);
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true,
@@ -42,10 +45,9 @@ async function extractTextFromFile(file: File): Promise<string> {
 
   if (file.type === "application/pdf") {
     try {
-      // Convert ArrayBuffer to Uint8Array for PDF.js
+      console.log("Starting PDF text extraction");
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      // Load the PDF document
       const loadingTask = pdfjsLib.getDocument({
         data: uint8Array,
         useWorkerFetch: false,
@@ -56,7 +58,6 @@ async function extractTextFromFile(file: File): Promise<string> {
       const pdf = await loadingTask.promise;
       let fullText = "";
 
-      // Extract text from all pages
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -72,7 +73,6 @@ async function extractTextFromFile(file: File): Promise<string> {
       throw new Error("Failed to extract text from PDF file");
     }
   } else {
-    // For Word documents
     try {
       const result = await mammoth.extractRawText({ arrayBuffer });
       return result.value;
