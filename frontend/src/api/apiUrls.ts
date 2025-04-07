@@ -37,7 +37,7 @@ export const apiUrls = {
   accounts: {
     base: `${accountsUrl}`,
     hiringManagers: `${accountsUrl}/hiring-managers`,
-    edit: `$${accountsUrl}/:accountId`,
+    edit: `${accountsUrl}/:accountId`,
     delete: `${accountsUrl}/:accountId`,
   },
   criteria: {
