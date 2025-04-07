@@ -13,8 +13,8 @@ import { colors, paperStyle } from "../../styles/commonStyles";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
 import { SearchBar } from "../../components/Common/SearchBar";
 import { ApplicantList } from "../../components/HiringManager/Applicants/ApplicantList";
-import { useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useState, useMemo, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import {
   useGetApplicationsSummary,
   useGetPotentialCandidates,
@@ -24,6 +24,7 @@ import { ROUTES } from "../../routes/routePaths";
 
 const JobPostingApplicationsPage = () => {
   const { jobPostingId } = useParams<{ jobPostingId: string }>();
+  const location = useLocation();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +36,7 @@ const JobPostingApplicationsPage = () => {
     data: summaryData,
     isLoading,
     error,
+    refetch: refetchApplications,
   } = useGetApplicationsSummary(jobPostingId || "");
 
   // Fetch potential candidates on demand
@@ -49,6 +51,13 @@ const JobPostingApplicationsPage = () => {
   const [potentialCandidates, setPotentialCandidates] = useState<
     ApplicationSummary[]
   >([]);
+
+  // Refetch data when the applications tab is clicked
+  useEffect(() => {
+    if (location.pathname.endsWith("/applications")) {
+      refetchApplications();
+    }
+  }, [location.pathname, refetchApplications]);
 
   // Filter and sort applications based on search term and sort direction
   const filteredApplications = useMemo(() => {
@@ -243,10 +252,7 @@ const JobPostingApplicationsPage = () => {
             <Grid item xs={12} md={6}>
               <Paper
                 elevation={0}
-                sx={{
-                  ...paperStyle,
-                  border: `2px solid ${colors.blue1}15`,
-                }}
+                sx={{ ...paperStyle, border: `2px solid ${colors.blue1}15` }}
               >
                 <Typography
                   variant="h5"
