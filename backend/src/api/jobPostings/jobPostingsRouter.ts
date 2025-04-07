@@ -741,7 +741,7 @@ router.get(
           totalApplications: 0,
           applicationData: [],
           sourceData: [],
-          error: "No criteria found for this job posting"
+          error: "No criteria found for this job posting",
         });
       }
 
@@ -1042,7 +1042,7 @@ router.get(
           totalApplications: applications.length,
           applicationData,
           sourceData,
-          error: "No criteria found for this job posting"
+          error: "No criteria found for this job posting",
         });
       }
 
@@ -1055,7 +1055,13 @@ router.get(
             attributes: ["id", "firstName", "lastName", "email"],
           },
         ],
-        attributes: ["jobPostingId", "applicantId", "score", "createdAt"],
+        attributes: [
+          "jobPostingId",
+          "applicantId",
+          "score",
+          "experienceJson",
+          "createdAt",
+        ],
       });
 
       if (!all_applications.length) {
@@ -1063,7 +1069,7 @@ router.get(
           totalApplications: 0,
           applicationData,
           sourceData,
-          error: "No applications found for this job posting"
+          error: "No applications found for this job posting",
         });
       }
 
@@ -1071,7 +1077,7 @@ router.get(
       const criteriaMatchStats = [];
 
       for (const criterion of criteria) {
-        const rules = criterion.criteriaJson.rules;
+        const rules = criterion.dataValues.criteriaJson.rules;
         let applicantsMeetingCriterion = 0;
 
         for (const application of all_applications) {
