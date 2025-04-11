@@ -73,6 +73,8 @@ export const signStaffToken = (staff: Staff) => {
   const payload = {
     id: staff.id,
     email: staff.email,
+    firstName: staff.firstName,
+    lastName: staff.lastName,
     isHiringManager: staff.isHiringManager,
     isAdmin: staff.isAdmin,
   }

@@ -1,34 +1,31 @@
+import { WorkspacePremium } from "@mui/icons-material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import GroupIcon from "@mui/icons-material/Group";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MenuIcon from "@mui/icons-material/Menu";
+import WorkIcon from "@mui/icons-material/Work";
 import {
   AppBar,
-  Toolbar,
   Avatar,
-  IconButton,
-  Menu,
   Box,
+  Button,
+  Divider,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
-  Button,
-  Stack,
-  Tooltip,
-  Typography,
+  Menu,
+  Toolbar
 } from "@mui/material";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import GroupIcon from "@mui/icons-material/Group";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import LogoutIcon from "@mui/icons-material/Logout";
-import WorkIcon from "@mui/icons-material/Work";
-import MenuIcon from "@mui/icons-material/Menu";
+import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { ROUTES } from "../routes/routePaths";
 import { getToken } from "../api/login";
-import { jwtDecode } from "jwt-decode";
+import { ROUTES } from "../routes/routePaths";
 import { DecodedToken } from "../types/utils";
-import { WorkspacePremium } from "@mui/icons-material";
-import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const TopNavbar = () => {
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
@@ -36,6 +33,8 @@ const TopNavbar = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isHiringManager, setIsHiringManager] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,6 +59,12 @@ const TopNavbar = () => {
         setIsLoggedIn(true);
         setIsAdmin(Boolean(decoded?.isAdmin));
         setIsHiringManager(Boolean(decoded?.isHiringManager));
+        let fullName = `${decoded?.firstName} ${decoded?.lastName}`;
+        fullName = fullName.length > 25 ? `${fullName.slice(0, 23)}...` : fullName;
+        setFullName(fullName);
+        let email = decoded?.email;
+        email = email.length > 25 ? `${email.slice(0, 23)}...` : email;
+        setEmail(email);
       } catch (error) {
         console.error("Error decoding token:", error);
         localStorage.removeItem("token");
@@ -143,52 +148,52 @@ const TopNavbar = () => {
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {shouldShowAccountButton && navigationItems.length > 0 && (
             <>
-              <IconButton 
-                edge="start" 
-                color="inherit" 
-                aria-label="menu" 
+              <IconButton
+                edge="start"
+                color="inherit"
+                aria-label="menu"
                 onClick={handleMenuOpen}
-                sx={{ 
+                sx={{
                   mr: 2,
-                  color: '#232F3E',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 153, 0, 0.1)',
+                  color: "#232F3E",
+                  "&:hover": {
+                    bgcolor: "rgba(255, 153, 0, 0.1)",
                   },
                 }}
               >
                 <MenuIcon />
               </IconButton>
 
-              <Menu 
-                anchorEl={menuAnchorEl} 
-                open={Boolean(menuAnchorEl)} 
+              <Menu
+                anchorEl={menuAnchorEl}
+                open={Boolean(menuAnchorEl)}
                 onClose={handleMenuClose}
                 anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
+                  vertical: "bottom",
+                  horizontal: "left",
                 }}
                 transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
+                  vertical: "top",
+                  horizontal: "left",
                 }}
               >
                 <List sx={{ width: "180px" }}>
                   {navigationItems.map((item, index) => (
-                    <ListItemButton 
-                      key={index} 
+                    <ListItemButton
+                      key={index}
                       onClick={() => handleNavigation(item.path)}
                       sx={{
-                        color: '#232F3E',
-                        '&:hover': {
-                          bgcolor: 'rgba(255, 153, 0, 0.1)',
+                        color: "#232F3E",
+                        "&:hover": {
+                          bgcolor: "rgba(255, 153, 0, 0.1)",
                         },
                         ...(location.pathname === item.path && {
-                          borderLeft: '4px solid #FF9900',
-                          bgcolor: 'rgba(255, 153, 0, 0.05)',
+                          borderLeft: "4px solid #FF9900",
+                          bgcolor: "rgba(255, 153, 0, 0.05)",
                         }),
                       }}
                     >
-                      <ListItemIcon sx={{ color: location.pathname === item.path ? '#FF9900' : '#232F3E' }}>
+                      <ListItemIcon sx={{ color: location.pathname === item.path ? "#FF9900" : "#232F3E" }}>
                         {item.icon}
                       </ListItemIcon>
                       <ListItemText primary={item.label} />
@@ -198,7 +203,7 @@ const TopNavbar = () => {
               </Menu>
             </>
           )}
-          
+
           <Box
             component={Link}
             to={
@@ -222,20 +227,26 @@ const TopNavbar = () => {
               <ArrowDropDownIcon sx={{ marginLeft: "5px" }} />
             </IconButton>
 
-            <Menu 
-              anchorEl={profileAnchorEl} 
-              open={Boolean(profileAnchorEl)} 
+            <Menu
+              anchorEl={profileAnchorEl}
+              open={Boolean(profileAnchorEl)}
               onClose={handleProfileMenuClose}
               anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
+                vertical: "bottom",
+                horizontal: "right",
               }}
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
             >
               <List sx={{ width: "180px" }}>
+                <ListItemText
+                  primary={fullName}
+                  secondary={email}
+                  sx={{ padding: "0 8px" }}
+                />
+                <Divider sx={{ marginBottom: 1 }} />
                 <ListItemButton onClick={handleLogout}>
                   <ListItemIcon>
                     <LogoutIcon />
