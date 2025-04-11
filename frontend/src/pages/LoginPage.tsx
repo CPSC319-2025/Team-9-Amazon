@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../routes/routePaths";
-import CustomTextField from "../components/Common/FormInputs/CustomTextField";
 import CustomButton from "../components/Common/Buttons/CustomButton";
 import {
   TextField,
@@ -80,13 +79,13 @@ export default function LoginPage() {
 
       {/* Login Form */}
       <div className="w-[300px] flex flex-col gap-4">
-        <CustomTextField
+        <TextField
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={handleKeyPress}
-          minWidth={300}
           error={!!error}
+          sx={{ minWidth: 300 }}
         />
 
         {/* Password Field with Eye Icon */}
