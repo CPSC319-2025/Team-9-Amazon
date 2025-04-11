@@ -393,7 +393,7 @@ export default function CandidateReportPage() {
           }}
         >
           <Tab icon={<PersonIcon />} iconPosition="start" label="Profile & Notes" {...a11yProps(0)} />
-          {/* <Tab icon={<QuestionAnswerIcon />} iconPosition="start" label="Interview Questions" {...a11yProps(1)} /> */}
+          <Tab icon={<QuestionAnswerIcon />} iconPosition="start" label="Interview Questions" {...a11yProps(1)} />
           <Tab icon={<DescriptionIcon />} iconPosition="start" label="Resume" {...a11yProps(1)} />
           <Tab icon={<AssessmentIcon />} iconPosition="start" label="Manual Scoring" {...a11yProps(2)} />
         </Tabs>
@@ -627,7 +627,7 @@ export default function CandidateReportPage() {
         </TabPanel>
 
         {/* Interview Questions Tab */}
-        {/* <TabPanel value={tabValue} index={1}>
+        <TabPanel value={tabValue} index={1}>
           <Paper elevation={0} sx={{ ...paperStyle, bgcolor: colors.gray1, height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h6" sx={{ ...titleStyle, mb: 3 }}>
               Suggested Interview Questions
@@ -679,7 +679,7 @@ export default function CandidateReportPage() {
               </Stack>
             </Box>
           </Paper>
-        </TabPanel> */}
+        </TabPanel>
 
         {/* Resume Tab */}
         <TabPanel value={tabValue} index={1}>
