@@ -1,15 +1,16 @@
 // import { PlusCircle, Trash2,  } from "lucide-react";
-import { AddCircleOutlined, DeleteOutlined, Edit } from "@mui/icons-material";
-import { Box, Chip, IconButton, Stack } from "@mui/material";
-import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbar } from "@mui/x-data-grid";
+import { AddCircleOutlineOutlined, DeleteOutlined, Edit, Group} from "@mui/icons-material";
+// import GroupIcon from "@mui/icons-material/Group";
+import { Box, Chip, IconButton, Stack, Button } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef, GridRowId, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import React, { useEffect, useState } from "react";
-// import { Header } from "../../components/Common/Header";
+import { Header } from "../../components/Common/Header";
 import { ConfirmationModal } from "../../components/Common/Modals/ConfirmationModal";
 import { FormModal } from "../../components/Common/Modals/FormModal";
 import CustomSnackbar from "../../components/Common/SnackBar";
 import { useGetAccounts, useCreateAccount, useDeleteAccount, useEditAccount } from "../../queries/accounts";
 import { AccountRequest } from "../../representations/accounts";
-import { colors, titleStyle } from "../../styles/commonStyles";
+import { colors, textButtonStyle } from "../../styles/commonStyles";
 
 const initialAccountFormData: AccountRequest = {
   email: "",
@@ -80,6 +81,17 @@ const AccountManagerPage = () => {
     // return id
   };
 
+  const headerIcon = <Group sx={{fontSize: 32, color: colors.black1}}/>
+  const headerActions = (
+    <Button
+      startIcon={<AddCircleOutlineOutlined sx={{fontSize: 32}} />}
+      sx={{ ...textButtonStyle, color: colors.blue1 }}
+      onClick={handleAddClick}
+    >
+      Add an Account
+    </Button>
+  );
+
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'User ID', width: 150 },
     { field: "firstName", headerName: "First Name", flex: 1 },
@@ -115,7 +127,7 @@ const AccountManagerPage = () => {
       field: "actions",
       type: "actions",
       // headerName: 'Actions',
-      flex: 0.3,
+      minWidth: 100,
       align: "right",
       cellClassName: "actions",
       getActions: (temp) => {
@@ -147,17 +159,35 @@ const AccountManagerPage = () => {
     }
   }, [isError]);
 
+  const QuickSearchToolbar = () => {
+        return (
+          <Box
+            sx={{
+              p: 2,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <GridToolbarQuickFilter
+              placeholder="Search entries..."
+              variant="outlined"
+              size="medium"
+              sx={{
+                width: "100%",
+                maxWidth: "50",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            />
+            </Box>
+        )
+      }
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-      <Stack direction="row" justifyContent="space-between">
-        <Box padding="10px" sx={{ ...titleStyle, fontVariant: "h4" }}>
-          Accounts
-        </Box>
-        <IconButton aria-label="Add an Account" onClick={handleAddClick}>
-          <AddCircleOutlined />
-        </IconButton>
-      </Stack>
-      <Box sx={{ height: 400, width: "100%" }}>
+      <Header icon={headerIcon} title="Users Management" actions={headerActions} />
+      <Box sx={{ display: "flex", flexDirection: 'column', width: "100%", padding: "0 16px", maxHeight: 600 }}>
         <DataGrid
           rows={accounts?.staff || []}
           columns={columns}
@@ -170,12 +200,7 @@ const AccountManagerPage = () => {
           disableDensitySelector
           disableColumnResize
           sx={{ border: 0 }}
-          slots={{ toolbar: GridToolbar }}
-          slotProps={{
-            toolbar: {
-              showQuickFilter: true,
-            },
-          }}
+          slots={{ toolbar: QuickSearchToolbar }}
         />
       </Box>
       <ConfirmationModal

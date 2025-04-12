@@ -1,4 +1,4 @@
-import { AddCircleOutlined, DeleteOutlined, Edit } from "@mui/icons-material";
+import { AddCircleOutlineOutlined, DeleteOutlined, Edit, WorkspacePremium } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -16,11 +16,11 @@ import {
   GridActionsCellItem,
   GridColDef,
   GridRowId,
-  GridToolbar,
+  GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import CustomSnackbar from "../../components/Common/SnackBar";
-import { colors, titleStyle } from "../../styles/commonStyles";
+import { colors, textButtonStyle } from "../../styles/commonStyles";
 import {
   Skill,
   useCheckSkillReferences,
@@ -29,6 +29,7 @@ import {
   useGetSkills,
   useUpdateSkill,
 } from "../../queries/skill";
+import { Header } from "../../components/Common/Header";
 
 const SkillsManagerPage = () => {
   const {
@@ -176,6 +177,17 @@ const SkillsManagerPage = () => {
     }
   };
 
+  const headerIcon = <WorkspacePremium sx={{fontSize: 32, color: colors.black1}}/>
+    const headerActions = (
+      <Button
+        startIcon={<AddCircleOutlineOutlined sx={{fontSize: 32}} />}
+        sx={{ ...textButtonStyle, color: colors.blue1 }}
+        onClick={handleCreateClick}
+      >
+        Add a New Skill
+      </Button>
+    );
+  
   const handleUpdateSkill = () => {
     if (selectedSkill && skillName.trim()) {
       updateSkillMutation.mutate({ name: skillName.trim() });
@@ -195,7 +207,7 @@ const SkillsManagerPage = () => {
       field: "actions",
       type: "actions",
       headerName: "Actions",
-      width: 100,
+      minWidth: 100,
       cellClassName: "actions",
       getActions: ({ id }) => {
         return [
@@ -216,25 +228,40 @@ const SkillsManagerPage = () => {
     },
   ];
 
+  const QuickSearchToolbar = () => {
+      return (
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <GridToolbarQuickFilter
+            placeholder="Search entries..."
+            variant="outlined"
+            size="medium"
+            sx={{
+              width: "100%",
+              maxWidth: "50",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          />
+          </Box>
+      )
+    }
+
+  
   return (
     <>
       <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          padding="10px"
-        >
-          <Box sx={{ ...titleStyle, fontVariant: "h4" }}>Skills Management</Box>
-          <IconButton
-            aria-label="Add a Skill"
-            onClick={handleCreateClick}
-            sx={{ color: colors.blue1 }}
-          >
-            <AddCircleOutlined />
-          </IconButton>
-        </Stack>
-        <Box sx={{ height: 400, width: "100%", padding: "0 16px" }}>
+        <Header icon={headerIcon}
+                title="Skills Management" 
+                actions={headerActions} />
+        <Box sx={{ display: "flex", flexDirection: 'column', width: "100%", padding: "0 16px", maxHeight: 600}}>
           <DataGrid
             rows={skills || []}
             loading={isLoading}
@@ -245,12 +272,7 @@ const SkillsManagerPage = () => {
             disableDensitySelector
             disableColumnResize
             sx={{ border: 0, justifyContent: "space-between" }}
-            slots={{ toolbar: GridToolbar }}
-            slotProps={{
-              toolbar: {
-                showQuickFilter: true,
-              },
-            }}
+            slots={{ toolbar: QuickSearchToolbar }}
           />
         </Box>
 
@@ -264,7 +286,7 @@ const SkillsManagerPage = () => {
               label="Skill Name"
               type="text"
               fullWidth
-              variant="outlined"
+              variant="standard"
               value={skillName}
               onChange={(e) => setSkillName(e.target.value)}
             />
@@ -291,7 +313,7 @@ const SkillsManagerPage = () => {
               label="Skill Name"
               type="text"
               fullWidth
-              variant="outlined"
+              variant="standard"
               value={skillName}
               onChange={(e) => setSkillName(e.target.value)}
             />

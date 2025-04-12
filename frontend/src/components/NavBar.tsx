@@ -244,7 +244,7 @@ const TopNavbar = () => {
                 <ListItemText
                   primary={fullName}
                   secondary={email}
-                  sx={{ padding: "0 8px" }}
+                  sx={{ textAlign: "center" }}
                 />
                 <Divider sx={{ marginBottom: 1 }} />
                 <ListItemButton onClick={handleLogout}>
