@@ -49,6 +49,7 @@ import {
   useSaveCandidateNotes,
 } from "../../queries/candidateNotes";
 import { ManualScoringForm } from "../../components/HiringManager/ManualScoring/ManualScoringForm";
+import { generateInterviewQuestions, InterviewQuestion } from "../../services/interviewQuestions";
 
 // Mock interview questions data
 const mockInterviewQuestions = {
@@ -134,6 +135,11 @@ export default function CandidateReportPage() {
   // Manual score state
   const [manualScore, setManualScore] = useState<number | null>(null);
 
+  // Interview questions state
+  const [interviewQuestions, setInterviewQuestions] = useState<InterviewQuestion[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(false);
+  const [questionsError, setQuestionsError] = useState<Error | null>(null);
+
   // Get candidate report data
   const {
     data: candidateData,
@@ -185,6 +191,45 @@ export default function CandidateReportPage() {
       setManualScore(null)
     }
   }, [manualScoreData]);
+
+  // Generate interview questions when candidate data is available
+  useEffect(() => {
+    const generateQuestions = async () => {
+      if (!candidateData || !jobPostingId) return;
+      
+      setIsLoadingQuestions(true);
+      setQuestionsError(null);
+      
+      try {
+        // Check if application has experienceJson data
+        if (candidateData.application?.experienceJson) {
+          const jobDescription = criteriaData?.jobDescription || ""; 
+          const jobTitle = criteriaData?.jobTitle || "";
+          
+          const result = await generateInterviewQuestions(
+            candidateData.application.experienceJson,
+            jobDescription,
+            jobTitle
+          );
+          
+          setInterviewQuestions(result.questions || []);
+        } else {
+          // Fallback to mock data if no experienceJson is available
+          console.warn("No experience data available for this candidate");
+          setInterviewQuestions(mockInterviewQuestions.questions);
+        }
+      } catch (error) {
+        console.error("Error generating interview questions:", error);
+        setQuestionsError(error instanceof Error ? error : new Error("Failed to generate interview questions"));
+        // Fallback to mock data on error
+        setInterviewQuestions(mockInterviewQuestions.questions);
+      } finally {
+        setIsLoadingQuestions(false);
+      }
+    };
+    
+    generateQuestions();
+  }, [candidateData, jobPostingId, criteriaData]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -633,50 +678,60 @@ export default function CandidateReportPage() {
               Suggested Interview Questions
             </Typography>
             <Box sx={{ overflow: 'auto', flex: '1 1 auto' }}>
-              <Stack spacing={2}>
-                {mockInterviewQuestions.questions.map((question, index) => (
-                  <Accordion 
-                    key={index}
-                    sx={{ 
-                      boxShadow: 'none', 
-                      bgcolor: colors.white,
-                      '&:before': { display: 'none' },
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      mb: 1,
-                    }}
-                  >
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
+              {isLoadingQuestions ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : questionsError ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  Error generating interview questions: {questionsError.message}
+                </Alert>
+              ) : (
+                <Stack spacing={2}>
+                  {interviewQuestions.map((question, index) => (
+                    <Accordion 
+                      key={index}
                       sx={{ 
-                        bgcolor: `${colors.blue1}10`,
-                        '&:hover': { bgcolor: `${colors.blue1}20` },
+                        boxShadow: 'none', 
+                        bgcolor: colors.white,
+                        '&:before': { display: 'none' },
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        mb: 1,
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <Typography sx={{ flexGrow: 1, fontWeight: 500 }}>
-                          {question.question}
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{ 
+                          bgcolor: `${colors.blue1}10`,
+                          '&:hover': { bgcolor: `${colors.blue1}20` },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <Typography sx={{ flexGrow: 1, fontWeight: 500 }}>
+                            {question.question}
+                          </Typography>
+                          <Chip 
+                            label={question.category} 
+                            size="small" 
+                            sx={{ 
+                              ml: 2,
+                              bgcolor: colors.blue1,
+                              color: 'white',
+                              fontWeight: 500,
+                            }} 
+                          />
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Typography variant="body2" sx={{ color: colors.gray2 }}>
+                          {question.rationale}
                         </Typography>
-                        <Chip 
-                          label={question.category} 
-                          size="small" 
-                          sx={{ 
-                            ml: 2,
-                            bgcolor: colors.blue1,
-                            color: 'white',
-                            fontWeight: 500,
-                          }} 
-                        />
-                      </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography variant="body2" sx={{ color: colors.gray2 }}>
-                        {question.rationale}
-                      </Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </Stack>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Stack>
+              )}
             </Box>
           </Paper>
         </TabPanel>

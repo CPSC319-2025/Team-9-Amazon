@@ -15,15 +15,26 @@ export interface InterviewQuestionsResponse {
   questions: InterviewQuestion[];
 }
 
+export interface ExperienceData {
+  experiences: Array<{
+    title: string;
+    company: string;
+    startDate: string;
+    endDate: string | null;
+    skills: string[];
+    description: string;
+  }>;
+}
+
 /**
  * Generates personalized interview questions based on candidate resume and job details
- * @param resumeData The parsed resume data
+ * @param experienceJson The candidate's experience data from the application
  * @param jobDescription The job description
  * @param jobTitle The job title
  * @returns A promise that resolves to an array of interview questions
  */
 export async function generateInterviewQuestions(
-  resumeData: any,
+  experienceJson: ExperienceData,
   jobDescription: string,
   jobTitle: string
 ): Promise<InterviewQuestionsResponse> {
@@ -34,7 +45,7 @@ export async function generateInterviewQuestions(
         {
           role: "system",
           content: `You are an expert hiring manager who creates personalized interview questions.
-          Generate 5 tailored interview questions based on the candidate's resume and the job description.
+          Generate 5 tailored interview questions based on the candidate's work experience and the job description.
           
           Each question should:
           1. Be specific to the candidate's experience or skills
@@ -59,9 +70,9 @@ export async function generateInterviewQuestions(
           
           Job Description: ${jobDescription}
           
-          Candidate Resume: ${JSON.stringify(resumeData)}
+          Candidate Experience: ${JSON.stringify(experienceJson)}
           
-          Please generate personalized interview questions for this candidate based on their resume and the job requirements.`,
+          Please generate personalized interview questions for this candidate based on their work experience and the job requirements.`,
         },
       ],
     });
