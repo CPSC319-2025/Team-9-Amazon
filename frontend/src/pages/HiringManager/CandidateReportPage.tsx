@@ -43,6 +43,7 @@ import {
   useGetApplicationsSummary,
   useGetManualScore, // Import the hook for getting manual score
   useGetJobPostingCriteria,
+  useGetJobPosting, // Add this import
 } from "../../queries/jobPosting";
 import {
   useGetCandidateNotes,
@@ -150,7 +151,19 @@ export default function CandidateReportPage() {
   // Get application summary to access totalPossibleScore
   const { data: summaryData } = useGetApplicationsSummary(jobPostingId!);
 
-  const { data: criteriaData } = useGetJobPostingCriteria(jobPostingId!);
+  // Get job posting criteria
+  const {
+    data: criteriaData,
+    isLoading: isLoadingCriteria,
+    error: criteriaError,
+  } = useGetJobPostingCriteria(jobPostingId!);
+
+  // Get job posting data for description and title
+  const {
+    data: jobPostingData,
+    isLoading: isLoadingJobPosting,
+    error: jobPostingError,
+  } = useGetJobPosting(jobPostingId!);
 
   // Get manual score from API
   const {
@@ -195,7 +208,7 @@ export default function CandidateReportPage() {
   // Generate interview questions when candidate data is available
   useEffect(() => {
     const generateQuestions = async () => {
-      if (!candidateData || !jobPostingId) return;
+      if (!candidateData || !jobPostingId || !jobPostingData) return;
       
       setIsLoadingQuestions(true);
       setQuestionsError(null);
@@ -203,8 +216,8 @@ export default function CandidateReportPage() {
       try {
         // Check if application has experienceJson data
         if (candidateData.application?.experienceJson) {
-          const jobDescription = criteriaData?.jobDescription || ""; 
-          const jobTitle = criteriaData?.jobTitle || "";
+          const jobDescription = jobPostingData.description || ""; 
+          const jobTitle = jobPostingData.title || "";
           
           const result = await generateInterviewQuestions(
             candidateData.application.experienceJson,
@@ -229,7 +242,7 @@ export default function CandidateReportPage() {
     };
     
     generateQuestions();
-  }, [candidateData, jobPostingId, criteriaData]);
+  }, [candidateData, jobPostingId, jobPostingData]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
