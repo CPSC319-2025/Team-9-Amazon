@@ -1,41 +1,49 @@
 import { format } from "date-fns";
-import { UniqueConstraintError } from "sequelize";
+import { Transaction, UniqueConstraintError } from "sequelize";
 
 import Applicant from "@/database/models/applicant";
 import Application from "@/database/models/application";
-import Database from "@/database/database";
+import Database, { JobPosting } from "@/database/database";
 import { s3UploadBase64 } from "@/common/utils/awsTools";
 import { ResumeUploadError, ApplicantCreationError, DuplicateApplicationError, ValidationError } from "@/common/utils/errors";
+import { JobPostingStatus } from "@/database/models/jobPosting";
 
 // Business logic (DB interactions)
 
-export const submitApplication = async (data: any) => {
-    const sequelize = Database.GetSequelize();
+export const submitApplication = async (data: any, transaction: Transaction) => {
+  if (!transaction) {
+    transaction = await Database.GetSequelize().transaction();
+  }
 
-    try {
-        return await sequelize.transaction(async (t) => {
-            const applicant = await findOrCreateApplicant(data, t);
-            const applicantId = applicant.get("id");
-
-            const resumeFileName = `${data.jobPostingId}-${applicantId}`;
-            try {
-                await s3UploadBase64(resumeFileName, data.resume);
-            } catch (err) {
-                throw new ResumeUploadError("Failed to upload resume to S3.");
-            }
-
-            return await createApplication(data, applicantId, resumeFileName, t);
-        });
-    } catch (err: any) {
-        // Catch database-level unique constraint violation
-        if (err instanceof UniqueConstraintError) {
-            throw new DuplicateApplicationError();
-        }
-        if (err instanceof ApplicantCreationError) {
-            throw new ApplicantCreationError();
-        }
-        throw err;
+  try {
+    const jobPosting = await JobPosting.findOne({
+      where: { id: data.jobPostingId },
+      transaction: transaction,
+    });
+    if (!jobPosting || jobPosting.dataValues.status != JobPostingStatus.OPEN) {
+      throw new ValidationError("Job posting is not open.");
     }
+    const applicant = await findOrCreateApplicant(data, transaction);
+    const applicantId = applicant.get("id");
+
+    const resumeFileName = `${data.jobPostingId}-${applicantId}`;
+    try {
+      await s3UploadBase64(resumeFileName, data.resume);
+    } catch (err) {
+      throw new ResumeUploadError("Failed to upload resume to S3.");
+    }
+
+    return await createApplication(data, applicantId, resumeFileName, transaction);
+  } catch (err: any) {
+    // Catch database-level unique constraint violation
+    if (err instanceof UniqueConstraintError) {
+      throw new DuplicateApplicationError();
+    }
+    if (err instanceof ApplicantCreationError) {
+      throw new ApplicantCreationError();
+    }
+    throw err;
+  }
 };
 
 // Exported for unit testing
