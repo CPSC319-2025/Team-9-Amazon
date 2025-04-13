@@ -452,8 +452,8 @@ export default function CandidateReportPage() {
         >
           <Tab icon={<PersonIcon />} iconPosition="start" label="Profile & Notes" {...a11yProps(0)} />
           <Tab icon={<QuestionAnswerIcon />} iconPosition="start" label="Interview Questions" {...a11yProps(1)} />
-          <Tab icon={<DescriptionIcon />} iconPosition="start" label="Resume" {...a11yProps(1)} />
-          <Tab icon={<AssessmentIcon />} iconPosition="start" label="Manual Scoring" {...a11yProps(2)} />
+          <Tab icon={<DescriptionIcon />} iconPosition="start" label="Resume" {...a11yProps(2)} />
+          <Tab icon={<AssessmentIcon />} iconPosition="start" label="Manual Scoring" {...a11yProps(3)} />
         </Tabs>
       </Box>
 
@@ -750,7 +750,7 @@ export default function CandidateReportPage() {
         </TabPanel>
 
         {/* Resume Tab */}
-        <TabPanel value={tabValue} index={1}>
+        <TabPanel value={tabValue} index={2}>
           <Paper 
             elevation={0} 
             sx={{ 
@@ -862,7 +862,7 @@ export default function CandidateReportPage() {
         </TabPanel>
 
         {/* Manual Scoring Tab */}
-        <TabPanel value={tabValue} index={2}>
+        <TabPanel value={tabValue} index={3}>
           {manualScoreError && (
             <Alert severity="error" sx={{ mb: 3 }}>
               Error loading manual score: {manualScoreError instanceof Error ? manualScoreError.message : "Unknown error"}
