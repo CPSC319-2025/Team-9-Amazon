@@ -10,12 +10,13 @@ import {
   ValidationError,
 } from "@/common/utils/errors";
 import { ValidationError as SequelizeValidationError } from "sequelize";
-import { Criteria } from "@/database/database";
+import Database, { Criteria } from "@/database/database";
 import { ApplicationScoring } from "@/services/applicationScoring";
 
 const router = Router();
 
 router.post("/", async (req, res) => {
+  const transaction = await Database.GetSequelize().transaction();
   try {
     // Parse & validate req body
     const data = applicationSchema.parse(req.body);
@@ -23,10 +24,11 @@ router.post("/", async (req, res) => {
     // Get criteria for scoring before submitting application
     const criteria = await Criteria.findAll({
       where: { jobPostingId: parseInt(data.jobPostingId) },
+      transaction: transaction,
     });
 
     // Submit application and get result
-    const application = await submitApplication(data);
+    const application = await submitApplication(data, transaction);
 
     // Calculate score if criteria exists
     if (criteria.length > 0 && application) {
@@ -42,6 +44,7 @@ router.post("/", async (req, res) => {
       }
     }
 
+    transaction.commit();
     res.status(StatusCodes.CREATED).json({
       message: "Application submitted successfully",
       data: {
@@ -50,6 +53,7 @@ router.post("/", async (req, res) => {
       },
     });
   } catch (error) {
+    transaction.rollback();
     if (error instanceof ZodError) {
       const messages = error.errors.map((e) => e.message);
       return res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({

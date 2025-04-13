@@ -22,7 +22,6 @@ interface JobPostProps {
 }
 
 export default function JobPost({ job, onLearnMore, onApply }: JobPostProps) {
-  console.log("Job tags:", job.tags);
   return (
     <div
       className="flex flex-col gap-4 w-[450px] rounded-xl p-4 
