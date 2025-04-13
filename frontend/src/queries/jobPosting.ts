@@ -464,6 +464,22 @@ interface CandidateReportResponse {
     category: string;
     rationale: string;
   }>;
+  application?: {
+    experienceJson?: {
+      experiences: Array<{
+        title: string;
+        company: string;
+        startDate: string;
+        endDate: string | null;
+        skills: string[];
+        description: string;
+      }>;
+    };
+    // Add other application fields as needed
+    referralSource?: string;
+    score?: number;
+    manualScore?: number;
+  };
 }
 
 // Get job reports

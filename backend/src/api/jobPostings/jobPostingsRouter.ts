@@ -960,8 +960,8 @@ router.get(
           "jobPostingId",
           "applicantId",
           "score",
+          "experienceJson",
           "createdAt",
-          "referralSource",
         ],
       });
 
@@ -1391,6 +1391,13 @@ router.get(
           missing: missingRules,
         },
         resume: resume,
+        // Include application data with experienceJson for interview questions generation
+        application: {
+          experienceJson: application.experienceJson,
+          referralSource: application.referralSource,
+          score: application.score,
+          manualScore: application.manualScore,
+        },
       };
 
       res.json(candidateReport);
