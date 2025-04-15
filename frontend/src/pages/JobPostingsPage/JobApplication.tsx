@@ -442,7 +442,7 @@ export default function JobApplication() {
         console.error("Error processing resume:", error);
         setIsParsing(false);
         setErrorMessage(
-          `Failed to process resume. ${error} Please try again or fill in the details manually.`
+          `Failed to auto-parse resume. Please try again or fill in the details manually.`
         );
         setIsErrorModalOpen(true);
       } finally {
