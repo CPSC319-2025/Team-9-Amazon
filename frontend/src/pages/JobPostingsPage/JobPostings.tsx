@@ -130,82 +130,106 @@ export default function JobPostings() {
     });
 
     return (
-      <Box sx={{ p: 4, m: 0 }}>
-        {/* Header and Sort Controls */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <FormControl size="small">
-            <InputLabel id="sort-label">Sort By</InputLabel>
-            <Select
-              labelId="sort-label"
-              value={sortOrder}
-              onChange={handleSortChange}
-              label="Sort By"
-            >
-              <MenuItem value="newest">Newest First</MenuItem>
-              <MenuItem value="oldest">Oldest First</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-  
-        {/* Main content area with sidebar filters and job listings */}
-        <Box sx={{ display: { xs: "block", md: "flex" }, gap: 2 }}>
-          {/* Sidebar for Filters */}
+      <Box sx={{ p: 4 }}>
+        {/* Main content area: Left panel (Sort + Filters) and Right panel (Job Listings) */}
+        <Box
+          sx={{
+            display: { xs: "block", md: "flex" },
+            gap: 2,
+          }}
+        >
+          {/* Left Panel: Sort control and Filters */}
           <Box
             sx={{
-              backgroundColor: "white",
-              p: 2,
-              borderRadius: 2,
-              boxShadow: 1,
-              minWidth: "250px",
-              maxWidth: "250px",
-              height: "100%",
-              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              position: { xs: "static", md: "sticky" },
+              top: { md: 0 },                          
+              height: { md: "70vh" },                   
+              minWidth: { xs: "100%", md: "250px" },
+              maxWidth: { xs: "100%", md: "250px" },
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-              Filter By:
-            </Typography>
-            <Typography variant="subtitle1" sx={{ mb: 1, color: "#146eb4" }}>
-              Job Tags
-            </Typography>
-            <Box sx={{ mb: 2 }}>
-              {/* Using a simple HTML input with inline styles for tag search */}
-              <input
-                type="text"
-                placeholder="Search job tags..."
-                value={searchTagTerm}
-                onChange={(e) => setSearchTagTerm(e.target.value)}
-                style={{
-                  padding: "8px",
-                  marginBottom: "12px",
-                  border: "1px solid #ccc",
-                  borderRadius: "9999px",
-                  outline: "none",
-                  width: "100%",
+            {/* Sort Control */}
+            <FormControl size="small">
+              <InputLabel id="sort-label">Sort By</InputLabel>
+              <Select
+                labelId="sort-label"
+                value={sortOrder}
+                onChange={handleSortChange}
+                label="Sort By"
+              >
+                <MenuItem value="newest">Newest First</MenuItem>
+                <MenuItem value="oldest">Oldest First</MenuItem>
+              </Select>
+            </FormControl>
+  
+            {/* Sidebar for Filters */}
+            <Box
+              sx={{
+                backgroundColor: "white",
+                p: 2,
+                borderRadius: 2,
+                boxShadow: 1,
+                flexGrow: 1,
+                height: "100%",
+                overflowY: "auto",
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+                Filter By:
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1, color: "#146eb4" }}>
+                Job Tags
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                {/* Using a simple HTML input with inline styles for tag search */}
+                <input
+                  type="text"
+                  placeholder="Search job tags..."
+                  value={searchTagTerm}
+                  onChange={(e) => setSearchTagTerm(e.target.value)}
+                  style={{
+                    padding: "8px",
+                    marginBottom: "12px",
+                    border: "1px solid #ccc",
+                    borderRadius: "9999px",
+                    outline: "none",
+                    width: "100%",
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  maxHeight: "300px",
+                  overflowY: "auto",
                 }}
-              />
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1, maxHeight: "300px", overflowY: "auto" }}>
-              {jobTypes
-                .filter((type) =>
-                  type.toLowerCase().includes(searchTagTerm.toLowerCase())
-                )
-                .map((type) => (
-                  <FormControlLabel
-                    key={type}
-                    control={
-                      <Checkbox
-                        checked={selectedJobTypes.includes(type)}
-                        onChange={() => handleJobTypeChange(type)}
-                      />
-                    }
-                    label={type}
-                  />
-                ))}
+              >
+                {jobTypes
+                  .filter((type) =>
+                    type.toLowerCase().includes(searchTagTerm.toLowerCase())
+                  )
+                  .map((type) => (
+                    <FormControlLabel
+                      key={type}
+                      control={
+                        <Checkbox
+                          checked={selectedJobTypes.includes(type)}
+                          onChange={() => handleJobTypeChange(type)}
+                        />
+                      }
+                      label={type}
+                    />
+                  ))}
+              </Box>
             </Box>
           </Box>
   
-          {/* Job Listings */}
+          {/* Right Panel: Job Listings */}
           <Box
             sx={{
               flexGrow: 1,
@@ -233,7 +257,10 @@ export default function JobPostings() {
                 />
               ))
             ) : (
-              <Typography variant="h6" sx={{ color: "gray", textAlign: "center", mt: 4 }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "gray", textAlign: "center", mt: 4 }}
+              >
                 No job postings match your search criteria.
               </Typography>
             )}

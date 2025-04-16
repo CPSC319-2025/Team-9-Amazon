@@ -28,8 +28,8 @@ export default function JobPostingsPageHeader({
         {showSearchBar && (
           <div className="flex flex-col rounded-full sm:flex-row gap-4 w-full md:w-auto">
             <CustomTextField
-              placeholder="Search by job ID or keywords..."
-              minWidth={400}
+              placeholder="Search by job ID or keywords"
+              minWidth={250}
               value={searchTerm}
               onChange={(event) => onSearchTermChange(event.target.value)}
             />
