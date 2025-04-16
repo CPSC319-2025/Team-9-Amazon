@@ -1,44 +1,116 @@
-import { Link } from "react-router";
+import { Box, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 import CustomButton from "../components/Common/Buttons/CustomButton";
+import { colors } from "../styles/commonStyles";
 
 const HomePage = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen p-8 bg-[#f9f9f9]">
-      <div className="flex flex-row items-center justify-between max-w-6xl w-full">
-        <div className="w-1/2 bg-white p-10 shadow-xl rounded-lg">
-          <h2 className="text-4xl font-bold mb-6 text-[#146eb4]">
+    <Box
+      sx={{
+        // Outer container that fills the viewport and centers content
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        p: 4,
+        backgroundColor: "#f9f9f9",
+      }}
+    >
+      <Box
+        sx={{
+          // Inner wrapper with 6xl max width (~1152px) and full width
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: "center",
+          justifyContent: "center",
+          maxWidth: "65rem", // 72rem = Tailwind’s max-w-6xl
+          width: "100%",
+        }}
+      >
+        {/* Left Column */}
+        <Box
+          sx={{
+            width: { xs: "100%", md: "50%" },
+            backgroundColor: "white",
+            p: { xs: 4, md: 5 }, // Tailwind p-10 ≈ 2.5rem
+            boxShadow: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "bold",
+              mb: 3,
+              color: "#146eb4",
+              // Tailwind text-4xl = 2.25rem
+              fontSize: { xs: "2rem", md: "2.25rem" },
+            }}
+          >
             Empowering Builders to Change the World
-          </h2>
-          <p className="text-lg text-gray-600 leading-relaxed mb-8">
+          </Typography>
+
+          <Typography
+            sx={{
+              // Tailwind text-lg = 1.125rem
+              fontSize: { xs: "1rem", md: "1rem" },
+              color: colors.gray2,
+              lineHeight: 1.5,
+              mb: 4,
+            }}
+          >
             At AWS, we empower builders to turn bold ideas into
             reality—transforming industries, communities, and the world. Here,
-            you'll collaborate with the brightest minds in cloud innovation,
-            solve meaningful challenges, and push the boundaries of what’s
-            possible. Your voice matters, your impact is real, and your
-            potential is limitless. Join a culture where diverse perspectives
-            fuel innovation, and where you have the freedom to build, lead, and
-            make a difference.
-          </p>
-          <Link to="/applicant/job-postings">
-            <CustomButton variant="filled" className="text-lg px-8 py-4">
+            you'll collaborate with the brightest minds in cloud
+            innovation, solve meaningful challenges, and push the boundaries of
+            what's possible. Your voice matters, your impact is real, and
+            your potential is limitless. Join a culture where diverse
+            perspectives fuel innovation, and where you have the freedom to
+            build, lead, and make a difference.
+          </Typography>
+
+          <Link to="/applicant/job-postings" style={{ textDecoration: "none" }}>
+            <CustomButton variant="filled" className="text-lg px-8 py-4"
+            >
               Apply Now
             </CustomButton>
           </Link>
-        </div>
+        </Box>
 
-        {/* Right Side: AWS Logo and R.E.C.R.U.I.T */}
-        <div className="w-1/2 flex flex-col items-center">
-          <img
+        {/* Right Column */}
+        <Box
+          sx={{
+            width: { xs: "100%", md: "50%" },
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mt: { xs: 4, md: 0 },
+          }}
+        >
+          <Box
+            component="img"
             src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"
             alt="AWS RECRUIT"
-            className="w-64 mb-6"
+            sx={{
+              // Tailwind w-64 = 16rem
+              width: "15rem",
+              mb: 3,
+            }}
           />
-          <h2 className="text-4xl font-bold tracking-widest text-gray-800">
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "bold",
+              letterSpacing: "0.1em", // Tailwind tracking-widest
+              color: colors.black,
+              fontSize: { xs: "1.5rem", md: "2.25rem" },
+            }}
+          >
             R.E.C.R.U.I.T
-          </h2>
-        </div>
-      </div>
-    </div>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
