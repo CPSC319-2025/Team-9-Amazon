@@ -19,7 +19,7 @@ export default function JobPostingsPageHeader({
   showSearchBar = true,
 }: JobPostingsPageHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 m-4 py-5">
+    <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-200 m-4 mt-0 py-5">
       <div className="flex flex-col sm:flex-row w-full md:w-auto justify-around gap-4">
         <h1 className="text-3xl font-bold text-center md:text-left">
           {headerTitle}
