@@ -145,8 +145,8 @@ export default function JobPostings() {
               flexDirection: "column",
               gap: 2,
               position: { xs: "static", md: "sticky" },
-              top: { md: 0 },                          
-              height: { md: "70vh" },                   
+              top: { md: 0 },         
+              height: { md: "70vh", xs: "40vh" },                   
               minWidth: { xs: "100%", md: "250px" },
               maxWidth: { xs: "100%", md: "250px" },
             }}
@@ -172,9 +172,10 @@ export default function JobPostings() {
                 p: 2,
                 borderRadius: 2,
                 boxShadow: 1,
+                display: "flex",
+                flexDirection: "column",
                 flexGrow: 1,
-                height: "100%",
-                overflowY: "auto",
+                minHeight: 0,
               }}
             >
               <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
@@ -205,8 +206,9 @@ export default function JobPostings() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 1,
-                  maxHeight: "300px",
                   overflowY: "auto",
+                  flexGrow: 1,
+                  minHeight: 0,
                 }}
               >
                 {jobTypes
