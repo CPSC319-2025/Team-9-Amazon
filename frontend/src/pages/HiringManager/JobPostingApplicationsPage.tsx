@@ -8,6 +8,10 @@ import {
   Typography,
   CircularProgress,
   Button,
+  DialogActions,
+  Dialog,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import { colors, paperStyle } from "../../styles/commonStyles";
 import { ActionButtons } from "../../components/HiringManager/Applicants/ActionButtons";
@@ -30,6 +34,7 @@ const JobPostingApplicationsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortAscending, setSortAscending] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -39,10 +44,8 @@ const JobPostingApplicationsPage = () => {
     refetch: refetchApplications,
   } = useGetApplicationsSummary(jobPostingId || "");
 
-  // Fetch potential candidates on demand
   const {
     data: potentialCandidatesData,
-    isLoading: isScanning,
     error: scanError,
     refetch: fetchPotentialCandidates,
   } = useGetPotentialCandidates(jobPostingId || "");
@@ -99,8 +102,11 @@ const JobPostingApplicationsPage = () => {
 
   // Handle scanning database for candidates
   const handleScanDatabase = async () => {
+    setIsScanning(true);
     setScanned(true);
-    setSnackbarMessage("Scanning database for potential candidates...");
+    setSnackbarMessage(
+      "Scanning database for potential candidates... Please keep the page open."
+    );
     setSnackbarOpen(true);
 
     try {
@@ -115,9 +121,10 @@ const JobPostingApplicationsPage = () => {
       }
     } catch (error) {
       setSnackbarMessage("Error scanning database.");
+    } finally {
+      setIsScanning(false);
+      setSnackbarOpen(true);
     }
-
-    setSnackbarOpen(true);
   };
 
   const handleSearch = (value: string) => {
@@ -179,7 +186,10 @@ const JobPostingApplicationsPage = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: colors.white }}>
       <Container maxWidth={false} sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
-          <ActionButtons onScanDatabase={handleScanDatabase} />
+          <ActionButtons
+            onScanDatabase={handleScanDatabase}
+            isScanning={isScanning}
+          />
           <SearchBar
             placeholder="Search applicants..."
             onSearch={handleSearch}
@@ -262,7 +272,26 @@ const JobPostingApplicationsPage = () => {
                   Top 10 Potential Candidates
                 </Typography>
                 {isScanning ? (
-                  <CircularProgress />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      py: 4,
+                    }}
+                  >
+                    <CircularProgress sx={{ mb: 2 }} />
+                    <Typography variant="body1" sx={{ color: colors.gray2 }}>
+                      Scanning database for potential candidates...
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: colors.gray2, mt: 1 }}
+                    >
+                      This may take a few minutes. During this time, please keep
+                      the page open.
+                    </Typography>
+                  </Box>
                 ) : scanError ? (
                   <Typography color="error">
                     Error fetching candidates.
