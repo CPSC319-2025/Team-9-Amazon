@@ -21,7 +21,7 @@ import {
 import { ApplicationScoring } from "@/services/applicationScoring";
 import { Router } from "express";
 import path from "path";
-import { Op, Transaction } from "sequelize";
+import { Op, or, Transaction } from "sequelize";
 
 const router = Router();
 
@@ -1787,6 +1787,264 @@ router.delete(
       console.error("Error deleting manual scores:", error);
       return res.status(500).json({
         error: "Failed to delete manual scores",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+);
+
+// Get a potential candidate report for a job posting
+router.get(
+  "/:jobPostingId/candidate-report/:candidateEmail/:originalJobPostingId/potential",
+  authenticateJWT,
+  requireHiringManager,
+  async (req, res) => {
+    try {
+      const { jobPostingId, candidateEmail, originalJobPostingId } = req.params;
+      // Verify the job posting exists and belongs to this hiring manager
+      const jobPosting = await JobPosting.findOne({
+        where: {
+          id: jobPostingId,
+          staffId: req.auth?.id,
+        },
+      });
+
+      if (!jobPosting) {
+        return res.status(404).json({
+          error:
+            "Job posting not found or you don't have permission to view this candidate",
+        });
+      }
+
+      // Find the applicant by email
+      const applicant = await Applicant.findOne({
+        where: { email: candidateEmail },
+      });
+
+      if (!applicant) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Find the application for this applicant and job posting with applicant included
+      const application = await Application.findOne({
+        where: {
+          jobPostingId: originalJobPostingId,
+          applicantId: applicant.dataValues.id,
+        },
+        include: [
+          {
+            model: Applicant,
+            as: "applicant",
+            attributes: [
+              "id",
+              "firstName",
+              "lastName",
+              "email",
+              "phone",
+              "linkedIn",
+            ],
+          },
+        ],
+      });
+
+      if (!application) {
+        return res
+          .status(404)
+          .json({ error: "Application not found for this candidate" });
+      }
+
+      const applicantData = await Applicant.findByPk(applicant.dataValues.id, {
+        attributes: [
+          "id",
+          "firstName",
+          "lastName",
+          "email",
+          "phone",
+          "linkedIn",
+        ],
+      });
+
+      // Get criteria for this job posting
+      const criteria = await Criteria.findAll({
+        where: { jobPostingId },
+      });
+
+      if (!criteria.length) {
+        return res
+          .status(400)
+          .json({ error: "No criteria found for this job posting" });
+      }
+
+      // Calculate scores for each criterion
+      const criteriaScores = [];
+      let totalScore = 0;
+      let maxPossibleScore = 0;
+
+      // Process each criterion
+      for (const criterion of criteria) {
+        let criterionScore = 0;
+        const applicantSkills = new Set();
+
+        // Extract applicant skills from experiences
+        if (
+          application.experienceJson &&
+          application.experienceJson.experiences
+        ) {
+          application.experienceJson.experiences.forEach((exp) => {
+            if (exp.skills && Array.isArray(exp.skills)) {
+              exp.skills.forEach((skill) =>
+                applicantSkills.add(skill.toLowerCase())
+              );
+            }
+          });
+        }
+
+        // Calculate criterion score based on matched skills
+        if (criterion.criteriaJson && criterion.criteriaJson.rules) {
+          let rulePoints = 0;
+
+          for (const rule of criterion.criteriaJson.rules) {
+            if (applicantSkills.has(rule.skill.toLowerCase())) {
+              // Award points based on the rule's configuration
+              rulePoints += rule.maxPoints;
+            }
+          }
+
+          // Calculate score as a percentage of maximum possible points
+          criterionScore =
+            criterion.criteriaMaxScore > 0
+              ? (rulePoints / criterion.criteriaMaxScore) * 100
+              : 0;
+        }
+
+        // Add to total scores
+        totalScore += criterionScore;
+        maxPossibleScore += 100; // Each criterion has a max score of 100%
+
+        // Add to criteria array
+        criteriaScores.push({
+          name: criterion.name,
+          score: Math.round(criterionScore),
+        });
+      }
+
+      // Process rules for matching and missing
+      const matchedRules: string[] = [];
+      const missingRules: string[] = [];
+
+      // Extract applicant skills once
+      const applicantSkills = new Set();
+      if (
+        application.experienceJson &&
+        application.experienceJson.experiences
+      ) {
+        application.experienceJson.experiences.forEach((exp) => {
+          if (exp.skills && Array.isArray(exp.skills)) {
+            exp.skills.forEach((skill) =>
+              applicantSkills.add(skill.toLowerCase())
+            );
+          }
+        });
+      }
+
+      // Determine matched and missing rules
+      for (const criterion of criteria) {
+        if (criterion.criteriaJson && criterion.criteriaJson.rules) {
+          for (const rule of criterion.criteriaJson.rules) {
+            const ruleText = rule.skill;
+
+            if (applicantSkills.has(ruleText.toLowerCase())) {
+              if (!matchedRules.includes(ruleText)) {
+                matchedRules.push(ruleText);
+              }
+            } else {
+              if (!missingRules.includes(ruleText)) {
+                missingRules.push(ruleText);
+              }
+            }
+          }
+        }
+      }
+
+      // Determine current role from latest experience
+      let currentRole = "Applicant";
+      if (
+        application.experienceJson &&
+        application.experienceJson.experiences &&
+        application.experienceJson.experiences.length > 0
+      ) {
+        // Sort experiences by start date (newest first)
+        const sortedExperiences = [
+          ...application.experienceJson.experiences,
+        ].sort((a, b) => {
+          // Convert MM/YYYY to Date objects for comparison
+          const [aMonth, aYear] = a.startDate.split("/");
+          const [bMonth, bYear] = b.startDate.split("/");
+          return (
+            new Date(parseInt(bYear), parseInt(bMonth) - 1).getTime() -
+            new Date(parseInt(aYear), parseInt(aMonth) - 1).getTime()
+          );
+        });
+
+        // Use the most recent experience title as current role if available
+        if (sortedExperiences[0] && sortedExperiences[0].title) {
+          currentRole = sortedExperiences[0].title;
+        }
+      }
+
+      const personalLinks = [];
+
+      if (applicantData?.linkedIn) {
+        personalLinks.push(applicantData.linkedIn);
+      }
+
+      const score = Math.floor(application?.score || 0);
+
+      const applicationForResume = await Application.findOne({
+        where: {
+          jobPostingId: originalJobPostingId,
+          applicantId: applicant.dataValues.id,
+        },
+      });
+
+      let resume = null;
+
+      try {
+        // Extract just the filename from the full path
+        const resumeFileName = path.basename(
+          applicationForResume?.dataValues.resumePath || ""
+        );
+
+        resume = await generateTemporaryUrl(resumeFileName);
+      } catch (s3Error) {
+        console.error("Error retrieving resume from S3:", s3Error);
+        // Continue without resume content
+      }
+
+      const candidateReport = {
+        name: `${applicantData?.dataValues.firstName || ""} ${
+          applicantData?.dataValues.lastName || ""
+        }`,
+        role: currentRole,
+        matchScore: score,
+        details: {
+          email: applicantData?.dataValues.email || "",
+          phone: applicantData?.dataValues.phone || "N/A",
+          personalLinks: personalLinks,
+        },
+        criteria: criteriaScores,
+        rules: {
+          matched: matchedRules,
+          missing: missingRules,
+        },
+        resume: resume,
+      };
+
+      res.json(candidateReport);
+    } catch (error) {
+      console.error("Error fetching candidate report:", error);
+      res.status(500).json({
+        error: "Failed to fetch candidate report",
         details: error instanceof Error ? error.message : "Unknown error",
       });
     }
