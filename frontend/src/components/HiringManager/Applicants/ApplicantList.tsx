@@ -14,21 +14,22 @@ import { colors } from "../../../styles/commonStyles";
 import { useNavigate, useParams } from "react-router";
 import { ROUTES } from "../../../routes/routePaths";
 import { ApplicationSummary } from "../../../types/application";
-import { mockApplicationsWithManualScores } from "../../../mocks/manualScoringMocks";
-import { useEffect, useState } from "react";
 
 interface ApplicantListProps {
   applications: ApplicationSummary[];
+  isPotentialList: boolean;
 }
 
-export const ApplicantList = ({ applications }: ApplicantListProps) => {
+export const ApplicantList = ({ applications, isPotentialList }: ApplicantListProps) => {
   const navigate = useNavigate();
   const { jobPostingId } = useParams();
 
-  console.log('data: ', applications);
-
-  const handleNavigateToReport = (email: string) => {
-    navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
+  const handleNavigateToReport = (email: string, originalPostingId: number) => {
+    if(isPotentialList) {
+      navigate(ROUTES.hiringManager.potentialCandidateReport(jobPostingId!, email, originalPostingId));
+    } else {
+      navigate(ROUTES.hiringManager.candidateReport(jobPostingId!, email));
+    }
   };
 
   if (applications.length === 0) {
@@ -62,7 +63,7 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
               },
               py: 2,
             }}
-            onClick={() => handleNavigateToReport(application.applicant.email)}
+            onClick={() => handleNavigateToReport(application.applicant.email, application.jobPostingId)}
           >
             <ListItemText
               primary={
@@ -104,7 +105,7 @@ export const ApplicantList = ({ applications }: ApplicantListProps) => {
                   edge="end"
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent row click event from firing
-                    handleNavigateToReport(application.applicant.email);
+                    handleNavigateToReport(application.applicant.email, application.jobPostingId);
                   }}
                   sx={{
                     color: colors.black1,

@@ -375,6 +375,26 @@ export const useGetApplicationsSummary = (jobPostingId: string) => {
   });
 };
 
+export const useGetPotentialApplicationsSummary = (jobPostingId: string, applicantEmail: string, originalJobPostingId: string) => {
+  return useQuery({
+    queryKey: ["potentialCandidatesReport", jobPostingId],
+    queryFn: async () => {
+      const response = await fetchWithAuth(
+        apiUrls.getPotentialCandidateReportUrl.replace(
+          ":jobPostingId",
+          jobPostingId
+        ).replace(":candidateEmail", applicantEmail).replace(':originalJobPostingId', originalJobPostingId)
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch applications summary");
+      }
+
+      return response.json() as Promise<CandidateReportResponse>;
+    },
+    enabled: !!jobPostingId,
+  });
+};
+
 export const useGetPotentialCandidates = (jobPostingId: string) => {
   return useQuery({
     queryKey: ["potentialCandidates", jobPostingId],

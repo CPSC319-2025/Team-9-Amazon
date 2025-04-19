@@ -47,6 +47,7 @@ export const apiUrls = {
   },
   getJobReportsUrl: jobPostingsUrl + "/:jobPostingId/reports",
   getCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail",
+  getPotentialCandidateReportUrl: jobPostingsUrl + "/:jobPostingId/candidate-report/:candidateEmail/:originalJobPostingId/potential",
   candidateNotes: jobPostingsUrl + "/:jobPostingId/candidate-notes/:candidateEmail",
   manualScore: `${jobPostingsUrl}/:jobPostingId/:candidateEmail/manual-score`,
   resetManualScore: `${jobPostingsUrl}/:jobPostingId/manual-scores`,

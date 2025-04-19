@@ -16,6 +16,10 @@ export const ROUTES = {
       `/hiring-manager/job-posting/${jobPostingId}/candidate-report/${encodeURIComponent(
         candidateEmail
       )}`,
+    potentialCandidateReport: (jobPostingId: string, candidateEmail: string, originalJobPostingId: number) =>
+      `/hiring-manager/job-posting/${jobPostingId}/candidate-report/${encodeURIComponent(
+        candidateEmail
+      )}/${originalJobPostingId}/potential`,
   },
   admin: {
     userManagement: "/admin/user-management",

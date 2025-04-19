@@ -243,7 +243,7 @@ const JobPostingApplicationsPage = () => {
                   </Typography>
                 )}
               </Box>
-              <ApplicantList applications={filteredApplications} />
+              <ApplicantList applications={filteredApplications} isPotentialList={false}/>
             </Paper>
           </Grid>
 
@@ -268,7 +268,7 @@ const JobPostingApplicationsPage = () => {
                     Error fetching candidates.
                   </Typography>
                 ) : filteredPotentialCandidates.length > 0 ? (
-                  <ApplicantList applications={filteredPotentialCandidates} />
+                  <ApplicantList applications={filteredPotentialCandidates} isPotentialList={true}/>
                 ) : (
                   <Typography variant="subtitle1" sx={{ color: colors.gray2 }}>
                     No potential candidates found
